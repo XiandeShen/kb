@@ -1,0 +1,2327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XIANDE - 工单管理系统</title>
+    <!-- 动态生成的工单系统 Icon (Base64 SVG) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233b82f6'/%3E%3Cpath d='M10 9h12v3H10zm0 6h12v3H10zm0 6h8v3H10z' fill='%23ffffff' opacity='0.8'/%3E%3Cpath d='M21 21l3 3 5-5' stroke='%2310b981' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --table-header-bg: #e0f2fe;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            background: var(--card-bg);
+            padding: 20px 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .title-area h1 {
+            font-size: 22px;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .title-area p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background-color: #f9fafb;
+            border-color: var(--text-muted);
+        }
+
+        .btn-danger-outline {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: var(--danger);
+        }
+
+        .btn-danger-outline:hover:not(:disabled) {
+            background-color: #fee2e2;
+        }
+
+        .btn-danger-outline:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .search-filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            align-items: center;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 220px;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 32px 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+        }
+
+        .clear-search-btn {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            display: none;
+            padding: 2px;
+        }
+
+        .clear-search-btn:hover {
+            color: var(--text-main);
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #fff;
+        }
+
+        .filter-select:focus {
+            border-color: var(--primary);
+        }
+
+        .date-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .date-filter-group input {
+            padding: 7px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            background: #fff;
+        }
+
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 16px;
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+            min-width: 1100px;
+        }
+
+        th {
+            background-color: var(--table-header-bg);
+            color: #0369a1;
+            font-weight: 600;
+            padding: 12px 10px;
+            border-bottom: 2px solid #bae6fd;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px;
+            color: var(--text-muted);
+        }
+
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 14px 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pagination-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #f8fafc;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            font-weight: 500;
+            color: var(--text-main);
+            margin: 0 8px;
+        }
+
+        .page-size-select {
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            background: #fff;
+            color: var(--text-main);
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 750px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            color: var(--text-main);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .close-btn:hover {
+            color: var(--text-main);
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            background: #fff;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            height: 70px;
+        }
+
+        /* 留言时间轴样式 */
+        .logs-section {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 8px;
+        }
+
+        .logs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            background: #fff;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+
+        .log-header-info {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .log-content-text {
+            color: var(--text-main);
+            word-break: break-all;
+        }
+
+        .add-log-box {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .add-log-box textarea {
+            flex: 1;
+            height: 40px;
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+
+        /* 下拉组件样式 */
+        .dropdown-multiselect {
+            position: relative;
+        }
+
+        .dropdown-select-box {
+            min-height: 40px;
+            padding: 6px 32px 6px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .dropdown-placeholder {
+            color: #9ca3af;
+        }
+
+        .selected-tag {
+            background: #e0f2fe;
+            color: #0284c7;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .dropdown-clear-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            display: none;
+            padding: 2px;
+            z-index: 5;
+        }
+
+        .dropdown-clear-btn:hover {
+            color: var(--text-main);
+        }
+
+        .dropdown-options-panel {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-top: 4px;
+            z-index: 20;
+            padding: 10px;
+        }
+
+        .dropdown-options-panel.active {
+            display: block;
+        }
+
+        .options-list-container {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .option-item:hover {
+            background: #f8fafc;
+        }
+
+        .option-item label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .delete-tag-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .delete-tag-btn:hover {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .add-tag-row {
+            display: flex;
+            gap: 8px;
+            padding-top: 4px;
+        }
+
+        .add-tag-input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .add-tag-btn {
+            padding: 6px 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9fafb;
+        }
+
+        .status-btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-status {
+            padding: 8px 14px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-status.active[data-status="待处理"] {
+            background: #fef3c7;
+            color: #d97706;
+            border-color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .btn-status.active[data-status="处理中"] {
+            background: #e0f2fe;
+            color: #0284c7;
+            border-color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .btn-status.active[data-status="已完成"] {
+            background: #d1fae5;
+            color: #059669;
+            border-color: #34d399;
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge-pending { background: #fef3c7; color: #d97706; }
+        .badge-processing { background: #e0f2fe; color: #0284c7; }
+        .badge-completed { background: #d1fae5; color: #059669; }
+        .badge-closed { background: #f3f4f6; color: #4b5563; }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        /* 必备字段红星标识 */
+        .required-star {
+            color: var(--danger);
+            margin-left: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="title-area">
+                <h1>
+                    <svg width="26" height="26" viewBox="0 0 32 32" style="vertical-align: middle;">
+                        <rect width="32" height="32" rx="8" fill="#3b82f6"/>
+                        <path d="M10 9h12v3H10zm0 6h12v3H10zm0 6h8v3H10z" fill="#ffffff" opacity="0.8"/>
+                        <path d="M21 21l3 3 5-5" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                    XIANDE 工单管理系统
+                </h1>
+                <p>集中管理、记录与检索您的所有售后工单记录 v2.2</p>
+            </div>
+            <div class="action-bar">
+                <button class="btn btn-danger-outline" id="clearAllDataBtn" type="button">
+                    清空所有数据
+                </button>
+                <button class="btn btn-danger-outline" id="batchDeleteBtn" type="button" disabled>
+                    删除 (<span id="selectedCount">0</span>)
+                </button>
+                <button class="btn btn-primary" id="openModalBtn" type="button">
+                    <span>＋</span> 添加售后单
+                </button>
+                <button class="btn btn-outline" id="exportBtn" type="button">
+                    导出
+                </button>
+                <label class="btn btn-outline" style="cursor: pointer; margin-bottom: 0;">
+                    导入
+                    <input type="file" id="importFile" accept=".csv" style="display: none;">
+                </label>
+            </div>
+        </header>
+
+        <div class="search-filter-bar">
+            <div class="search-input-wrapper">
+                <input type="text" id="searchInput" class="search-input" placeholder="全局搜索：支持多个关键词组合，如 抖音 120+ 部分退款...">
+                <button type="button" id="clearSearchBtn" class="clear-search-btn" title="清空搜索">×</button>
+            </div>
+            
+            <div class="date-filter-group">
+                <span>时间:</span>
+                <input type="date" id="startDateFilter">
+                <span>至</span>
+                <input type="date" id="endDateFilter">
+                <button type="button" id="clearDateBtn" class="btn btn-outline" style="padding: 5px 10px; font-size: 12px;">清空</button>
+            </div>
+
+            <select id="statusFilter" class="filter-select">
+                <option value="">所有售后进度</option>
+                <option value="待处理">待处理</option>
+                <option value="处理中">处理中</option>
+                <option value="已完成">已完成</option>
+            </select>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 45px; text-align: center;">
+                            <input type="checkbox" id="selectAllCheckbox" title="全选当前页">
+                        </th>
+                        <th style="width: 140px;">时间</th>
+                        <th style="width: 90px;">平台</th>
+                        <th style="width: 130px;">订单号/标识</th>
+                        <th style="width: 80px;">规格</th>
+                        <th style="width: 85px;">地区</th>
+                        <th style="width: 130px;">客诉问题</th>
+                        <th style="width: 130px;">处理方案</th>
+                        <th style="width: 95px;">赔付金额</th>
+                        <th style="width: 90px;">售后进度</th>
+                        <th style="width: 135px;">最新留言/跟单</th>
+                        <th style="width: 75px;">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="ticketTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页栏 -->
+        <div class="pagination-bar">
+            <div class="pagination-info-text">
+                共 <span id="totalRecordsSpan">0</span> 条记录，每页显示：
+                <select id="pageSizeSelect" class="page-size-select">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select> 条
+            </div>
+            <div class="pagination-controls">
+                <button type="button" class="pagination-btn" id="prevPageBtn">上一页</button>
+                <span class="page-info">第 <span id="currentPageSpan">1</span> / <span id="totalPagesSpan">1</span> 页</span>
+                <button type="button" class="pagination-btn" id="nextPageBtn">下一页</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：添加/查看与编辑订单 -->
+    <div class="modal" id="ticketModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">添加售后单</h3>
+                <button class="close-btn" id="closeModalBtn" type="button">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <form id="ticketForm">
+                    <input type="hidden" id="ticketId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>下单日期<span class="required-star">*</span></label>
+                            <input type="date" id="ticketTime" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>售后平台<span class="required-star">*</span></label>
+                            <div class="dropdown-multiselect" id="platformDropdown">
+                                <div class="dropdown-select-box" id="platformSelectBox">
+                                    <span class="dropdown-placeholder">请选择平台...</span>
+                                    <button type="button" id="clearPlatformBtn" class="dropdown-clear-btn" title="清空平台">×</button>
+                                </div>
+                                <div class="dropdown-options-panel" id="platformOptionsPanel">
+                                    <div class="options-list-container" id="platformListContainer"></div>
+                                    <div class="add-tag-row">
+                                        <input type="text" id="newPlatformInput" class="add-tag-input" placeholder="输入新平台...">
+                                        <button type="button" id="addNewPlatformBtn" class="add-tag-btn">添加</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>订单号/标识<span class="required-star">*</span></label>
+                            <input type="text" id="orderNo" class="form-control" placeholder="输入订单号或客户ID" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>规格<span class="required-star">*</span></label>
+                            <div class="dropdown-multiselect" id="specDropdown">
+                                <div class="dropdown-select-box" id="specSelectBox">
+                                    <span class="dropdown-placeholder">请选择规格...</span>
+                                    <button type="button" id="clearSpecBtn" class="dropdown-clear-btn" title="清空规格">×</button>
+                                </div>
+                                <div class="dropdown-options-panel" id="specOptionsPanel">
+                                    <div class="options-list-container" id="specListContainer"></div>
+                                    <div class="add-tag-row">
+                                        <input type="text" id="newSpecInput" class="add-tag-input" placeholder="输入新规格...">
+                                        <button type="button" id="addNewSpecBtn" class="add-tag-btn">添加</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>地区<span class="required-star">*</span></label>
+                            <input type="text" id="region" class="form-control" list="provincesList" placeholder="输入省份（如：辽宁省）" required>
+                            <datalist id="provincesList"></datalist>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>客诉问题<span class="required-star">*</span></label>
+                            <div class="dropdown-multiselect" id="complaintDropdown">
+                                <div class="dropdown-select-box" id="dropdownSelectBox">
+                                    <span class="dropdown-placeholder">选择或添加客诉...</span>
+                                    <button type="button" id="clearComplaintBtn" class="dropdown-clear-btn" title="清空客诉">×</button>
+                                </div>
+                                <div class="dropdown-options-panel" id="dropdownOptionsPanel">
+                                    <div class="options-list-container" id="optionsListContainer"></div>
+                                    <div class="add-tag-row">
+                                        <input type="text" id="newTagInput" class="add-tag-input" placeholder="输入新标签...">
+                                        <button type="button" id="addNewTagBtn" class="add-tag-btn">添加</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 赔付金额与处理方案左右各占一半 -->
+                        <div class="form-group">
+                            <label>赔付金额 (元)<span id="amountStar" class="required-star" style="display:none;">*</span></label>
+                            <input type="number" step="0.01" id="amount" class="form-control" placeholder="0.00">
+                        </div>
+
+                        <div class="form-group">
+                            <label>处理方案<span id="solutionStar" class="required-star" style="display:none;">*</span></label>
+                            <div class="dropdown-multiselect" id="solutionDropdown">
+                                <div class="dropdown-select-box" id="solutionSelectBox">
+                                    <span class="dropdown-placeholder">请选择处理方案...</span>
+                                    <button type="button" id="clearSolutionBtn" class="dropdown-clear-btn" title="清空方案">×</button>
+                                </div>
+                                <div class="dropdown-options-panel" id="solutionOptionsPanel">
+                                    <div class="options-list-container" id="solutionListContainer"></div>
+                                    <div class="add-tag-row">
+                                        <input type="text" id="newSolutionInput" class="add-tag-input" placeholder="输入新处理方案...">
+                                        <button type="button" id="addNewSolutionBtn" class="add-tag-btn">添加</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 售后跟单留言区 -->
+                        <div class="form-group full-width" id="logsGroupContainer">
+                            <label>跟单留言记录 (售后备注/进度跟踪)</label>
+                            <div class="logs-section">
+                                <div class="logs-list" id="logsListContainer">
+                                    <div style="color: #9ca3af; text-align: center; font-size: 12px; padding: 10px;">暂无跟单留言</div>
+                                </div>
+                                <div class="add-log-box">
+                                    <textarea id="newLogInput" class="form-control" placeholder="输入新的跟单备注"></textarea>
+                                    <button type="button" class="btn btn-primary btn-sm" id="addLogBtn" style="height: 40px; white-space: nowrap;">添加留言</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="status-btn-group" id="statusBtnGroup">
+                    <button type="button" class="btn-status" data-status="待处理">待处理</button>
+                    <button type="button" class="btn-status" data-status="处理中">处理中</button>
+                    <button type="button" class="btn-status" data-status="已完成">已完成</button>
+                </div>
+                <div>
+                    <button class="btn btn-primary" id="saveTicketBtn" type="button">保存工单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chinaProvinces = [
+            "北京市", "天津市", "河北省", "山西省", "内蒙古自治区", "辽宁省", "吉林省", "黑龙江省",
+            "上海市", "江苏省", "浙江省", "安徽省", "福建省", "江西省", "山东省", "河南省",
+            "湖北省", "湖南省", "广东省", "广西壮族自治区", "海南省", "重庆市", "四川省", "贵州省",
+            "云南省", "西藏自治区", "陕西省", "甘肃省", "青海省", "宁夏回族自治区", "新疆维吾尔自治区",
+            "香港特别行政区", "澳门特别行政区", "台湾省"
+        ];
+
+        const datalist = document.getElementById('provincesList');
+        chinaProvinces.forEach(province => {
+            const opt = document.createElement('option');
+            opt.value = province;
+            datalist.appendChild(opt);
+        });
+
+        // 删除了所有默认预设，完全从本地存储或空数组初始化
+        let availablePlatforms = JSON.parse(localStorage.getItem('after_sales_platforms')) || [];
+        let currentSelectedPlatform = '';
+
+        let availableSpecs = JSON.parse(localStorage.getItem('after_sales_specs')) || [];
+        let currentSelectedSpec = '';
+
+        let availableSolutions = JSON.parse(localStorage.getItem('after_sales_solutions')) || [];
+        let currentSelectedSolution = '';
+
+        let availableTags = JSON.parse(localStorage.getItem('after_sales_tags')) || [];
+        let tickets = JSON.parse(localStorage.getItem('after_sales_tickets')) || [];
+        
+        sortTicketsByTime();
+
+        let currentEditingLogs = [];
+        let currentStatus = '处理中';
+
+        let currentPage = 1;
+        let pageSize = 20;
+
+        const ticketTableBody = document.getElementById('ticketTableBody');
+        const ticketModal = document.getElementById('ticketModal');
+        const modalBody = document.getElementById('modalBody');
+        const openModalBtn = document.getElementById('openModalBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const saveTicketBtn = document.getElementById('saveTicketBtn');
+        const ticketForm = document.getElementById('ticketForm');
+        const modalTitle = document.getElementById('modalTitle');
+        
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const statusFilter = document.getElementById('statusFilter');
+        
+        const startDateFilter = document.getElementById('startDateFilter');
+        const endDateFilter = document.getElementById('endDateFilter');
+        const clearDateBtn = document.getElementById('clearDateBtn');
+
+        const exportBtn = document.getElementById('exportBtn');
+        const importFile = document.getElementById('importFile');
+
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+        const clearAllDataBtn = document.getElementById('clearAllDataBtn');
+        const selectedCountSpan = document.getElementById('selectedCount');
+
+        const pageSizeSelect = document.getElementById('pageSizeSelect');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const currentPageSpan = document.getElementById('currentPageSpan');
+        const totalPagesSpan = document.getElementById('totalPagesSpan');
+        const totalRecordsSpan = document.getElementById('totalRecordsSpan');
+
+        const platformSelectBox = document.getElementById('platformSelectBox');
+        const platformOptionsPanel = document.getElementById('platformOptionsPanel');
+        const platformListContainer = document.getElementById('platformListContainer');
+        const newPlatformInput = document.getElementById('newPlatformInput');
+        const addNewPlatformBtn = document.getElementById('addNewPlatformBtn');
+        const clearPlatformBtn = document.getElementById('clearPlatformBtn');
+
+        const specSelectBox = document.getElementById('specSelectBox');
+        const specOptionsPanel = document.getElementById('specOptionsPanel');
+        const specListContainer = document.getElementById('specListContainer');
+        const newSpecInput = document.getElementById('newSpecInput');
+        const addNewSpecBtn = document.getElementById('addNewSpecBtn');
+        const clearSpecBtn = document.getElementById('clearSpecBtn');
+
+        const solutionSelectBox = document.getElementById('solutionSelectBox');
+        const solutionOptionsPanel = document.getElementById('solutionOptionsPanel');
+        const solutionListContainer = document.getElementById('solutionListContainer');
+        const newSolutionInput = document.getElementById('newSolutionInput');
+        const addNewSolutionBtn = document.getElementById('addNewSolutionBtn');
+        const clearSolutionBtn = document.getElementById('clearSolutionBtn');
+
+        const dropdownSelectBox = document.getElementById('dropdownSelectBox');
+        const dropdownOptionsPanel = document.getElementById('dropdownOptionsPanel');
+        const optionsListContainer = document.getElementById('optionsListContainer');
+        const newTagInput = document.getElementById('newTagInput');
+        const addNewTagBtn = document.getElementById('addNewTagBtn');
+        const clearComplaintBtn = document.getElementById('clearComplaintBtn');
+
+        const logsListContainer = document.getElementById('logsListContainer');
+        const newLogInput = document.getElementById('newLogInput');
+        const addLogBtn = document.getElementById('addLogBtn');
+
+        renderPlatformList();
+        renderSpecList();
+        renderSolutionList();
+        renderOptionsList();
+        renderTable();
+
+        openModalBtn.addEventListener('click', () => openModal());
+        closeModalBtn.addEventListener('click', closeModal);
+
+        document.querySelectorAll('.btn-status').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetStatus = this.dataset.status;
+                if (targetStatus === '已完成') {
+                    const time = document.getElementById('ticketTime').value;
+                    const orderNo = document.getElementById('orderNo').value.trim();
+                    const region = document.getElementById('region').value.trim();
+                    const amountVal = document.getElementById('amount').value;
+                    const selectedComplaints = getSelectedComplaints();
+
+                    if (!time || !currentSelectedPlatform || !orderNo || !currentSelectedSpec || !region || selectedComplaints.length === 0 || amountVal === '' || isNaN(amountVal) || !currentSelectedSolution) {
+                        alert('请补充信息后完成');
+                        return;
+                    }
+                }
+                setStatusActive(targetStatus);
+            });
+        });
+
+        function setStatusActive(statusVal) {
+            currentStatus = statusVal;
+            document.querySelectorAll('.btn-status').forEach(b => {
+                if (b.dataset.status === statusVal) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+            updateRequiredStars();
+        }
+
+        function updateRequiredStars() {
+            const amountStar = document.getElementById('amountStar');
+            const solutionStar = document.getElementById('solutionStar');
+            if (currentStatus === '已完成') {
+                if (amountStar) amountStar.style.display = 'inline';
+                if (solutionStar) solutionStar.style.display = 'inline';
+            } else {
+                if (amountStar) amountStar.style.display = 'none';
+                if (solutionStar) solutionStar.style.display = 'none';
+            }
+        }
+
+        platformSelectBox.addEventListener('click', (e) => {
+            if (e.target === clearPlatformBtn) return;
+            e.stopPropagation();
+            closeAllPanels();
+            platformOptionsPanel.classList.toggle('active');
+        });
+
+        specSelectBox.addEventListener('click', (e) => {
+            if (e.target === clearSpecBtn) return;
+            e.stopPropagation();
+            closeAllPanels();
+            specOptionsPanel.classList.toggle('active');
+        });
+
+        solutionSelectBox.addEventListener('click', (e) => {
+            if (e.target === clearSolutionBtn) return;
+            e.stopPropagation();
+            closeAllPanels();
+            solutionOptionsPanel.classList.toggle('active');
+        });
+
+        dropdownSelectBox.addEventListener('click', (e) => {
+            if (e.target === clearComplaintBtn) return;
+            e.stopPropagation();
+            closeAllPanels();
+            dropdownOptionsPanel.classList.toggle('active');
+        });
+
+        function closeAllPanels() {
+            platformOptionsPanel.classList.remove('active');
+            specOptionsPanel.classList.remove('active');
+            solutionOptionsPanel.classList.remove('active');
+            dropdownOptionsPanel.classList.remove('active');
+        }
+
+        clearPlatformBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentSelectedPlatform = '';
+            renderPlatformList();
+            platformOptionsPanel.classList.remove('active');
+        });
+
+        clearSpecBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentSelectedSpec = '';
+            renderSpecList();
+            specOptionsPanel.classList.remove('active');
+        });
+
+        clearSolutionBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentSelectedSolution = '';
+            renderSolutionList();
+            solutionOptionsPanel.classList.remove('active');
+        });
+
+        clearComplaintBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            optionsListContainer.querySelectorAll('.tag-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            updateDropdownDisplay();
+            dropdownOptionsPanel.classList.remove('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('platformDropdown').contains(e.target)) {
+                platformOptionsPanel.classList.remove('active');
+            }
+            if (!document.getElementById('specDropdown').contains(e.target)) {
+                specOptionsPanel.classList.remove('active');
+            }
+            if (!document.getElementById('solutionDropdown').contains(e.target)) {
+                solutionOptionsPanel.classList.remove('active');
+            }
+            if (!document.getElementById('complaintDropdown').contains(e.target)) {
+                dropdownOptionsPanel.classList.remove('active');
+            }
+        });
+
+        addNewPlatformBtn.addEventListener('click', handleAddNewPlatform);
+        newPlatformInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddNewPlatform();
+            }
+        });
+
+        addNewSpecBtn.addEventListener('click', handleAddNewSpec);
+        newSpecInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddNewSpec();
+            }
+        });
+
+        addNewSolutionBtn.addEventListener('click', handleAddNewSolution);
+        newSolutionInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddNewSolution();
+            }
+        });
+
+        addLogBtn.addEventListener('click', handleAddLog);
+        newLogInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                handleAddLog();
+            }
+        });
+
+        function sortTicketsByTime() {
+            tickets.sort((a, b) => {
+                const timeA = a.time ? new Date(a.time).getTime() : 0;
+                const timeB = b.time ? new Date(b.time).getTime() : 0;
+                if (timeB !== timeA) {
+                    return timeB - timeA;
+                }
+                return Number(b.id) - Number(a.id);
+            });
+        }
+
+        function handleAddLog() {
+            const val = newLogInput.value.trim();
+            if (!val) {
+                alert('请输入留言内容！');
+                return;
+            }
+            const now = new Date();
+            const timeStr = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0') + ' ' +
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0');
+
+            currentEditingLogs.push({
+                time: timeStr,
+                content: val
+            });
+            newLogInput.value = '';
+            renderModalLogsList();
+        }
+
+        window.deleteModalLog = function(index) {
+            currentEditingLogs.splice(index, 1);
+            renderModalLogsList();
+        }
+
+        function renderModalLogsList() {
+            if (currentEditingLogs.length === 0) {
+                logsListContainer.innerHTML = `<div style="color: #9ca3af; text-align: center; font-size: 12px; padding: 10px;">暂无跟单留言</div>`;
+                return;
+            }
+            logsListContainer.innerHTML = currentEditingLogs.map((log, idx) => `
+                <div class="log-item">
+                    <div class="log-header-info">
+                        <span><strong>#${idx + 1}</strong> &nbsp; ${log.time}</span>
+                        <button type="button" class="delete-tag-btn" onclick="deleteModalLog(${idx})">删除</button>
+                    </div>
+                    <div class="log-content-text">${escapeHtml(log.content)}</div>
+                </div>
+            `).join('');
+            logsListContainer.scrollTop = logsListContainer.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function renderPlatformList() {
+            if (availablePlatforms.length === 0) {
+                platformListContainer.innerHTML = `<div style="text-align:center; padding:12px; color:#9ca3af; font-size:12px;">暂无平台，请在下方输入框添加或导入</div>`;
+            } else {
+                platformListContainer.innerHTML = availablePlatforms.map(plat => {
+                    const isChecked = (currentSelectedPlatform === plat) ? 'checked' : '';
+                    return `
+                        <div class="option-item">
+                            <label>
+                                <input type="radio" name="platformRadio" value="${plat}" ${isChecked} class="platform-radio">
+                                <span>${plat}</span>
+                            </label>
+                            <button type="button" class="delete-tag-btn" onclick="deletePlatform(event, '${plat}')">删除</button>
+                        </div>
+                    `;
+                }).join('');
+
+                platformListContainer.querySelectorAll('.platform-radio').forEach(rb => {
+                    rb.addEventListener('change', (e) => {
+                        currentSelectedPlatform = e.target.value;
+                        updatePlatformDisplay();
+                        platformOptionsPanel.classList.remove('active');
+                    });
+                });
+            }
+            updatePlatformDisplay();
+        }
+
+        function handleAddNewPlatform() {
+            const val = newPlatformInput.value.trim();
+            if (!val) return;
+            if (availablePlatforms.includes(val)) {
+                alert('该平台已存在！');
+                return;
+            }
+            availablePlatforms.push(val);
+            localStorage.setItem('after_sales_platforms', JSON.stringify(availablePlatforms));
+            currentSelectedPlatform = val;
+            newPlatformInput.value = '';
+            renderPlatformList();
+        }
+
+        window.deletePlatform = function(e, platToDelete) {
+            e.stopPropagation();
+            if (confirm(`确定要删除平台“${platToDelete}”吗？`)) {
+                availablePlatforms = availablePlatforms.filter(p => p !== platToDelete);
+                localStorage.setItem('after_sales_platforms', JSON.stringify(availablePlatforms));
+                if (currentSelectedPlatform === platToDelete) {
+                    currentSelectedPlatform = '';
+                }
+                renderPlatformList();
+            }
+        }
+
+        function updatePlatformDisplay() {
+            if (!currentSelectedPlatform) {
+                platformSelectBox.innerHTML = `
+                    <span class="dropdown-placeholder">请选择平台...</span>
+                    <button type="button" id="clearPlatformBtn" class="dropdown-clear-btn" title="清空平台">×</button>
+                `;
+                document.getElementById('clearPlatformBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    currentSelectedPlatform = '';
+                    renderPlatformList();
+                    platformOptionsPanel.classList.remove('active');
+                });
+                clearPlatformBtn.style.display = 'none';
+            } else {
+                platformSelectBox.innerHTML = `
+                    <span class="selected-tag">${currentSelectedPlatform}</span>
+                    <button type="button" id="clearPlatformBtn" class="dropdown-clear-btn" title="清空平台" style="display: block;">×</button>
+                `;
+                document.getElementById('clearPlatformBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    currentSelectedPlatform = '';
+                    renderPlatformList();
+                    platformOptionsPanel.classList.remove('active');
+                });
+            }
+        }
+
+        function renderSpecList() {
+            if (availableSpecs.length === 0) {
+                specListContainer.innerHTML = `<div style="text-align:center; padding:12px; color:#9ca3af; font-size:12px;">暂无规格，请在下方输入框添加或导入</div>`;
+            } else {
+                specListContainer.innerHTML = availableSpecs.map(sp => {
+                    const isChecked = (currentSelectedSpec === sp) ? 'checked' : '';
+                    return `
+                        <div class="option-item">
+                            <label>
+                                <input type="radio" name="specRadio" value="${sp}" ${isChecked} class="spec-radio">
+                                <span>${sp}</span>
+                            </label>
+                            <button type="button" class="delete-tag-btn" onclick="deleteSpec(event, '${sp}')">删除</button>
+                        </div>
+                    `;
+                }).join('');
+
+                specListContainer.querySelectorAll('.spec-radio').forEach(rb => {
+                    rb.addEventListener('change', (e) => {
+                        currentSelectedSpec = e.target.value;
+                        updateSpecDisplay();
+                        specOptionsPanel.classList.remove('active');
+                    });
+                });
+            }
+            updateSpecDisplay();
+        }
+
+        function handleAddNewSpec() {
+            const val = newSpecInput.value.trim();
+            if (!val) return;
+            if (availableSpecs.includes(val)) {
+                alert('该规格已存在！');
+                return;
+            }
+            availableSpecs.push(val);
+            localStorage.setItem('after_sales_specs', JSON.stringify(availableSpecs));
+            currentSelectedSpec = val;
+            newSpecInput.value = '';
+            renderSpecList();
+        }
+
+        window.deleteSpec = function(e, specToDelete) {
+            e.stopPropagation();
+            if (confirm(`确定要删除规格“${specToDelete}”吗？`)) {
+                availableSpecs = availableSpecs.filter(s => s !== specToDelete);
+                localStorage.setItem('after_sales_specs', JSON.stringify(availableSpecs));
+                if (currentSelectedSpec === specToDelete) {
+                    currentSelectedSpec = '';
+                }
+                renderSpecList();
+            }
+        }
+
+        function updateSpecDisplay() {
+            if (!currentSelectedSpec) {
+                specSelectBox.innerHTML = `
+                    <span class="dropdown-placeholder">请选择规格...</span>
+                    <button type="button" id="clearSpecBtn" class="dropdown-clear-btn" title="清空规格">×</button>
+                `;
+                document.getElementById('clearSpecBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    currentSelectedSpec = '';
+                    renderSpecList();
+                    specOptionsPanel.classList.remove('active');
+                });
+                clearSpecBtn.style.display = 'none';
+            } else {
+                specSelectBox.innerHTML = `
+                    <span class="selected-tag">${currentSelectedSpec}</span>
+                    <button type="button" id="clearSpecBtn" class="dropdown-clear-btn" title="清空规格" style="display: block;">×</button>
+                `;
+                document.getElementById('clearSpecBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    currentSelectedSpec = '';
+                    renderSpecList();
+                    specOptionsPanel.classList.remove('active');
+                });
+            }
+        }
+
+        function renderSolutionList() {
+            if (availableSolutions.length === 0) {
+                solutionListContainer.innerHTML = `<div style="text-align:center; padding:12px; color:#9ca3af; font-size:12px;">暂无方案，请在下方输入框添加或导入</div>`;
+            } else {
+                solutionListContainer.innerHTML = availableSolutions.map(sol => {
+                    const isChecked = (currentSelectedSolution === sol) ? 'checked' : '';
+                    return `
+                        <div class="option-item">
+                            <label>
+                                <input type="radio" name="solutionRadio" value="${sol}" ${isChecked} class="solution-radio">
+                                <span>${sol}</span>
+                            </label>
+                            <button type="button" class="delete-tag-btn" onclick="deleteSolution(event, '${sol}')">删除</button>
+                        </div>
+                    `;
+                }).join('');
+
+                solutionListContainer.querySelectorAll('.solution-radio').forEach(rb => {
+                    rb.addEventListener('change', (e) => {
+                        currentSelectedSolution = e.target.value;
+                        updateSolutionDisplay();
+                        solutionOptionsPanel.classList.remove('active');
+                    });
+                });
+            }
+            updateSolutionDisplay();
+        }
+
+        function handleAddNewSolution() {
+            const val = newSolutionInput.value.trim();
+            if (!val) return;
+            if (availableSolutions.includes(val)) {
+                alert('该处理方案已存在！');
+                return;
+            }
+            availableSolutions.push(val);
+            localStorage.setItem('after_sales_solutions', JSON.stringify(availableSolutions));
+            currentSelectedSolution = val;
+            newSolutionInput.value = '';
+            renderSolutionList();
+        }
+
+        window.deleteSolution = function(e, solToDelete) {
+            e.stopPropagation();
+            if (confirm(`确定要删除处理方案“${solToDelete}”吗？`)) {
+                availableSolutions = availableSolutions.filter(s => s !== solToDelete);
+                localStorage.setItem('after_sales_solutions', JSON.stringify(availableSolutions));
+                if (currentSelectedSolution === solToDelete) {
+                    currentSelectedSolution = '';
+                }
+                renderSolutionList();
+            }
+        }
+
+        function updateSolutionDisplay() {
+            if (!currentSelectedSolution) {
+                solutionSelectBox.innerHTML = `
+                    <span class="dropdown-placeholder">请选择处理方案...</span>
+                    <button type="button" id="clearSolutionBtn" class="dropdown-clear-btn" title="清空方案">×</button>
+                `;
+                document.getElementById('clearSolutionBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    currentSelectedSolution = '';
+                    renderSolutionList();
+                    solutionOptionsPanel.classList.remove('active');
+                });
+                clearSolutionBtn.style.display = 'none';
+            } else {
+                solutionSelectBox.innerHTML = `
+                    <span class="selected-tag">${currentSelectedSolution}</span>
+                    <button type="button" id="clearSolutionBtn" class="dropdown-clear-btn" title="清空方案" style="display: block;">×</button>
+                `;
+                document.getElementById('clearSolutionBtn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    currentSelectedSolution = '';
+                    renderSolutionList();
+                    solutionOptionsPanel.classList.remove('active');
+                });
+            }
+        }
+
+        addNewTagBtn.addEventListener('click', handleAddNewTag);
+        newTagInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddNewTag();
+            }
+        });
+
+        saveTicketBtn.addEventListener('click', saveTicket);
+        
+        searchInput.addEventListener('input', () => {
+            toggleClearSearchBtn();
+            currentPage = 1;
+            renderTable();
+        });
+        
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            toggleClearSearchBtn();
+            currentPage = 1;
+            renderTable();
+            searchInput.focus();
+        });
+
+        function toggleClearSearchBtn() {
+            if (searchInput.value.length > 0) {
+                clearSearchBtn.style.display = 'block';
+            } else {
+                clearSearchBtn.style.display = 'none';
+            }
+        }
+
+        statusFilter.addEventListener('change', () => {
+            currentPage = 1;
+            renderTable();
+        });
+        
+        startDateFilter.addEventListener('change', () => {
+            currentPage = 1;
+            renderTable();
+        });
+        endDateFilter.addEventListener('change', () => {
+            currentPage = 1;
+            renderTable();
+        });
+        clearDateBtn.addEventListener('click', () => {
+            startDateFilter.value = '';
+            endDateFilter.value = '';
+            currentPage = 1;
+            renderTable();
+        });
+
+        pageSizeSelect.addEventListener('change', (e) => {
+            pageSize = parseInt(e.target.value);
+            currentPage = 1;
+            renderTable();
+        });
+
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        });
+
+        nextPageBtn.addEventListener('click', () => {
+            const keyword = searchInput.value.trim();
+            const selectedStatus = statusFilter.value;
+            const startDateVal = startDateFilter.value;
+            const endDateVal = endDateFilter.value;
+
+            const filteredCount = getFilteredTickets(keyword, selectedStatus, startDateVal, endDateVal).length;
+            const totalPages = Math.ceil(filteredCount / pageSize) || 1;
+
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        });
+
+        exportBtn.addEventListener('click', exportCSV);
+        importFile.addEventListener('change', importCSV);
+
+        selectAllCheckbox.addEventListener('change', function() {
+            const rowCheckboxes = ticketTableBody.querySelectorAll('.row-checkbox');
+            rowCheckboxes.forEach(cb => {
+                cb.checked = selectAllCheckbox.checked;
+            });
+            updateBatchDeleteState();
+        });
+
+        batchDeleteBtn.addEventListener('click', function() {
+            const rowCheckboxes = ticketTableBody.querySelectorAll('.row-checkbox:checked');
+            if (rowCheckboxes.length === 0) return;
+
+            if (confirm(`确定要删除选中的 ${rowCheckboxes.length} 条售后记录吗？`)) {
+                const idsToDelete = Array.from(rowCheckboxes).map(cb => cb.dataset.id);
+                tickets = tickets.filter(t => !idsToDelete.includes(t.id));
+                saveToLocalStorage();
+                selectAllCheckbox.checked = false;
+                renderTable();
+            }
+        });
+
+        clearAllDataBtn.addEventListener('click', function() {
+            if (tickets.length === 0) {
+                alert('当前本来就没有数据哦！');
+                return;
+            }
+            if (confirm('警告：您确定要一键清空【所有】售后数据吗？此操作不可恢复，请提前导出备份！')) {
+                tickets = [];
+                localStorage.removeItem('after_sales_tickets');
+                
+                searchInput.value = '';
+                toggleClearSearchBtn();
+                statusFilter.value = '';
+                startDateFilter.value = '';
+                endDateFilter.value = '';
+                currentPage = 1;
+                
+                selectAllCheckbox.checked = false;
+                renderTable();
+                alert('所有售后数据已成功清空。');
+            }
+        });
+
+        function updateBatchDeleteState() {
+            const rowCheckboxes = ticketTableBody.querySelectorAll('.row-checkbox');
+            const checkedBoxes = ticketTableBody.querySelectorAll('.row-checkbox:checked');
+            const count = checkedBoxes.length;
+
+            selectedCountSpan.textContent = count;
+            if (count > 0) {
+                batchDeleteBtn.removeAttribute('disabled');
+            } else {
+                batchDeleteBtn.setAttribute('disabled', 'true');
+            }
+
+            if (rowCheckboxes.length > 0 && count === rowCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (count > 0 && count < rowCheckboxes.length) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
+        }
+
+        function renderOptionsList(selectedArr = []) {
+            if (availableTags.length === 0) {
+                optionsListContainer.innerHTML = `<div style="text-align:center; padding:12px; color:#9ca3af; font-size:12px;">暂无标签，请在下方输入框添加或导入</div>`;
+            } else {
+                optionsListContainer.innerHTML = availableTags.map(tag => {
+                    const isChecked = selectedArr.includes(tag) ? 'checked' : '';
+                    return `
+                        <div class="option-item">
+                            <label>
+                                <input type="checkbox" value="${tag}" ${isChecked} class="tag-checkbox">
+                                <span>${tag}</span>
+                            </label>
+                            <button type="button" class="delete-tag-btn" onclick="deleteTag(event, '${tag}')">删除</button>
+                        </div>
+                    `;
+                }).join('');
+
+                optionsListContainer.querySelectorAll('.tag-checkbox').forEach(cb => {
+                    cb.addEventListener('change', updateDropdownDisplay);
+                });
+            }
+            updateDropdownDisplay();
+        }
+
+        function handleAddNewTag() {
+            const val = newTagInput.value.trim();
+            if (!val) return;
+            if (availableTags.includes(val)) {
+                alert('该标签已存在！');
+                return;
+            }
+
+            availableTags.push(val);
+            localStorage.setItem('after_sales_tags', JSON.stringify(availableTags));
+
+            const currentSelected = getSelectedComplaints();
+            currentSelected.push(val);
+
+            newTagInput.value = '';
+            renderOptionsList(currentSelected);
+        }
+
+        window.deleteTag = function(e, tagToDelete) {
+            e.stopPropagation();
+            if (confirm(`确定要从候选列表中删除标签“${tagToDelete}”吗？`)) {
+                availableTags = availableTags.filter(t => t !== tagToDelete);
+                localStorage.setItem('after_sales_tags', JSON.stringify(availableTags));
+                const currentSelected = getSelectedComplaints();
+                renderOptionsList(currentSelected);
+            }
+        }
+
+        function updateDropdownDisplay() {
+            const selectedValues = getSelectedComplaints();
+            const clearBtnHTML = `<button type="button" id="clearComplaintBtn" class="dropdown-clear-btn" title="清空客诉">×</button>`;
+            
+            if (selectedValues.length === 0) {
+                dropdownSelectBox.innerHTML = `<span class="dropdown-placeholder">选择或添加客诉...</span>` + clearBtnHTML;
+            } else {
+                dropdownSelectBox.innerHTML = selectedValues.map(val => `<span class="selected-tag">${val}</span>`).join('') + clearBtnHTML;
+            }
+
+            const clearBtnEl = document.getElementById('clearComplaintBtn');
+            if (clearBtnEl) {
+                clearBtnEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    optionsListContainer.querySelectorAll('.tag-checkbox').forEach(cb => {
+                        cb.checked = false;
+                    });
+                    updateDropdownDisplay();
+                    dropdownOptionsPanel.classList.remove('active');
+                });
+            }
+
+            if (selectedValues.length > 0) {
+                if(clearBtnEl) clearBtnEl.style.display = 'block';
+            } else {
+                if(clearBtnEl) clearBtnEl.style.display = 'none';
+            }
+        }
+
+        function getSelectedComplaints() {
+            const checkboxes = optionsListContainer.querySelectorAll('.tag-checkbox');
+            return Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+        }
+
+        function setSelectedComplaints(arr) {
+            arr.forEach(item => {
+                if (item && !availableTags.includes(item)) {
+                    availableTags.push(item);
+                }
+            });
+            localStorage.setItem('after_sales_tags', JSON.stringify(availableTags));
+            renderOptionsList(arr);
+        }
+
+        function openModal(ticket = null, scrollToBottom = false) {
+            ticketForm.reset();
+            closeAllPanels();
+            currentEditingLogs = [];
+
+            if (ticket) {
+                modalTitle.textContent = '查看与编辑售后单';
+                document.getElementById('ticketId').value = ticket.id;
+                document.getElementById('ticketTime').value = ticket.time ? ticket.time.substring(0, 10) : '';
+                
+                currentSelectedPlatform = ticket.platform || '';
+                // 确保编辑时即使原本不在候选里也能被正确识别展示
+                if (currentSelectedPlatform && !availablePlatforms.includes(currentSelectedPlatform)) {
+                    availablePlatforms.push(currentSelectedPlatform);
+                    localStorage.setItem('after_sales_platforms', JSON.stringify(availablePlatforms));
+                }
+                renderPlatformList();
+
+                document.getElementById('orderNo').value = ticket.orderNo;
+                
+                currentSelectedSpec = ticket.spec || '';
+                if (currentSelectedSpec && !availableSpecs.includes(currentSelectedSpec)) {
+                    availableSpecs.push(currentSelectedSpec);
+                    localStorage.setItem('after_sales_specs', JSON.stringify(availableSpecs));
+                }
+                renderSpecList();
+
+                document.getElementById('region').value = ticket.region || '';
+                
+                let cArr = [];
+                if (Array.isArray(ticket.complaint)) {
+                    cArr = ticket.complaint;
+                } else if (typeof ticket.complaint === 'string' && ticket.complaint.trim()) {
+                    cArr = ticket.complaint.split(',').map(s => s.trim());
+                }
+                setSelectedComplaints(cArr);
+
+                document.getElementById('amount').value = ticket.amount !== undefined ? ticket.amount : '';
+                
+                currentSelectedSolution = ticket.solution || '';
+                if (currentSelectedSolution && !availableSolutions.includes(currentSelectedSolution)) {
+                    availableSolutions.push(currentSelectedSolution);
+                    localStorage.setItem('after_sales_solutions', JSON.stringify(availableSolutions));
+                }
+                renderSolutionList();
+
+                setStatusActive(ticket.status || '处理中');
+                
+                if (Array.isArray(ticket.logs)) {
+                    currentEditingLogs = JSON.parse(JSON.stringify(ticket.logs));
+                } else if (ticket.remark) {
+                    currentEditingLogs = [{
+                        time: ticket.time ? ticket.time.replace('T', ' ') : '历史记录',
+                        content: ticket.remark
+                    }];
+                }
+            } else {
+                modalTitle.textContent = '添加售后单';
+                document.getElementById('ticketId').value = '';
+                
+                currentSelectedPlatform = '';
+                renderPlatformList();
+
+                currentSelectedSpec = '';
+                renderSpecList();
+
+                currentSelectedSolution = '';
+                renderSolutionList();
+
+                setSelectedComplaints([]);
+                setStatusActive('处理中');
+                
+                document.getElementById('ticketTime').value = '';
+            }
+            renderModalLogsList();
+            ticketModal.classList.add('active');
+
+            setTimeout(() => {
+                if (scrollToBottom) {
+                    modalBody.scrollTop = modalBody.scrollHeight;
+                } else {
+                    modalBody.scrollTop = 0;
+                }
+            }, 10);
+        }
+
+        function closeModal() {
+            ticketModal.classList.remove('active');
+            closeAllPanels();
+        }
+
+        function saveTicket() {
+            const time = document.getElementById('ticketTime').value;
+            const orderNo = document.getElementById('orderNo').value.trim();
+            const region = document.getElementById('region').value.trim();
+            const amountVal = document.getElementById('amount').value;
+            const selectedComplaints = getSelectedComplaints();
+
+            if (!time) {
+                alert('请填写下单日期！');
+                return;
+            }
+            if (!currentSelectedPlatform) {
+                alert('请选择售后平台！');
+                return;
+            }
+            if (!orderNo) {
+                alert('请填写订单号/标识！');
+                return;
+            }
+            if (!currentSelectedSpec) {
+                alert('请选择规格！');
+                return;
+            }
+            if (!region) {
+                alert('请填写地区！');
+                return;
+            }
+            if (selectedComplaints.length === 0) {
+                alert('请至少勾选或添加一个客诉问题！');
+                return;
+            }
+
+            if (currentStatus === '已完成') {
+                if (amountVal === '' || isNaN(amountVal) || !currentSelectedSolution) {
+                    alert('请补充信息后完成');
+                    return;
+                }
+            } else {
+                if (amountVal !== '' && isNaN(amountVal)) {
+                    alert('赔付金额格式不正确！');
+                    return;
+                }
+            }
+
+            const id = document.getElementById('ticketId').value;
+
+            // 联动保存用户手动输入或选择的新项到各对应候选池
+            if (currentSelectedPlatform && !availablePlatforms.includes(currentSelectedPlatform)) {
+                availablePlatforms.push(currentSelectedPlatform);
+                localStorage.setItem('after_sales_platforms', JSON.stringify(availablePlatforms));
+            }
+            if (currentSelectedSpec && !availableSpecs.includes(currentSelectedSpec)) {
+                availableSpecs.push(currentSelectedSpec);
+                localStorage.setItem('after_sales_specs', JSON.stringify(availableSpecs));
+            }
+            if (currentSelectedSolution && !availableSolutions.includes(currentSelectedSolution)) {
+                availableSolutions.push(currentSelectedSolution);
+                localStorage.setItem('after_sales_solutions', JSON.stringify(availableSolutions));
+            }
+
+            const duplicateTicket = tickets.find(t => t.orderNo === orderNo && t.id !== id);
+            if (duplicateTicket) {
+                const existingTime = duplicateTicket.time ? duplicateTicket.time.substring(0, 10) : '-';
+                const confirmMsg = `【提示】系统中已存在相同订单号/标识：${orderNo}\n` +
+                                   `• 关联平台：${duplicateTicket.platform || '-'}\n` +
+                                   `• 原记录日期：${existingTime}\n\n` +
+                                   `确定要继续保存这条重复的订单吗？`;
+                if (!confirm(confirmMsg)) {
+                    return; 
+                }
+            }
+
+            const ticketData = {
+                id: id ? id : Date.now().toString(),
+                time: time,
+                platform: currentSelectedPlatform,
+                orderNo: orderNo,
+                spec: currentSelectedSpec,
+                region: region,
+                complaint: selectedComplaints,
+                solution: currentSelectedSolution || '',
+                amount: amountVal !== '' ? (parseFloat(amountVal) || 0) : 0,
+                status: currentStatus,
+                logs: currentEditingLogs
+            };
+
+            if (id) {
+                const index = tickets.findIndex(t => t.id === id);
+                if (index !== -1) tickets[index] = ticketData;
+            } else {
+                tickets.push(ticketData);
+            }
+
+            sortTicketsByTime();
+            saveToLocalStorage();
+            closeModal();
+            renderTable();
+        }
+
+        function getFilteredTickets(keyword, selectedStatus, startDateVal, endDateVal) {
+            const keywords = keyword.toLowerCase().split(/\s+/).filter(Boolean);
+
+            return tickets.filter(t => {
+                const complaintStr = Array.isArray(t.complaint) ? t.complaint.join(' ') : (t.complaint || '');
+                const logsStr = Array.isArray(t.logs) ? t.logs.map(l => l.content + ' ' + l.time).join(' ') : (t.remark || '');
+                
+                const fullSearchText = [
+                    t.platform || '',
+                    t.orderNo || '',
+                    t.spec || '',
+                    t.region || '',
+                    complaintStr,
+                    t.solution || '',
+                    String(t.amount || ''),
+                    t.status || '',
+                    logsStr
+                ].join(' ').toLowerCase();
+
+                const matchKeyword = keywords.length === 0 || keywords.every(kw => fullSearchText.includes(kw));
+                const matchStatus = selectedStatus === '' || t.status === selectedStatus;
+
+                let matchDate = true;
+                if (t.time) {
+                    const ticketDateOnly = t.time.substring(0, 10);
+                    if (startDateVal && ticketDateOnly < startDateVal) matchDate = false;
+                    if (endDateVal && ticketDateOnly > endDateVal) matchDate = false;
+                } else if (startDateVal || endDateVal) {
+                    matchDate = false;
+                }
+
+                return matchKeyword && matchStatus && matchDate;
+            });
+        }
+
+        function renderTable() {
+            const keyword = searchInput.value.trim();
+            const selectedStatus = statusFilter.value;
+            const startDateVal = startDateFilter.value;
+            const endDateVal = endDateFilter.value;
+
+            const filteredTickets = getFilteredTickets(keyword, selectedStatus, startDateVal, endDateVal);
+            const totalRecords = filteredTickets.length;
+            const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+            if (currentPage < 1) {
+                currentPage = 1;
+            }
+
+            totalRecordsSpan.textContent = totalRecords;
+            currentPageSpan.textContent = currentPage;
+            totalPagesSpan.textContent = totalPages;
+
+            prevPageBtn.disabled = (currentPage === 1);
+            nextPageBtn.disabled = (currentPage >= totalPages);
+
+            if (totalRecords === 0) {
+                ticketTableBody.innerHTML = `<tr><td colspan="12" class="empty-state">暂无匹配的售后记录，请尝试更改搜索或时间范围。</td></tr>`;
+                selectAllCheckbox.checked = false;
+                updateBatchDeleteState();
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const pageTickets = filteredTickets.slice(startIndex, endIndex);
+
+            ticketTableBody.innerHTML = pageTickets.map(t => {
+                let badgeClass = 'badge-processing';
+                if (t.status === '待处理') badgeClass = 'badge-pending';
+                else if (t.status === '已完成') badgeClass = 'badge-completed';
+
+                const formattedTime = t.time ? t.time.substring(0, 10) : '';
+                const cArray = Array.isArray(t.complaint) ? t.complaint : [t.complaint];
+                const complaintHtml = cArray.map(c => `<span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; margin-right:4px; display:inline-block; font-size:12px;">${c}</span>`).join('');
+                const complaintPlainStr = cArray.join(', ');
+
+                let logsArr = Array.isArray(t.logs) ? t.logs : (t.remark ? [{time: '', content: t.remark}] : []);
+                let latestLogStr = '-';
+                let latestLogTitle = '';
+                if (logsArr.length > 0) {
+                    const lastLog = logsArr[logsArr.length - 1];
+                    latestLogStr = `[${logsArr.length}条] ${lastLog.content}`;
+                    latestLogTitle = logsArr.map(l => `[${l.time}] ${l.content}`).join('\n');
+                }
+
+                return `
+                    <tr>
+                        <td style="text-align: center;">
+                            <input type="checkbox" class="row-checkbox" data-id="${t.id}">
+                        </td>
+                        <td title="${formattedTime}">${formattedTime}</td>
+                        <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:500;">${t.platform || '-'}</span></td>
+                        <td title="${t.orderNo}">${t.orderNo}</td>
+                        <td title="${t.spec || ''}">${t.spec || '-'}</td>
+                        <td title="${t.region || ''}">${t.region || '-'}</td>
+                        <td title="${complaintPlainStr}">${complaintHtml || '-'}</td>
+                        <td title="${t.solution || ''}">${t.solution || '-'}</td>
+                        <td>¥${Number(t.amount || 0).toFixed(2)}</td>
+                        <td><span class="badge ${badgeClass}">${t.status}</span></td>
+                        <td title="${latestLogTitle}" style="cursor:pointer; color:#3b82f6;" onclick="openLogTicket('${t.id}')">${latestLogStr}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-outline btn-sm" onclick="editTicket('${t.id}')" type="button">查看</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            ticketTableBody.querySelectorAll('.row-checkbox').forEach(cb => {
+                cb.addEventListener('change', updateBatchDeleteState);
+            });
+            updateBatchDeleteState();
+        }
+
+        window.editTicket = function(id) {
+            const ticket = tickets.find(t => t.id === id);
+            if (ticket) openModal(ticket, false);
+        }
+
+        window.openLogTicket = function(id) {
+            const ticket = tickets.find(t => t.id === id);
+            if (ticket) openModal(ticket, true);
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('after_sales_tickets', JSON.stringify(tickets));
+        }
+
+        function exportCSV() {
+            const keyword = searchInput.value.trim();
+            const selectedStatus = statusFilter.value;
+            const startDateVal = startDateFilter.value;
+            const endDateVal = endDateFilter.value;
+
+            const exportTickets = getFilteredTickets(keyword, selectedStatus, startDateVal, endDateVal);
+
+            if (exportTickets.length === 0) {
+                alert('当前筛选目录下没有可导出的数据！');
+                return;
+            }
+
+            let maxComplaintCount = 1;
+            let maxLogCount = 1;
+            exportTickets.forEach(t => {
+                const cArr = Array.isArray(t.complaint) ? t.complaint : (t.complaint ? [t.complaint] : []);
+                if (cArr.length > maxComplaintCount) maxComplaintCount = cArr.length;
+
+                let lArr = Array.isArray(t.logs) ? t.logs : (t.remark ? [t.remark] : []);
+                if (lArr.length > maxLogCount) maxLogCount = lArr.length;
+            });
+
+            let complaintHeaders = [];
+            for (let i = 1; i <= maxComplaintCount; i++) {
+                complaintHeaders.push(`问题${i}`);
+            }
+
+            let logHeaders = [];
+            for (let i = 1; i <= maxLogCount; i++) {
+                logHeaders.push(`跟单留言${i}`);
+            }
+
+            const baseHeaders = ['时间', '平台', '订单号/标识', '规格', '地区'];
+            const tailHeaders = ['处理方案', '赔付金额', '售后进度'];
+            const headers = [...baseHeaders, ...complaintHeaders, ...tailHeaders, ...logHeaders];
+            
+            let csvContent = '\uFEFF' + headers.join(',') + '\n';
+
+            exportTickets.forEach(t => {
+                const cArr = Array.isArray(t.complaint) ? t.complaint : (t.complaint ? [t.complaint] : []);
+                let complaintCols = [];
+                for (let i = 0; i < maxComplaintCount; i++) {
+                    complaintCols.push(`"${(cArr[i] || '').replace(/"/g, '""')}"`);
+                }
+
+                let lArr = Array.isArray(t.logs) ? t.logs.map(l => `[${l.time}] ${l.content}`) : (t.remark ? [t.remark] : []);
+                let logCols = [];
+                for (let i = 0; i < maxLogCount; i++) {
+                    logCols.push(`"${(lArr[i] || '').replace(/"/g, '""')}"`);
+                }
+
+                const row = [
+                    `"${(t.time || '').substring(0, 10)}"`,
+                    `"${(t.platform || '')}"`,
+                    `"${(t.orderNo || '')}"`,
+                    `"${(t.spec || '')}"`,
+                    `"${(t.region || '')}"`,
+                    ...complaintCols,
+                    `"${(t.solution || '').replace(/"/g, '""')}"`,
+                    t.amount || 0,
+                    `"${(t.status || '')}"`,
+                    ...logCols
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+
+            let filenameParts = ['XIANDE工单'];
+            if (keyword) {
+                filenameParts.push(`搜_${keyword.replace(/\s+/g, '_')}`);
+            }
+            if (selectedStatus) {
+                filenameParts.push(`状态_${selectedStatus}`);
+            }
+            if (startDateVal || endDateVal) {
+                const dateTag = (startDateVal || '最早') + '_至_' + (endDateVal || '至今');
+                filenameParts.push(`时间_${dateTag}`);
+            }
+            filenameParts.push(new Date().toISOString().slice(0,10));
+
+            const finalFileName = filenameParts.join('_') + '.csv';
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = finalFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importCSV(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const text = event.target.result;
+                parseCSV(text);
+                importFile.value = ''; 
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        function parseCSV(text) {
+            const lines = text.split(/\r\n|\n/);
+            if (lines.length < 2) {
+                alert('CSV 文件格式错误或内容为空！');
+                return;
+            }
+
+            const headerLine = lines[0].trim();
+            const headers = parseCSVLine(headerLine);
+            
+            let timeIdx = headers.findIndex(h => h.includes('时间'));
+            let platformIdx = headers.findIndex(h => h.includes('平台'));
+            let orderNoIdx = headers.findIndex(h => h.includes('订单号') || h.includes('标识'));
+            let specIdx = headers.findIndex(h => h.includes('规格'));
+            let regionIdx = headers.findIndex(h => h.includes('地区'));
+            let solutionIdx = headers.findIndex(h => h.includes('处理方案'));
+            let amountIdx = headers.findIndex(h => h.includes('赔付金额') || h.includes('金额'));
+            let statusIdx = headers.findIndex(h => h.includes('售后进度') || h.includes('进度') || h.includes('状态'));
+
+            if (timeIdx === -1) timeIdx = 0;
+            if (platformIdx === -1) platformIdx = 1;
+            if (orderNoIdx === -1) orderNoIdx = 2;
+            if (specIdx === -1) specIdx = 3;
+            if (regionIdx === -1) regionIdx = 4;
+            if (solutionIdx === -1) solutionIdx = 6;
+            if (amountIdx === -1) amountIdx = 7;
+            if (statusIdx === -1) statusIdx = 8;
+
+            let complaintIndices = [];
+            let logIndices = [];
+            headers.forEach((h, idx) => {
+                if (h.startsWith('问题')) {
+                    complaintIndices.push(idx);
+                }
+                if (h.includes('留言') || h.includes('备注')) {
+                    logIndices.push(idx);
+                }
+            });
+
+            const existingOrderNos = new Set(tickets.map(t => (t.orderNo || '').trim()));
+
+            let importedCount = 0;
+            let duplicateCount = 0;
+            let duplicateOrders = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const row = parseCSVLine(line);
+                if (row.length > 0) {
+                    let timeVal = (row[timeIdx] || '').substring(0, 10);
+
+                    const orderNoVal = (row[orderNoIdx] || '').trim();
+                    if (!orderNoVal) continue;
+
+                    if (existingOrderNos.has(orderNoVal)) {
+                        duplicateCount++;
+                        duplicateOrders.push(orderNoVal);
+                        continue;
+                    }
+
+                    const platformVal = row[platformIdx] || '';
+                    if (platformVal && !availablePlatforms.includes(platformVal)) {
+                        availablePlatforms.push(platformVal);
+                        localStorage.setItem('after_sales_platforms', JSON.stringify(availablePlatforms));
+                    }
+
+                    const specVal = row[specIdx] || '';
+                    if (specVal && !availableSpecs.includes(specVal)) {
+                        availableSpecs.push(specVal);
+                        localStorage.setItem('after_sales_specs', JSON.stringify(availableSpecs));
+                    }
+
+                    const solutionVal = row[solutionIdx] || '';
+                    if (solutionVal && !availableSolutions.includes(solutionVal)) {
+                        availableSolutions.push(solutionVal);
+                        localStorage.setItem('after_sales_solutions', JSON.stringify(availableSolutions));
+                    }
+
+                    let complaintArr = [];
+                    if (complaintIndices.length > 0) {
+                        complaintIndices.forEach(idx => {
+                            if (row[idx] && row[idx].trim()) {
+                                complaintArr.push(row[idx].trim());
+                            }
+                        });
+                    }
+
+                    complaintArr.forEach(item => {
+                        if (item && !availableTags.includes(item)) {
+                            availableTags.push(item);
+                        }
+                    });
+                    localStorage.setItem('after_sales_tags', JSON.stringify(availableTags));
+
+                    let logsArr = [];
+                    if (logIndices.length > 0) {
+                        logIndices.forEach(idx => {
+                            if (row[idx] && row[idx].trim()) {
+                                let lText = row[idx].trim();
+                                let lTime = timeVal ? timeVal : '';
+                                if (lText.startsWith('[')) {
+                                    const closeIdx = lText.indexOf(']');
+                                    if (closeIdx > 1) {
+                                        lTime = lText.substring(1, closeIdx);
+                                        lText = lText.substring(closeIdx + 1).trim();
+                                    }
+                                }
+                                logsArr.push({ time: lTime, content: lText });
+                            }
+                        });
+                    }
+
+                    const amountVal = row[amountIdx] !== '' ? (parseFloat(row[amountIdx]) || 0) : 0;
+                    const statusVal = row[statusIdx] || '处理中';
+                    const regionVal = row[regionIdx] || '';
+
+                    const newTicket = {
+                        id: Date.now().toString() + Math.random().toString(36).substring(2, 5),
+                        time: timeVal,
+                        platform: platformVal,
+                        orderNo: orderNoVal,
+                        spec: specVal,
+                        region: regionVal,
+                        complaint: complaintArr,
+                        solution: solutionVal,
+                        amount: amountVal,
+                        status: statusVal,
+                        logs: logsArr
+                    };
+
+                    existingOrderNos.add(orderNoVal);
+                    tickets.push(newTicket);
+                    importedCount++;
+                }
+            }
+
+            if (importedCount > 0 || duplicateCount > 0) {
+                sortTicketsByTime();
+                saveToLocalStorage();
+                renderPlatformList();
+                renderSpecList();
+                renderSolutionList();
+                renderOptionsList();
+                currentPage = 1;
+                renderTable();
+
+                let msg = `导入完成！\n- 成功导入新记录：${importedCount} 条\n- 自动过滤系统已有重复记录：${duplicateCount} 条`;
+                if (duplicateCount > 0) {
+                    msg += `\n\n被过滤的重复订单号：\n${duplicateOrders.join(', ')}`;
+                }
+                alert(msg);
+            } else {
+                alert('未能成功解析任何有效数据，或者表格中的所有订单在系统中均已存在，已被全部过滤。');
+            }
+        }
+
+        function parseCSVLine(line) {
+            const row = [];
+            let inQuotes = false;
+            let currentVal = "";
+            for (let char of line) {
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    row.push(currentVal.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+                    currentVal = '';
+                } else {
+                    currentVal += char;
+                }
+            }
+            row.push(currentVal.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+            return row;
+        }
+    });
+    </script>
+</body>
+</html>
