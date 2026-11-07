@@ -47,12 +47,22 @@
         .ready-body { opacity: 1; transition: opacity 0.15s ease-in; }
         .unready-body { opacity: 0; }
 
-        /* 移动端安全区域适配扩展类 */
+        /* 专门适配小米/手机浏览器底部原生工具栏避让 */
         .pb-safe-bottom {
-            padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+            padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
         }
         .bottom-safe-fab {
-            bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+            bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+        }
+
+        /* 电脑/平板大屏恢复正常边距 */
+        @media (min-width: 640px) {
+            .pb-safe-bottom {
+                padding-bottom: 2rem;
+            }
+            .bottom-safe-fab {
+                bottom: 1.5rem;
+            }
         }
 
         .markdown-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); background: #f1f5f9; }
@@ -225,11 +235,12 @@
                 <span id="listTitle" class="font-bold text-slate-700 truncate max-w-[200px]">所有条目</span>
                 <span id="docCountText" class="text-slate-400 flex-shrink-0">0 个文档</span>
             </div>
-            <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pb-28 sm:pb-24"></div>
+            <!-- 加大列表底部的 padding，防止最后一条文档记录被抬高后的新建按钮挡住 -->
+            <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pb-safe-bottom"></div>
 
-            <!-- 正圆形新建按钮 -->
+            <!-- 正圆形新建按钮：抬高位置以完全避开小米浏览器等底部原生工具栏 -->
             <button id="newDocBtn" title="新建知识条目" 
-                class="absolute right-6 bottom-safe-fab z-20 w-14 h-14 sm:w-12 sm:h-12 rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white shadow-xl hover:shadow-brand-500/30 flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 flex-shrink-0">
+                class="absolute right-5 bottom-safe-fab z-20 w-13 h-13 sm:w-12 sm:h-12 rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white shadow-xl hover:shadow-brand-500/30 flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 flex-shrink-0">
                 <i class="ri-add-line text-2xl"></i>
             </button>
         </div>
