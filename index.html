@@ -209,26 +209,30 @@
                     <div id="tagList" class="flex flex-wrap gap-1.5 px-1"></div>
                 </div>
             </div>
-
-            <!-- 左下角操作栏 -->
-            <div class="p-3 border-t border-slate-200 flex items-center space-x-2 flex-shrink-0 bg-white">
-                <button id="newDocBtn" title="新建知识条目" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm hover:shadow transition flex items-center justify-center space-x-1">
-                    <i class="ri-add-line text-lg"></i>
-                    <span class="text-xs font-medium">新建条目</span>
-                </button>
-                <button id="manualSyncBtn" title="同步 GitHub 数据" class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center justify-center">
-                    <i class="ri-refresh-line text-lg"></i>
-                </button>
-            </div>
         </aside>
 
         <!-- Document List Panel -->
-        <div id="listPanel" class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full">
+        <div id="listPanel" class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full relative">
             <div class="h-12 px-4 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500 flex-shrink-0 bg-slate-50/50">
                 <span id="listTitle" class="font-bold text-slate-700 truncate max-w-[200px]">所有条目</span>
                 <span id="docCountText" class="text-slate-400 flex-shrink-0">0 个文档</span>
             </div>
-            <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100"></div>
+            <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pb-20"></div>
+
+            <!-- 中间栏底部悬浮胶囊浮岛操作栏 (小米/Apple 备忘录风格) -->
+            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+                <div class="bg-slate-900/90 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-2xl border border-slate-700/60 flex items-center space-x-5">
+                    <button id="manualSyncBtn" title="同步 GitHub 数据" class="flex items-center space-x-1 text-slate-300 hover:text-white transition text-xs font-medium">
+                        <i class="ri-refresh-line text-base"></i>
+                        <span>同步</span>
+                    </button>
+                    <div class="w-[1px] h-3.5 bg-slate-700"></div>
+                    <button id="newDocBtn" title="新建知识条目" class="flex items-center space-x-1 text-brand-400 hover:text-brand-300 transition text-xs font-bold">
+                        <i class="ri-add-line text-base"></i>
+                        <span>新建条目</span>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Detail / Editor Main Panel -->
@@ -937,7 +941,7 @@
 
         async function pullFromGithub() {
             if (!githubConfig.token || !githubConfig.repo) return;
-            updateSyncStatus('loading', '同步中');
+            updateSyncStatus('loading', '拉取中...');
 
             try {
                 const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
@@ -963,7 +967,7 @@
 
         async function syncToGithub() {
             if (!githubConfig.token || !githubConfig.repo) return;
-            updateSyncStatus('loading', '同步中');
+            updateSyncStatus('loading', '拉取中...');
 
             try {
                 if (!githubConfig.sha) {
