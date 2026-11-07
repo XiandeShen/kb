@@ -43,6 +43,10 @@
             font-family: system-ui, -apple-system, sans-serif; 
         }
 
+        /* 极速防闪烁初始状态控制 */
+        .ready-body { opacity: 1; transition: opacity 0.15s ease-in; }
+        .unready-body { opacity: 0; }
+
         /* 移动端安全区域适配扩展类 */
         .pb-safe-bottom {
             padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
@@ -65,7 +69,7 @@
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
     </style>
 </head>
-<body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white h-screen h-[100dvh]">
+<body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white h-screen h-[100dvh] unready-body">
 
     <!-- 全局图片预加载全屏遮罩提示层 -->
     <div id="loadingOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-[80] flex items-center justify-center hidden">
@@ -75,8 +79,8 @@
         </div>
     </div>
 
-    <!-- 首次登录授权拦截层 (层级 z-[70]) -->
-    <div id="authOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/60 backdrop-blur-md z-[70] flex items-center justify-center p-4">
+    <!-- 首次登录授权拦截层 (默认隐形+禁用点击，防止闪烁阴影) -->
+    <div id="authOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/60 backdrop-blur-md z-[70] flex items-center justify-center p-4 transition-opacity duration-200 opacity-0 pointer-events-none hidden">
         <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6">
             <div class="flex items-center space-x-3 pb-2 border-b border-slate-100">
                 <!-- 登录界面 Logo SVG -->
@@ -221,10 +225,9 @@
                 <span id="listTitle" class="font-bold text-slate-700 truncate max-w-[200px]">所有条目</span>
                 <span id="docCountText" class="text-slate-400 flex-shrink-0">0 个文档</span>
             </div>
-            <!-- 增加了底部大 padding，保证列表最后一项不会被悬浮按钮挡住 -->
             <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pb-28 sm:pb-24"></div>
 
-            <!-- 正圆形新建按钮：挂载在第二栏右下角，动态避开移动端底部导航栏 -->
+            <!-- 正圆形新建按钮 -->
             <button id="newDocBtn" title="新建知识条目" 
                 class="absolute right-6 bottom-safe-fab z-20 w-14 h-14 sm:w-12 sm:h-12 rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white shadow-xl hover:shadow-brand-500/30 flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 flex-shrink-0">
                 <i class="ri-add-line text-2xl"></i>
@@ -380,15 +383,28 @@
         
         const imageJsonCache = {};
 
-        window.onload = function() {
+        // 极速预判与防护处理，防止 DOM 渲染时露出登录遮罩阴影
+        function initAuthOverlayState() {
             loadGithubConfig();
-
+            const authOverlay = document.getElementById('authOverlay');
             if (!githubConfig.token) {
-                document.getElementById('authOverlay').classList.remove('hidden');
+                // 无 token 时，再解封并显示登录遮罩
+                authOverlay.classList.remove('hidden', 'pointer-events-none');
+                requestAnimationFrame(() => {
+                    authOverlay.classList.remove('opacity-0');
+                    authOverlay.classList.add('opacity-100');
+                });
             } else {
-                document.getElementById('authOverlay').classList.add('hidden');
+                // 有 token 时，保持隐藏
+                authOverlay.classList.add('hidden', 'opacity-0', 'pointer-events-none');
             }
+            // 显示整体页面，无缝渐现
+            document.body.classList.remove('unready-body');
+            document.body.classList.add('ready-body');
+        }
 
+        window.onload = function() {
+            initAuthOverlayState();
             loadLocalDocs();
             renderCategoryList();
             renderTagList();
@@ -413,7 +429,13 @@
             githubConfig.path = 'kb_docs.json';
             localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
             
-            document.getElementById('authOverlay').classList.add('hidden');
+            const authOverlay = document.getElementById('authOverlay');
+            authOverlay.classList.remove('opacity-100');
+            authOverlay.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                authOverlay.classList.add('hidden');
+            }, 200);
+
             pullFromGithub();
         };
 
@@ -425,7 +447,14 @@
                 githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
                 docs = [];
                 document.getElementById('authTokInput').value = '';
-                document.getElementById('authOverlay').classList.remove('hidden');
+                
+                const authOverlay = document.getElementById('authOverlay');
+                authOverlay.classList.remove('hidden', 'pointer-events-none');
+                requestAnimationFrame(() => {
+                    authOverlay.classList.remove('opacity-0');
+                    authOverlay.classList.add('opacity-100');
+                });
+                
                 saveLocalDocs();
             }
         };
