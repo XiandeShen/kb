@@ -224,12 +224,12 @@
                 <div class="bg-slate-900/90 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-2xl border border-slate-700/60 flex items-center space-x-5">
                     <button id="manualSyncBtn" title="同步 GitHub 数据" class="flex items-center space-x-1 text-slate-300 hover:text-white transition text-xs font-medium">
                         <i class="ri-refresh-line text-base"></i>
-                        <span>同步</span>
+                        <span></span>
                     </button>
                     <div class="w-[1px] h-3.5 bg-slate-700"></div>
                     <button id="newDocBtn" title="新建知识条目" class="flex items-center space-x-1 text-brand-400 hover:text-brand-300 transition text-xs font-bold">
                         <i class="ri-add-line text-base"></i>
-                        <span>新建条目</span>
+                        <span></span>
                     </button>
                 </div>
             </div>
@@ -941,7 +941,7 @@
 
         async function pullFromGithub() {
             if (!githubConfig.token || !githubConfig.repo) return;
-            updateSyncStatus('loading', '拉取中...');
+            updateSyncStatus('loading', '同步中');
 
             try {
                 const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
@@ -967,7 +967,7 @@
 
         async function syncToGithub() {
             if (!githubConfig.token || !githubConfig.repo) return;
-            updateSyncStatus('loading', '拉取中...');
+            updateSyncStatus('loading', '同步中');
 
             try {
                 if (!githubConfig.sha) {
