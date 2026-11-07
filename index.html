@@ -235,12 +235,11 @@
                 <span id="listTitle" class="font-bold text-slate-700 truncate max-w-[200px]">所有条目</span>
                 <span id="docCountText" class="text-slate-400 flex-shrink-0">0 个文档</span>
             </div>
-            <!-- 加大列表底部的 padding，防止最后一条文档记录被抬高后的新建按钮挡住 -->
             <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pb-safe-bottom"></div>
 
-            <!-- 正圆形新建按钮：抬高位置以完全避开小米浏览器等底部原生工具栏 -->
+            <!-- 正圆形新建按钮：使用标准固定尺寸与 aspect-square 彻底杜绝手机端浏览器变形 -->
             <button id="newDocBtn" title="新建知识条目" 
-                class="absolute right-5 bottom-safe-fab z-20 w-13 h-13 sm:w-12 sm:h-12 rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white shadow-xl hover:shadow-brand-500/30 flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 flex-shrink-0">
+                class="absolute right-5 bottom-safe-fab z-20 w-14 h-14 sm:w-12 sm:h-12 aspect-square rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white shadow-xl hover:shadow-brand-500/30 flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 flex-shrink-0">
                 <i class="ri-add-line text-2xl"></i>
             </button>
         </div>
@@ -399,17 +398,14 @@
             loadGithubConfig();
             const authOverlay = document.getElementById('authOverlay');
             if (!githubConfig.token) {
-                // 无 token 时，再解封并显示登录遮罩
                 authOverlay.classList.remove('hidden', 'pointer-events-none');
                 requestAnimationFrame(() => {
                     authOverlay.classList.remove('opacity-0');
                     authOverlay.classList.add('opacity-100');
                 });
             } else {
-                // 有 token 时，保持隐藏
                 authOverlay.classList.add('hidden', 'opacity-0', 'pointer-events-none');
             }
-            // 显示整体页面，无缝渐现
             document.body.classList.remove('unready-body');
             document.body.classList.add('ready-body');
         }
