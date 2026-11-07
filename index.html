@@ -403,7 +403,7 @@
 
         document.getElementById('authSubmitBtn').onclick = () => {
             const token = document.getElementById('authTokInput').value.trim();
-            const repo = document.getElementById('authRepoInput').value.trim() || 'XiandeShen/Xiande-kb';
+            const repo = document.getElementById('authRepoInput').value.trim() || 'XiandeShen/xiande-kb';
             if (!token) {
                 alert('请输入有效的 GitHub Token！');
                 return;
@@ -542,6 +542,12 @@
             isEditing = false;
             const doc = docs.find(d => d.id === id);
             if (!doc) return;
+
+            // 切换文档时将正文滚动条归零，确保新文档从头开始显示
+            const viewScrollEl = document.querySelector('#viewPanel .overflow-y-auto');
+            if (viewScrollEl) {
+                viewScrollEl.scrollTop = 0;
+            }
 
             // 显示全局预加载提示
             const loadingOverlay = document.getElementById('loadingOverlay');
