@@ -60,19 +60,6 @@
 
     <!-- 首次登录授权拦截层 (层级 z-[70]) -->
     <div id="authOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/60 backdrop-blur-md z-[70] flex items-center justify-center p-4">
-        <script>
-            (function() {
-                try {
-                    const saved = localStorage.getItem('kb_gh_config');
-                    if (saved) {
-                        const cfg = JSON.parse(saved);
-                        if (cfg && cfg.token) {
-                            document.getElementById('authOverlay').classList.add('hidden');
-                        }
-                    }
-                } catch(e) {}
-            })();
-        </script>
         <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6">
             <div class="flex items-center space-x-3 pb-2 border-b border-slate-100">
                 <!-- 登录界面 Logo SVG -->
@@ -122,14 +109,13 @@
     <!-- 全局全屏抽屉遮罩 (层级 z-40) -->
     <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity"></div>
 
-    <!-- Top Header (PC满宽贴边，移动端正确隐藏品牌文字) -->
+    <!-- Top Header -->
     <header class="h-14 w-screen bg-slate-900 border-b border-slate-800 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 z-30 shadow-md">
         <div class="flex items-center space-x-2 flex-shrink-0">
             <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
                 <i class="ri-menu-line text-xl"></i>
             </button>
             <div class="hidden lg:flex items-center space-x-2.5">
-                <!-- 主界面 Header Logo SVG -->
                 <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="header-g1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -157,13 +143,12 @@
             </div>
         </div>
 
-        <!-- 全局统一搜索框 -->
+        <!-- 全局搜索框 -->
         <div class="flex-1 max-w-xl mx-2 sm:mx-6">
             <div class="relative flex items-center">
                 <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                 <input type="text" id="searchInput" placeholder="搜索标题、内容或标签..." 
                     class="w-full pl-10 pr-10 py-2 text-xs sm:text-sm rounded-full bg-slate-800/90 border border-slate-700/60 outline-none focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-400 transition shadow-inner">
-                <!-- 带有独立底色和悬停高亮的清空按钮 X -->
                 <button id="clearSearchBtn" title="清空搜索" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition text-xs">
                     <i class="ri-close-line"></i>
                 </button>
@@ -190,10 +175,8 @@
     <!-- Main Container -->
     <div class="flex-1 flex overflow-hidden relative w-screen">
 
-        <!-- Left Navigation Sidebar (层级 z-50) -->
+        <!-- Left Navigation Sidebar -->
         <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-xl lg:shadow-none h-full">
-            
-            <!-- 导航与分类滚动区 -->
             <div id="sidebarScrollContainer" class="p-4 space-y-6 overflow-y-auto flex-1">
                 <div class="space-y-1">
                     <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">视图</div>
@@ -215,7 +198,7 @@
             </div>
         </aside>
 
-        <!-- Document List Panel -->
+        <!-- Document List Panel (第二栏) -->
         <div id="listPanel" class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full relative">
             <div class="h-12 px-4 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500 flex-shrink-0 bg-slate-50/50">
                 <span id="listTitle" class="font-bold text-slate-700 truncate max-w-[200px]">所有条目</span>
@@ -223,21 +206,11 @@
             </div>
             <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pb-20"></div>
 
-            <!-- 中间栏底部悬浮胶囊浮岛操作栏 (小米/Apple 备忘录风格) -->
-            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
-                <div class="bg-slate-900/90 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-2xl border border-slate-700/60 flex items-center space-x-5">
-                    <!-- 同步按钮：默认文字设为白色(text-white)，常亮且去掉了 hover 变亮颜色变化 -->
-                    <button id="manualSyncBtn" title="同步 GitHub 数据" class="flex items-center space-x-1 text-white transition-none text-xs font-medium">
-                        <i id="manualSyncIcon" class="ri-refresh-line text-base"></i>
-                        <span></span>
-                    </button>
-                    <div class="w-[1px] h-3.5 bg-slate-700"></div>
-                    <button id="newDocBtn" title="新建知识条目" class="flex items-center space-x-1 text-brand-400 hover:text-brand-300 transition text-xs font-bold">
-                        <i class="ri-add-line text-base"></i>
-                        <span></span>
-                    </button>
-                </div>
-            </div>
+            <!-- 正圆形新建按钮：悬浮在第二栏右下角 -->
+            <button id="newDocBtn" title="新建知识条目" 
+                class="absolute bottom-6 right-6 z-20 w-12 h-12 rounded-full bg-brand-600 hover:bg-brand-700 text-white shadow-lg hover:shadow-brand-500/30 flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 flex-shrink-0">
+                <i class="ri-add-line text-2xl"></i>
+            </button>
         </div>
 
         <!-- Detail / Editor Main Panel -->
@@ -268,7 +241,6 @@
                     </div>
                 </div>
 
-                <!-- 独立滚动的文章正文区域 -->
                 <div id="viewScrollContainer" class="flex-1 overflow-y-auto p-4 md:p-10 w-full">
                     <div class="max-w-4xl mx-auto w-full">
                         <h1 id="viewTitle" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3"></h1>
@@ -298,7 +270,6 @@
                     </div>
                 </div>
 
-                <!-- 独立滚动的编辑器区域 -->
                 <div class="flex-1 overflow-y-auto p-4 md:p-6">
                     <div class="max-w-5xl mx-auto w-full space-y-4">
                         <div>
@@ -395,6 +366,8 @@
             loadGithubConfig();
 
             if (!githubConfig.token) {
+                document.getElementById('authOverlay').classList.remove('hidden');
+            } else {
                 document.getElementById('authOverlay').classList.add('hidden');
             }
 
@@ -428,17 +401,24 @@
 
         document.getElementById('logoutBtn').onclick = function() {
             this.blur();
-            if (confirm('确定要解除 GitHub 绑定并退出吗？')) {
+            if (confirm('确定要解除 GitHub 绑定并退出吗？数据将会清空，并回到登录页面。')) {
                 localStorage.removeItem('kb_gh_config');
+                localStorage.removeItem('kb_docs');
                 githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
+                docs = [];
                 document.getElementById('authTokInput').value = '';
                 document.getElementById('authOverlay').classList.remove('hidden');
+                saveLocalDocs();
             }
         };
 
         function loadLocalDocs() {
             const saved = localStorage.getItem('kb_docs');
-            docs = saved ? JSON.parse(saved) : DEFAULT_DOCS;
+            if (!githubConfig.token) {
+                docs = [];
+            } else {
+                docs = saved ? JSON.parse(saved) : DEFAULT_DOCS;
+            }
         }
 
         function saveLocalDocs() {
@@ -944,11 +924,6 @@
                 pullFromGithub();
             };
 
-            document.getElementById('manualSyncBtn').onclick = function() {
-                this.blur();
-                pullFromGithub();
-            };
-
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             document.getElementById('mobileMenuBtn').onclick = () => {
@@ -963,23 +938,20 @@
         function loadGithubConfig() {
             const saved = localStorage.getItem('kb_gh_config');
             if (saved) {
-                githubConfig = JSON.parse(saved);
+                try {
+                    githubConfig = JSON.parse(saved);
+                } catch(e) {
+                    githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
+                }
                 if (!githubConfig.repo) githubConfig.repo = 'XiandeShen/Xiande-kb';
+            } else {
+                githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
             }
         }
 
         function updateSyncStatus(type, msg) {
             const dot = document.getElementById('syncDot');
             const text = document.getElementById('syncText');
-            const syncIcon = document.getElementById('manualSyncIcon');
-
-            if (syncIcon) {
-                if (type === 'loading') {
-                    syncIcon.classList.add('animate-spin');
-                } else {
-                    syncIcon.classList.remove('animate-spin');
-                }
-            }
 
             if (!dot || !text) return;
             if (type === 'success') {
