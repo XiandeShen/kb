@@ -194,7 +194,7 @@
         <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-xl lg:shadow-none h-full">
             
             <!-- 导航与分类滚动区 -->
-            <div class="p-4 space-y-6 overflow-y-auto flex-1">
+            <div id="sidebarScrollContainer" class="p-4 space-y-6 overflow-y-auto flex-1">
                 <div class="space-y-1">
                     <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">视图</div>
                     <button id="allDocsNavBtn" class="nav-filter-btn active w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium bg-brand-50 text-brand-600" data-category="ALL">
@@ -268,7 +268,7 @@
                 </div>
 
                 <!-- 独立滚动的文章正文区域 -->
-                <div class="flex-1 overflow-y-auto p-4 md:p-10 w-full">
+                <div id="viewScrollContainer" class="flex-1 overflow-y-auto p-4 md:p-10 w-full">
                     <div class="max-w-4xl mx-auto w-full">
                         <h1 id="viewTitle" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3"></h1>
                         <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 mb-6 pb-4 border-b border-slate-200">
@@ -471,6 +471,13 @@
                     activeTag = null;
                     renderCategoryList();
                     renderDocList();
+                    
+                    // 修复问题1：点击分类/标签时，将左侧栏和中间文档列表的滚动条重置回顶部
+                    const sidebarScroll = document.getElementById('sidebarScrollContainer');
+                    if (sidebarScroll) sidebarScroll.scrollTop = 0;
+                    const docListEl = document.getElementById('docList');
+                    if (docListEl) docListEl.scrollTop = 0;
+
                     closeMobileSidebar();
                 };
                 catListEl.appendChild(btn);
@@ -492,6 +499,13 @@
                     renderCategoryList();
                     renderTagList();
                     renderDocList();
+
+                    // 修复问题1：点击标签时，将左侧栏和中间文档列表的滚动条重置回顶部
+                    const sidebarScroll = document.getElementById('sidebarScrollContainer');
+                    if (sidebarScroll) sidebarScroll.scrollTop = 0;
+                    const docListEl = document.getElementById('docList');
+                    if (docListEl) docListEl.scrollTop = 0;
+
                     closeMobileSidebar();
                 };
                 tagListEl.appendChild(badge);
@@ -551,8 +565,8 @@
             const doc = docs.find(d => d.id === id);
             if (!doc) return;
 
-            // 切换文档时将正文滚动条归零，确保新文档从头开始显示
-            const viewScrollEl = document.querySelector('#viewPanel .overflow-y-auto');
+            // 修复问题2：切换或打开任何文档时（无论是 PC 还是移动端），立即将正文滚动条归零回到顶部
+            const viewScrollEl = document.getElementById('viewScrollContainer');
             if (viewScrollEl) {
                 viewScrollEl.scrollTop = 0;
             }
@@ -625,6 +639,11 @@
                 tagEl.textContent = `# ${t}`;
                 tagsContainer.appendChild(tagEl);
             });
+
+            // 再次确保图片渲染完成后滚动条稳稳停在顶部
+            if (viewScrollEl) {
+                viewScrollEl.scrollTop = 0;
+            }
 
             renderDocList();
         }
@@ -800,6 +819,13 @@
                 activeTag = null;
                 renderCategoryList();
                 renderDocList();
+
+                // 修复问题1：点击“全部条目”时，重置左侧栏与中间文档列表滚动条
+                const sidebarScroll = document.getElementById('sidebarScrollContainer');
+                if (sidebarScroll) sidebarScroll.scrollTop = 0;
+                const docListEl = document.getElementById('docList');
+                if (docListEl) docListEl.scrollTop = 0;
+
                 closeMobileSidebar();
             };
 
@@ -968,10 +994,6 @@
             updateSyncStatus('loading', '同步中');
 
             try {
-                const res = addSearchEndpoint(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
-                    headers: { 'Authorization': `token ${githubConfig.token}` }
-                });
-                // 恢复原网络请求逻辑
                 const actualRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
                     headers: { 'Authorization': `token ${githubConfig.token}` }
                 });
@@ -1032,7 +1054,7 @@
                     const data = await res.json();
                     githubConfig.sha = data.content.sha;
                     localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
-                    updateSyncStatus('success', '已同步');
+                    updateSyncStatus('success', '`已同步`');
                 } else {
                     const errJson = await res.json().catch(() => ({}));
                     if (res.status === 409 && githubConfig.sha) {
@@ -1045,7 +1067,6 @@
                 updateSyncStatus('error', '推送失败');
             }
         }
-        function addSearchEndpoint(u, o) { return fetch(u, o); }
     </script>
 </body>
 </html>
