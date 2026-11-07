@@ -47,23 +47,15 @@
         .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
 
-        /* 移动端右上角按钮点击悬浮效果滞留优化 */
+        /* 移动端右上角按钮优化：取消悬浮滞留与红色闪烁，仅保留默认态 */
         @media (hover: none) {
-            #logoutBtn:hover {
+            #logoutBtn:hover, #githubConfigBtn:hover {
                 background-color: transparent !important;
                 color: #cbd5e1 !important;
             }
-            #githubConfigBtn:hover {
-                background-color: transparent !important;
+            #logoutBtn:active, #githubConfigBtn:active {
+                background-color: #1e293b !important;
                 color: #cbd5e1 !important;
-            }
-            #logoutBtn:active {
-                background-color: #1e293b !important;
-                color: #f87171 !important;
-            }
-            #githubConfigBtn:active {
-                background-color: #1e293b !important;
-                color: #ffffff !important;
             }
         }
     </style>
@@ -492,7 +484,6 @@
                     renderCategoryList();
                     renderDocList();
                     
-                    // 修复问题1：点击分类/标签时，将左侧栏和中间文档列表的滚动条重置回顶部
                     const sidebarScroll = document.getElementById('sidebarScrollContainer');
                     if (sidebarScroll) sidebarScroll.scrollTop = 0;
                     const docListEl = document.getElementById('docList');
@@ -520,7 +511,6 @@
                     renderTagList();
                     renderDocList();
 
-                    // 修复问题1：点击标签时，将左侧栏和中间文档列表的滚动条重置回顶部
                     const sidebarScroll = document.getElementById('sidebarScrollContainer');
                     if (sidebarScroll) sidebarScroll.scrollTop = 0;
                     const docListEl = document.getElementById('docList');
@@ -585,26 +575,21 @@
             const doc = docs.find(d => d.id === id);
             if (!doc) return;
 
-            // 修复问题2：切换或打开任何文档时（无论是 PC 还是移动端），立即将正文滚动条归零回到顶部
             const viewScrollEl = document.getElementById('viewScrollContainer');
             if (viewScrollEl) {
                 viewScrollEl.scrollTop = 0;
             }
 
-            // 显示全局预加载提示
             const loadingOverlay = document.getElementById('loadingOverlay');
             loadingOverlay.classList.remove('hidden');
 
-            // 解析 Markdown 内容
             const parsedHtml = marked.parse(doc.content || '');
             
-            // 提取所有图片路径
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = parsedHtml;
             const imgTags = tempDiv.querySelectorAll('img');
             const imagePromises = [];
 
-            // 预先并发拉取所有 JSON 图片
             imgTags.forEach(img => {
                 const src = img.getAttribute('src');
                 if (src && src.startsWith('images/') && src.endsWith('.json')) {
@@ -633,10 +618,8 @@
                 }
             });
 
-            // 等待所有图片在后台加载完成
             await Promise.all(imagePromises);
 
-            // 隐藏加载提示
             loadingOverlay.classList.add('hidden');
 
             const mainPanel = document.getElementById('mainPanel');
@@ -660,7 +643,6 @@
                 tagsContainer.appendChild(tagEl);
             });
 
-            // 再次确保图片渲染完成后滚动条稳稳停在顶部
             if (viewScrollEl) {
                 viewScrollEl.scrollTop = 0;
             }
@@ -840,7 +822,6 @@
                 renderCategoryList();
                 renderDocList();
 
-                // 修复问题1：点击“全部条目”时，重置左侧栏与中间文档列表滚动条
                 const sidebarScroll = document.getElementById('sidebarScrollContainer');
                 if (sidebarScroll) sidebarScroll.scrollTop = 0;
                 const docListEl = document.getElementById('docList');
