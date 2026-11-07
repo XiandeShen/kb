@@ -47,15 +47,18 @@
         .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
 
-        /* 移动端右上角按钮优化：取消悬浮滞留与红色闪烁，仅保留默认态 */
+        /* 移动端直接砍掉右上角两个按钮的所有过渡与动效，防止残留 */
         @media (hover: none) {
-            #logoutBtn:hover, #githubConfigBtn:hover {
+            #logoutBtn, #githubConfigBtn {
+                transition: none !important;
+                -webkit-tap-highlight-color: transparent !important;
+            }
+            #logoutBtn:hover, #githubConfigBtn:hover,
+            #logoutBtn:active, #githubConfigBtn:active,
+            #logoutBtn:focus, #githubConfigBtn:focus {
                 background-color: transparent !important;
                 color: #cbd5e1 !important;
-            }
-            #logoutBtn:active, #githubConfigBtn:active {
-                background-color: #1e293b !important;
-                color: #cbd5e1 !important;
+                transform: none !important;
             }
         }
     </style>
@@ -934,10 +937,21 @@
             };
 
             document.getElementById('githubConfigBtn').onclick = () => {
+                this.blur(); // 立即清除焦点，防止移动端伪类/点击滞留
                 document.getElementById('ghTokenInput').value = githubConfig.token;
                 document.getElementById('ghRepoInput').value = githubConfig.repo || 'XiandeShen/Xiande-kb';
                 document.getElementById('ghPathInput').value = githubConfig.path || 'kb_docs.json';
                 document.getElementById('githubModal').classList.remove('hidden');
+            };
+
+            document.getElementById('logoutBtn').onclick = function() {
+                this.blur(); // 立即清除焦点
+                if (confirm('确定要解除 GitHub 绑定并退出吗？')) {
+                    localStorage.removeItem('kb_gh_config');
+                    githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
+                    document.getElementById('authTokInput').value = '';
+                    document.getElementById('authOverlay').classList.remove('hidden');
+                }
             };
 
             document.getElementById('closeModalBtn').onclick = () => {
