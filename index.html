@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>椿沐智库</title>
     <!-- 精致纯净矢量 Icon (Gemini Style SVG Favicon) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='g1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='100%' stop-color='%230072ff'/></linearGradient><linearGradient id='g2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%230052d4'/><stop offset='100%' stop-color='%234364f7'/></linearGradient><linearGradient id='g3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='50%' stop-color='%230072ff'/><stop offset='100%' stop-color='%230052d4'/></linearGradient></defs><g><path d='M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z' fill='url(%23g2)'/><path d='M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z' fill='url(%23g1)' opacity='0.9'/><path d='M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z' fill='url(%23g3)'/><path d='M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z' fill='%23ffffff'/></g></svg>">
@@ -30,41 +30,10 @@
     <!-- RemixIcon -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
-        /* 彻底重置视口，使用 dynamic/short viewport height 适配移动端浏览器底部栏 */
+        /* 彻底重置视口，消除所有右侧空白与滚动槽位偏移 */
         * { box-sizing: border-box; }
-        html, body { 
-            width: 100vw; 
-            height: 100vh;
-            height: 100dvh; 
-            margin: 0; 
-            padding: 0; 
-            overflow: hidden; 
-            background: #f8fafc; 
-            font-family: system-ui, -apple-system, sans-serif; 
-        }
-
-        /* 极速防闪烁初始状态控制 */
-        .ready-body { opacity: 1; transition: opacity 0.15s ease-in; }
-        .unready-body { opacity: 0; }
-
-        /* 专门适配小米/手机浏览器底部原生工具栏避让 */
-        .pb-safe-bottom {
-            padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
-        }
-        .bottom-safe-fab {
-            bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
-        }
-
-        /* 电脑/平板大屏恢复正常边距 */
-        @media (min-width: 640px) {
-            .pb-safe-bottom {
-                padding-bottom: 2rem;
-            }
-            .bottom-safe-fab {
-                bottom: 1.5rem;
-            }
-        }
-
+        html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; background: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        
         .markdown-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); background: #f1f5f9; }
         .markdown-body p { margin-bottom: 0.75rem; line-height: 1.625; color: inherit; }
         .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 700; margin-top: 1.25rem; margin-bottom: 0.5rem; color: inherit; }
@@ -79,7 +48,7 @@
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
     </style>
 </head>
-<body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white h-screen h-[100dvh] unready-body">
+<body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white">
 
     <!-- 全局图片预加载全屏遮罩提示层 -->
     <div id="loadingOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-[80] flex items-center justify-center hidden">
@@ -89,8 +58,21 @@
         </div>
     </div>
 
-    <!-- 首次登录授权拦截层 (默认隐形+禁用点击，防止闪烁阴影) -->
-    <div id="authOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/60 backdrop-blur-md z-[70] flex items-center justify-center p-4 transition-opacity duration-200 opacity-0 pointer-events-none hidden">
+    <!-- 首次登录授权拦截层 (层级 z-[70]) -->
+    <div id="authOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/60 backdrop-blur-md z-[70] flex items-center justify-center p-4">
+        <script>
+            (function() {
+                try {
+                    const saved = localStorage.getItem('kb_gh_config');
+                    if (saved) {
+                        const cfg = JSON.parse(saved);
+                        if (cfg && cfg.token) {
+                            document.getElementById('authOverlay').classList.add('hidden');
+                        }
+                    }
+                } catch(e) {}
+            })();
+        </script>
         <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6">
             <div class="flex items-center space-x-3 pb-2 border-b border-slate-100">
                 <!-- 登录界面 Logo SVG -->
@@ -140,13 +122,14 @@
     <!-- 全局全屏抽屉遮罩 (层级 z-40) -->
     <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity"></div>
 
-    <!-- Top Header -->
+    <!-- Top Header (PC满宽贴边，移动端正确隐藏品牌文字) -->
     <header class="h-14 w-screen bg-slate-900 border-b border-slate-800 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 z-30 shadow-md">
         <div class="flex items-center space-x-2 flex-shrink-0">
             <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
                 <i class="ri-menu-line text-xl"></i>
             </button>
             <div class="hidden lg:flex items-center space-x-2.5">
+                <!-- 主界面 Header Logo SVG -->
                 <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="header-g1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -174,12 +157,13 @@
             </div>
         </div>
 
-        <!-- 全局搜索框 -->
+        <!-- 全局统一搜索框 -->
         <div class="flex-1 max-w-xl mx-2 sm:mx-6">
             <div class="relative flex items-center">
                 <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                 <input type="text" id="searchInput" placeholder="搜索标题、内容或标签..." 
                     class="w-full pl-10 pr-10 py-2 text-xs sm:text-sm rounded-full bg-slate-800/90 border border-slate-700/60 outline-none focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-400 transition shadow-inner">
+                <!-- 带有独立底色和悬停高亮的清空按钮 X -->
                 <button id="clearSearchBtn" title="清空搜索" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition text-xs">
                     <i class="ri-close-line"></i>
                 </button>
@@ -206,9 +190,11 @@
     <!-- Main Container -->
     <div class="flex-1 flex overflow-hidden relative w-screen">
 
-        <!-- Left Navigation Sidebar -->
+        <!-- Left Navigation Sidebar (层级 z-50) -->
         <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-xl lg:shadow-none h-full">
-            <div id="sidebarScrollContainer" class="p-4 space-y-6 overflow-y-auto flex-1 pb-safe-bottom">
+            
+            <!-- 导航与分类滚动区 -->
+            <div id="sidebarScrollContainer" class="p-4 space-y-6 overflow-y-auto flex-1">
                 <div class="space-y-1">
                     <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">视图</div>
                     <button id="allDocsNavBtn" class="nav-filter-btn active w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium bg-brand-50 text-brand-600" data-category="ALL">
@@ -229,19 +215,28 @@
             </div>
         </aside>
 
-        <!-- Document List Panel (第二栏) -->
+        <!-- Document List Panel -->
         <div id="listPanel" class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full relative">
             <div class="h-12 px-4 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500 flex-shrink-0 bg-slate-50/50">
                 <span id="listTitle" class="font-bold text-slate-700 truncate max-w-[200px]">所有条目</span>
                 <span id="docCountText" class="text-slate-400 flex-shrink-0">0 个文档</span>
             </div>
-            <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pb-safe-bottom"></div>
+            <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pb-20"></div>
 
-            <!-- 正圆形新建按钮：使用标准固定尺寸与 aspect-square 彻底杜绝手机端浏览器变形 -->
-            <button id="newDocBtn" title="新建知识条目" 
-                class="absolute right-5 bottom-safe-fab z-20 w-14 h-14 sm:w-12 sm:h-12 aspect-square rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white shadow-xl hover:shadow-brand-500/30 flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 flex-shrink-0">
-                <i class="ri-add-line text-2xl"></i>
-            </button>
+            <!-- 中间栏底部悬浮胶囊浮岛操作栏 (小米/Apple 备忘录风格) -->
+            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+                <div class="bg-slate-900/90 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-2xl border border-slate-700/60 flex items-center space-x-5">
+                    <button id="manualSyncBtn" title="同步 GitHub 数据" class="flex items-center space-x-1 text-slate-300 hover:text-white transition text-xs font-medium">
+                        <i class="ri-refresh-line text-base"></i>
+                        <span></span>
+                    </button>
+                    <div class="w-[1px] h-3.5 bg-slate-700"></div>
+                    <button id="newDocBtn" title="新建知识条目" class="flex items-center space-x-1 text-brand-400 hover:text-brand-300 transition text-xs font-bold">
+                        <i class="ri-add-line text-base"></i>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Detail / Editor Main Panel -->
@@ -272,7 +267,8 @@
                     </div>
                 </div>
 
-                <div id="viewScrollContainer" class="flex-1 overflow-y-auto p-4 md:p-10 w-full pb-safe-bottom">
+                <!-- 独立滚动的文章正文区域 -->
+                <div id="viewScrollContainer" class="flex-1 overflow-y-auto p-4 md:p-10 w-full">
                     <div class="max-w-4xl mx-auto w-full">
                         <h1 id="viewTitle" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3"></h1>
                         <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 mb-6 pb-4 border-b border-slate-200">
@@ -301,7 +297,8 @@
                     </div>
                 </div>
 
-                <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-safe-bottom">
+                <!-- 独立滚动的编辑器区域 -->
+                <div class="flex-1 overflow-y-auto p-4 md:p-6">
                     <div class="max-w-5xl mx-auto w-full space-y-4">
                         <div>
                             <input type="text" id="editTitleInput" placeholder="输入文章标题..." 
@@ -393,25 +390,13 @@
         
         const imageJsonCache = {};
 
-        // 极速预判与防护处理，防止 DOM 渲染时露出登录遮罩阴影
-        function initAuthOverlayState() {
-            loadGithubConfig();
-            const authOverlay = document.getElementById('authOverlay');
-            if (!githubConfig.token) {
-                authOverlay.classList.remove('hidden', 'pointer-events-none');
-                requestAnimationFrame(() => {
-                    authOverlay.classList.remove('opacity-0');
-                    authOverlay.classList.add('opacity-100');
-                });
-            } else {
-                authOverlay.classList.add('hidden', 'opacity-0', 'pointer-events-none');
-            }
-            document.body.classList.remove('unready-body');
-            document.body.classList.add('ready-body');
-        }
-
         window.onload = function() {
-            initAuthOverlayState();
+            loadGithubConfig();
+
+            if (!githubConfig.token) {
+                document.getElementById('authOverlay').classList.add('hidden');
+            }
+
             loadLocalDocs();
             renderCategoryList();
             renderTagList();
@@ -436,43 +421,22 @@
             githubConfig.path = 'kb_docs.json';
             localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
             
-            const authOverlay = document.getElementById('authOverlay');
-            authOverlay.classList.remove('opacity-100');
-            authOverlay.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                authOverlay.classList.add('hidden');
-            }, 200);
-
+            document.getElementById('authOverlay').classList.add('hidden');
             pullFromGithub();
         };
 
-        document.getElementById('logoutBtn').onclick = function() {
-            this.blur();
-            if (confirm('确定要解除 GitHub 绑定并退出吗？数据将会清空，并回到登录页面。')) {
+        document.getElementById('logoutBtn').onclick = () => {
+            if (confirm('确定要解除 GitHub 绑定并退出吗？')) {
                 localStorage.removeItem('kb_gh_config');
-                localStorage.removeItem('kb_docs');
                 githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
-                docs = [];
                 document.getElementById('authTokInput').value = '';
-                
-                const authOverlay = document.getElementById('authOverlay');
-                authOverlay.classList.remove('hidden', 'pointer-events-none');
-                requestAnimationFrame(() => {
-                    authOverlay.classList.remove('opacity-0');
-                    authOverlay.classList.add('opacity-100');
-                });
-                
-                saveLocalDocs();
+                document.getElementById('authOverlay').classList.remove('hidden');
             }
         };
 
         function loadLocalDocs() {
             const saved = localStorage.getItem('kb_docs');
-            if (!githubConfig.token) {
-                docs = [];
-            } else {
-                docs = saved ? JSON.parse(saved) : DEFAULT_DOCS;
-            }
+            docs = saved ? JSON.parse(saved) : DEFAULT_DOCS;
         }
 
         function saveLocalDocs() {
@@ -508,6 +472,7 @@
                     renderCategoryList();
                     renderDocList();
                     
+                    // 修复问题1：点击分类/标签时，将左侧栏和中间文档列表的滚动条重置回顶部
                     const sidebarScroll = document.getElementById('sidebarScrollContainer');
                     if (sidebarScroll) sidebarScroll.scrollTop = 0;
                     const docListEl = document.getElementById('docList');
@@ -535,6 +500,7 @@
                     renderTagList();
                     renderDocList();
 
+                    // 修复问题1：点击标签时，将左侧栏和中间文档列表的滚动条重置回顶部
                     const sidebarScroll = document.getElementById('sidebarScrollContainer');
                     if (sidebarScroll) sidebarScroll.scrollTop = 0;
                     const docListEl = document.getElementById('docList');
@@ -599,21 +565,26 @@
             const doc = docs.find(d => d.id === id);
             if (!doc) return;
 
+            // 修复问题2：切换或打开任何文档时（无论是 PC 还是移动端），立即将正文滚动条归零回到顶部
             const viewScrollEl = document.getElementById('viewScrollContainer');
             if (viewScrollEl) {
                 viewScrollEl.scrollTop = 0;
             }
 
+            // 显示全局预加载提示
             const loadingOverlay = document.getElementById('loadingOverlay');
             loadingOverlay.classList.remove('hidden');
 
+            // 解析 Markdown 内容
             const parsedHtml = marked.parse(doc.content || '');
             
+            // 提取所有图片路径
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = parsedHtml;
             const imgTags = tempDiv.querySelectorAll('img');
             const imagePromises = [];
 
+            // 预先并发拉取所有 JSON 图片
             imgTags.forEach(img => {
                 const src = img.getAttribute('src');
                 if (src && src.startsWith('images/') && src.endsWith('.json')) {
@@ -642,8 +613,10 @@
                 }
             });
 
+            // 等待所有图片在后台加载完成
             await Promise.all(imagePromises);
 
+            // 隐藏加载提示
             loadingOverlay.classList.add('hidden');
 
             const mainPanel = document.getElementById('mainPanel');
@@ -667,6 +640,7 @@
                 tagsContainer.appendChild(tagEl);
             });
 
+            // 再次确保图片渲染完成后滚动条稳稳停在顶部
             if (viewScrollEl) {
                 viewScrollEl.scrollTop = 0;
             }
@@ -846,6 +820,7 @@
                 renderCategoryList();
                 renderDocList();
 
+                // 修复问题1：点击“全部条目”时，重置左侧栏与中间文档列表滚动条
                 const sidebarScroll = document.getElementById('sidebarScrollContainer');
                 if (sidebarScroll) sidebarScroll.scrollTop = 0;
                 const docListEl = document.getElementById('docList');
@@ -957,8 +932,7 @@
                 syncToGithub();
             };
 
-            document.getElementById('githubConfigBtn').onclick = function() {
-                this.blur();
+            document.getElementById('githubConfigBtn').onclick = () => {
                 document.getElementById('ghTokenInput').value = githubConfig.token;
                 document.getElementById('ghRepoInput').value = githubConfig.repo || 'XiandeShen/Xiande-kb';
                 document.getElementById('ghPathInput').value = githubConfig.path || 'kb_docs.json';
@@ -978,6 +952,8 @@
                 pullFromGithub();
             };
 
+            document.getElementById('manualSyncBtn').onclick = pullFromGithub;
+
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             document.getElementById('mobileMenuBtn').onclick = () => {
@@ -992,21 +968,14 @@
         function loadGithubConfig() {
             const saved = localStorage.getItem('kb_gh_config');
             if (saved) {
-                try {
-                    githubConfig = JSON.parse(saved);
-                } catch(e) {
-                    githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
-                }
+                githubConfig = JSON.parse(saved);
                 if (!githubConfig.repo) githubConfig.repo = 'XiandeShen/Xiande-kb';
-            } else {
-                githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
             }
         }
 
         function updateSyncStatus(type, msg) {
             const dot = document.getElementById('syncDot');
             const text = document.getElementById('syncText');
-
             if (!dot || !text) return;
             if (type === 'success') {
                 dot.className = 'w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0';
@@ -1085,7 +1054,7 @@
                     const data = await res.json();
                     githubConfig.sha = data.content.sha;
                     localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
-                    updateSyncStatus('success', '已同步');
+                    updateSyncStatus('success', '`已同步`');
                 } else {
                     const errJson = await res.json().catch(() => ({}));
                     if (res.status === 409 && githubConfig.sha) {
