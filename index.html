@@ -30,8 +30,10 @@
     <!-- RemixIcon -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
-        /* 防抖及视口锁定 */
-        html { scrollbar-gutter: stable; }
+        /* 彻底重置视口，消除所有右侧空白与滚动槽位偏移 */
+        * { box-sizing: border-box; }
+        html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; background: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        
         .markdown-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); background: #f1f5f9; }
         .markdown-body p { margin-bottom: 0.75rem; line-height: 1.625; color: inherit; }
         .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 700; margin-top: 1.25rem; margin-bottom: 0.5rem; color: inherit; }
@@ -44,31 +46,19 @@
         .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
-        
-        /* 图片加载骨架屏与 Spinner 动画 */
-        .img-skeleton-loader {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 160px;
-            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-            background-size: 200% 100%;
-            animation: skeleton-shimmer 1.5s infinite;
-            border-radius: 12px;
-            margin: 12px 0;
-            color: #64748b;
-            font-size: 13px;
-        }
-        @keyframes skeleton-shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 h-screen w-screen overflow-hidden flex flex-col font-sans antialiased selection:bg-brand-500 selection:text-white">
+<body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white">
 
-    <!-- 首次登录授权拦截层 (层级提升至 z-[70]，确保稳稳浮于最上层，不受侧边栏或遮罩干扰) -->
+    <!-- 全局图片预加载全屏遮罩提示层 -->
+    <div id="loadingOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-[80] flex items-center justify-center hidden">
+        <div class="bg-white px-6 py-4 rounded-2xl shadow-xl flex items-center space-x-3">
+            <i class="ri-loader-4-line animate-spin text-2xl text-brand-600"></i>
+            <span class="text-xs font-medium text-slate-700">正在加载文章及高清图片...</span>
+        </div>
+    </div>
+
+    <!-- 首次登录授权拦截层 (层级 z-[70]) -->
     <div id="authOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/60 backdrop-blur-md z-[70] flex items-center justify-center p-4">
         <script>
             (function() {
@@ -109,50 +99,49 @@
     <!-- 全局全屏抽屉遮罩 (层级 z-40) -->
     <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity"></div>
 
-    <!-- Top Header -->
-    <header class="h-14 border-b border-slate-200 bg-white/90 backdrop-blur flex-shrink-0 flex items-center justify-between px-3 sm:px-6 z-30 gap-2">
+    <!-- Top Header (PC满宽贴边，移动端正确隐藏品牌文字) -->
+    <header class="h-14 w-screen bg-slate-900 border-b border-slate-800 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 z-30 shadow-md">
         <div class="flex items-center space-x-2 flex-shrink-0">
-            <!-- 小于 1024px 显示菜单按钮 -->
-            <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-500 hover:text-slate-700 focus:outline-none">
+            <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
                 <i class="ri-menu-line text-xl"></i>
             </button>
-            <div class="hidden lg:flex items-center space-x-1.5">
-                <svg class="w-6 h-6 text-brand-600 flex-shrink-0 fill-current" viewBox="0 0 24 24"><path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3ZM11 5V11H5V5H11ZM5 13H11V19H5V13ZM19 19H13V13H19V19ZM19 11H13V5H19V11Z"/></svg>
-                <span class="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 whitespace-nowrap">XIANDE KB</span>
+            <div class="hidden lg:flex items-center space-x-2">
+                <svg class="w-6 h-6 text-brand-500 flex-shrink-0 fill-current" viewBox="0 0 24 24"><path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3ZM11 5V11H5V5H11ZM5 13H11V19H5V13ZM19 19H13V13H19V19ZM19 11H13V5H19V11Z"/></svg>
+                <span class="font-extrabold text-base tracking-tight text-white whitespace-nowrap">XIANDE KB</span>
             </div>
         </div>
 
         <!-- 全局统一搜索框 -->
-        <div class="flex-1 max-w-xl mx-1 sm:mx-4">
+        <div class="flex-1 max-w-xl mx-2 sm:mx-6">
             <div class="relative">
-                <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                 <input type="text" id="searchInput" placeholder="搜索标题、内容或标签..." 
-                    class="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-full bg-slate-100 border-none outline-none focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800 placeholder-slate-400 transition">
+                    class="w-full pl-10 pr-4 py-2 text-xs sm:text-sm rounded-full bg-slate-800/90 border border-slate-700/60 outline-none focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-400 transition shadow-inner">
             </div>
         </div>
 
         <!-- Header Actions -->
-        <div class="flex items-center space-x-1 flex-shrink-0">
-            <div class="hidden sm:block relative w-[80px] h-7">
-                <div id="syncStatus" class="absolute right-0 top-0 flex items-center justify-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+        <div class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+            <div class="hidden sm:block relative w-[85px] h-7">
+                <div id="syncStatus" class="absolute right-0 top-0 flex items-center justify-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
                     <span class="w-2 h-2 rounded-full bg-slate-400 flex-shrink-0" id="syncDot"></span>
                     <span id="syncText" class="truncate">未连接</span>
                 </div>
             </div>
-            <button id="logoutBtn" title="解除绑定并退出" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-red-600 transition">
+            <button id="logoutBtn" title="解除绑定并退出" class="p-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-red-400 transition">
                 <i class="ri-logout-box-r-line text-lg"></i>
             </button>
-            <button id="githubConfigBtn" title="GitHub 绑定配置" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition">
+            <button id="githubConfigBtn" title="GitHub 绑定配置" class="p-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
                 <i class="ri-github-fill text-lg"></i>
             </button>
         </div>
     </header>
 
     <!-- Main Container -->
-    <div class="flex-1 flex overflow-hidden relative">
+    <div class="flex-1 flex overflow-hidden relative w-screen">
 
         <!-- Left Navigation Sidebar (层级 z-50) -->
-        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-xl lg:shadow-none">
+        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-xl lg:shadow-none h-full">
             
             <!-- 导航与分类滚动区 -->
             <div class="p-4 space-y-6 overflow-y-auto flex-1">
@@ -188,7 +177,7 @@
         </aside>
 
         <!-- Document List Panel -->
-        <div id="listPanel" class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col flex-shrink-0">
+        <div id="listPanel" class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full">
             <div class="h-12 px-4 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500 flex-shrink-0 bg-slate-50/50">
                 <span id="listTitle" class="font-bold text-slate-700 truncate max-w-[200px]">所有条目</span>
                 <span id="docCountText" class="text-slate-400 flex-shrink-0">0 个文档</span>
@@ -197,7 +186,7 @@
         </div>
 
         <!-- Detail / Editor Main Panel -->
-        <main id="mainPanel" class="hidden md:flex flex-1 bg-slate-50 flex-col overflow-hidden absolute md:relative inset-0 z-30 md:z-auto">
+        <main id="mainPanel" class="hidden md:flex flex-1 bg-slate-50 flex-col overflow-hidden absolute md:relative inset-0 z-30 md:z-auto h-full w-full">
 
             <!-- Empty State -->
             <div id="emptyState" class="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center overflow-y-auto">
@@ -206,7 +195,7 @@
             </div>
 
             <!-- View Mode Panel -->
-            <div id="viewPanel" class="hidden flex-1 flex flex-col overflow-hidden bg-white md:bg-transparent">
+            <div id="viewPanel" class="hidden flex-1 flex flex-col overflow-hidden bg-white md:bg-transparent h-full">
                 <div class="h-12 px-4 md:px-6 border-b border-slate-200 bg-white flex items-center justify-between flex-shrink-0 gap-2">
                     <div class="flex items-center space-x-2 min-w-0 flex-1">
                         <button id="backToListBtn" class="md:hidden p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg flex items-center space-x-1 text-xs font-medium flex-shrink-0">
@@ -225,7 +214,7 @@
                 </div>
 
                 <!-- 独立滚动的文章正文区域 -->
-                <div class="flex-1 overflow-y-auto p-4 md:p-10">
+                <div class="flex-1 overflow-y-auto p-4 md:p-10 w-full">
                     <div class="max-w-4xl mx-auto w-full">
                         <h1 id="viewTitle" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3"></h1>
                         <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 mb-6 pb-4 border-b border-slate-200">
@@ -238,7 +227,7 @@
             </div>
 
             <!-- Edit / Create Mode Panel -->
-            <div id="editPanel" class="hidden flex-1 flex flex-col bg-white overflow-hidden">
+            <div id="editPanel" class="hidden flex-1 flex flex-col bg-white overflow-hidden h-full">
                 <div class="h-12 px-4 md:px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50 flex-shrink-0">
                     <div class="flex items-center space-x-2">
                         <button id="cancelEditBtn" class="md:hidden p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg flex items-center space-x-1 text-xs font-medium">
@@ -508,6 +497,54 @@
             const doc = docs.find(d => d.id === id);
             if (!doc) return;
 
+            // 显示全局预加载提示
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.classList.remove('hidden');
+
+            // 解析 Markdown 内容
+            const parsedHtml = marked.parse(doc.content || '');
+            
+            // 提取所有图片路径
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = parsedHtml;
+            const imgTags = tempDiv.querySelectorAll('img');
+            const imagePromises = [];
+
+            // 预先并发拉取所有 JSON 图片
+            imgTags.forEach(img => {
+                const src = img.getAttribute('src');
+                if (src && src.startsWith('images/') && src.endsWith('.json')) {
+                    const p = new Promise(async (resolve) => {
+                        if (imageJsonCache[src]) {
+                            img.src = imageJsonCache[src];
+                            resolve();
+                            return;
+                        }
+                        try {
+                            const base64Data = await fetchImageJsonFromGithub(src);
+                            if (base64Data) {
+                                imageJsonCache[src] = base64Data;
+                                img.src = base64Data;
+                                await new Promise((resImg) => {
+                                    const testImg = new Image();
+                                    testImg.onload = resImg;
+                                    testImg.onerror = resImg;
+                                    testImg.src = base64Data;
+                                });
+                            }
+                        } catch (e) {}
+                        resolve();
+                    });
+                    imagePromises.push(p);
+                }
+            });
+
+            // 等待所有图片在后台加载完成
+            await Promise.all(imagePromises);
+
+            // 隐藏加载提示
+            loadingOverlay.classList.add('hidden');
+
             const mainPanel = document.getElementById('mainPanel');
             mainPanel.classList.remove('hidden');
             document.getElementById('emptyState').classList.add('hidden');
@@ -518,9 +555,7 @@
             document.getElementById('viewCategoryBadge').textContent = doc.category;
             document.getElementById('viewDate').innerHTML = `<i class="ri-time-line mr-1"></i>修改于: ${doc.updatedAt || '未知'}`;
             
-            document.getElementById('viewContent').innerHTML = marked.parse(doc.content || '');
-
-            await resolveAndLoadJsonImages();
+            document.getElementById('viewContent').innerHTML = tempDiv.innerHTML;
 
             const tagsContainer = document.getElementById('viewTags');
             tagsContainer.innerHTML = '';
@@ -532,43 +567,6 @@
             });
 
             renderDocList();
-        }
-
-        async function resolveAndLoadJsonImages() {
-            const container = document.getElementById('viewContent');
-            const imgs = container.querySelectorAll('img');
-            
-            for (let img of imgs) {
-                const src = img.getAttribute('src');
-                if (src && src.startsWith('images/') && src.endsWith('.json')) {
-                    if (imageJsonCache[src]) {
-                        img.src = imageJsonCache[src];
-                        continue;
-                    }
-
-                    const loader = document.createElement('div');
-                    loader.className = 'img-skeleton-loader';
-                    loader.innerHTML = `<i class="ri-loader-4-line animate-spin text-xl mr-2 text-brand-600"></i><span>图片载入中...</span>`;
-                    img.parentNode.insertBefore(loader, img);
-                    img.style.display = 'none';
-
-                    try {
-                        const base64Data = await fetchImageJsonFromGithub(src);
-                        if (base64Data) {
-                            imageJsonCache[src] = base64Data;
-                            img.src = base64Data;
-                            img.onload = () => {
-                                loader.remove();
-                                img.style.display = 'block';
-                            };
-                        } else {
-                            loader.innerHTML = `<i class="ri-error-warning-line text-xl mr-2 text-red-500"></i><span>图片加载失败</span>`;
-                        }
-                    } catch (e) {
-                        loader.innerHTML = `<i class="ri-error-warning-line text-xl mr-2 text-red-500"></i><span>图片请求异常</span>`;
-                    }
-                }
-            }
         }
 
         async function fetchImageJsonFromGithub(path) {
