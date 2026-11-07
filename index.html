@@ -30,9 +30,15 @@
     <!-- RemixIcon -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
-        /* 彻底重置视口，消除所有右侧空白与滚动槽位偏移 */
         * { box-sizing: border-box; }
         html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; background: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        
+        /* 彻底杜绝移动端点击高亮与伪类底色残留 */
+        button, a, input { -webkit-tap-highlight-color: transparent; }
+        @media (hover: hover) {
+            .no-sticky-hover:hover { background-color: rgb(30 41 59); /* bg-slate-800 */ }
+        }
+        .no-sticky-hover:active { background-color: rgb(30 41 59) !important; }
         
         .markdown-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); background: #f1f5f9; }
         .markdown-body p { margin-bottom: 0.75rem; line-height: 1.625; color: inherit; }
@@ -75,7 +81,6 @@
         </script>
         <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6">
             <div class="flex items-center space-x-3 pb-2 border-b border-slate-100">
-                <!-- 登录界面 Logo SVG -->
                 <svg class="w-9 h-9 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="auth-g1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -122,14 +127,13 @@
     <!-- 全局全屏抽屉遮罩 (层级 z-40) -->
     <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity"></div>
 
-    <!-- Top Header (PC满宽贴边，移动端正确隐藏品牌文字) -->
+    <!-- Top Header -->
     <header class="h-14 w-screen bg-slate-900 border-b border-slate-800 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 z-30 shadow-md">
         <div class="flex items-center space-x-2 flex-shrink-0">
             <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
                 <i class="ri-menu-line text-xl"></i>
             </button>
             <div class="hidden lg:flex items-center space-x-2.5">
-                <!-- 主界面 Header Logo SVG -->
                 <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="header-g1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -163,14 +167,13 @@
                 <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                 <input type="text" id="searchInput" placeholder="搜索标题、内容或标签..." 
                     class="w-full pl-10 pr-10 py-2 text-xs sm:text-sm rounded-full bg-slate-800/90 border border-slate-700/60 outline-none focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-400 transition shadow-inner">
-                <!-- 带有独立底色和悬停高亮的清空按钮 X -->
                 <button id="clearSearchBtn" title="清空搜索" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition text-xs">
                     <i class="ri-close-line"></i>
                 </button>
             </div>
         </div>
 
-        <!-- Header Actions -->
+        <!-- Header Actions (使用无残留的纯净交互样式) -->
         <div class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
             <div class="hidden sm:block relative w-[85px] h-7">
                 <div id="syncStatus" class="absolute right-0 top-0 flex items-center justify-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
@@ -178,12 +181,24 @@
                     <span id="syncText" class="truncate">未连接</span>
                 </div>
             </div>
-            <button id="logoutBtn" title="解除绑定并退出" class="p-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-red-400 transition">
-                <i class="ri-logout-box-r-line text-lg"></i>
+            <!-- 新建按钮 -->
+            <button id="newDocBtn" title="新建知识条目" class="no-sticky-hover p-2 rounded-xl text-slate-300 transition-colors">
+                <i class="ri-add-line text-lg pointer-events-none"></i>
             </button>
-            <button id="githubConfigBtn" title="GitHub 绑定配置" class="p-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
-                <i class="ri-github-fill text-lg"></i>
-            </button>
+            <!-- GitHub 图标及下拉菜单 -->
+            <div class="relative">
+                <button id="githubConfigBtn" title="GitHub 设置" class="no-sticky-hover p-2 rounded-xl text-slate-300 transition-colors">
+                    <i class="ri-github-fill text-lg pointer-events-none"></i>
+                </button>
+                <div id="githubDropdown" class="hidden absolute right-0 mt-2 w-36 bg-slate-800 border border-slate-700 rounded-xl shadow-xl py-1 z-50 text-xs">
+                    <button id="menuConfigBtn" class="w-full text-left px-3.5 py-2 text-slate-200 hover:bg-slate-700 hover:text-white flex items-center space-x-2">
+                        <i class="ri-settings-3-line"></i><span>仓库配置</span>
+                    </button>
+                    <button id="menuResetBtn" class="w-full text-left px-3.5 py-2 text-red-400 hover:bg-slate-700 hover:text-red-300 flex items-center space-x-2 border-t border-slate-700/60">
+                        <i class="ri-logout-box-r-line"></i><span>重置</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -192,8 +207,6 @@
 
         <!-- Left Navigation Sidebar (层级 z-50) -->
         <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-xl lg:shadow-none h-full">
-            
-            <!-- 导航与分类滚动区 -->
             <div id="sidebarScrollContainer" class="p-4 space-y-6 overflow-y-auto flex-1">
                 <div class="space-y-1">
                     <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">视图</div>
@@ -221,22 +234,7 @@
                 <span id="listTitle" class="font-bold text-slate-700 truncate max-w-[200px]">所有条目</span>
                 <span id="docCountText" class="text-slate-400 flex-shrink-0">0 个文档</span>
             </div>
-            <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pb-20"></div>
-
-            <!-- 中间栏底部悬浮胶囊浮岛操作栏 (小米/Apple 备忘录风格) -->
-            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
-                <div class="bg-slate-900/90 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-2xl border border-slate-700/60 flex items-center space-x-5">
-                    <button id="manualSyncBtn" title="同步 GitHub 数据" class="flex items-center space-x-1 text-slate-300 hover:text-white transition text-xs font-medium">
-                        <i class="ri-refresh-line text-base"></i>
-                        <span></span>
-                    </button>
-                    <div class="w-[1px] h-3.5 bg-slate-700"></div>
-                    <button id="newDocBtn" title="新建知识条目" class="flex items-center space-x-1 text-brand-400 hover:text-brand-300 transition text-xs font-bold">
-                        <i class="ri-add-line text-base"></i>
-                        <span></span>
-                    </button>
-                </div>
-            </div>
+            <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pb-4"></div>
         </div>
 
         <!-- Detail / Editor Main Panel -->
@@ -267,7 +265,6 @@
                     </div>
                 </div>
 
-                <!-- 独立滚动的文章正文区域 -->
                 <div id="viewScrollContainer" class="flex-1 overflow-y-auto p-4 md:p-10 w-full">
                     <div class="max-w-4xl mx-auto w-full">
                         <h1 id="viewTitle" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3"></h1>
@@ -297,7 +294,6 @@
                     </div>
                 </div>
 
-                <!-- 独立滚动的编辑器区域 -->
                 <div class="flex-1 overflow-y-auto p-4 md:p-6">
                     <div class="max-w-5xl mx-auto w-full space-y-4">
                         <div>
@@ -394,6 +390,8 @@
             loadGithubConfig();
 
             if (!githubConfig.token) {
+                document.getElementById('authOverlay').classList.remove('hidden');
+            } else {
                 document.getElementById('authOverlay').classList.add('hidden');
             }
 
@@ -425,14 +423,15 @@
             pullFromGithub();
         };
 
-        document.getElementById('logoutBtn').onclick = () => {
-            if (confirm('确定要解除 GitHub 绑定并退出吗？')) {
+        function handleResetBinding() {
+            if (confirm('确定要解除 GitHub 绑定并重置吗？')) {
                 localStorage.removeItem('kb_gh_config');
                 githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
                 document.getElementById('authTokInput').value = '';
                 document.getElementById('authOverlay').classList.remove('hidden');
+                document.getElementById('githubDropdown').classList.add('hidden');
             }
-        };
+        }
 
         function loadLocalDocs() {
             const saved = localStorage.getItem('kb_docs');
@@ -472,7 +471,6 @@
                     renderCategoryList();
                     renderDocList();
                     
-                    // 修复问题1：点击分类/标签时，将左侧栏和中间文档列表的滚动条重置回顶部
                     const sidebarScroll = document.getElementById('sidebarScrollContainer');
                     if (sidebarScroll) sidebarScroll.scrollTop = 0;
                     const docListEl = document.getElementById('docList');
@@ -500,7 +498,6 @@
                     renderTagList();
                     renderDocList();
 
-                    // 修复问题1：点击标签时，将左侧栏和中间文档列表的滚动条重置回顶部
                     const sidebarScroll = document.getElementById('sidebarScrollContainer');
                     if (sidebarScroll) sidebarScroll.scrollTop = 0;
                     const docListEl = document.getElementById('docList');
@@ -565,26 +562,20 @@
             const doc = docs.find(d => d.id === id);
             if (!doc) return;
 
-            // 修复问题2：切换或打开任何文档时（无论是 PC 还是移动端），立即将正文滚动条归零回到顶部
             const viewScrollEl = document.getElementById('viewScrollContainer');
             if (viewScrollEl) {
                 viewScrollEl.scrollTop = 0;
             }
 
-            // 显示全局预加载提示
             const loadingOverlay = document.getElementById('loadingOverlay');
             loadingOverlay.classList.remove('hidden');
 
-            // 解析 Markdown 内容
             const parsedHtml = marked.parse(doc.content || '');
-            
-            // 提取所有图片路径
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = parsedHtml;
             const imgTags = tempDiv.querySelectorAll('img');
             const imagePromises = [];
 
-            // 预先并发拉取所有 JSON 图片
             imgTags.forEach(img => {
                 const src = img.getAttribute('src');
                 if (src && src.startsWith('images/') && src.endsWith('.json')) {
@@ -613,10 +604,7 @@
                 }
             });
 
-            // 等待所有图片在后台加载完成
             await Promise.all(imagePromises);
-
-            // 隐藏加载提示
             loadingOverlay.classList.add('hidden');
 
             const mainPanel = document.getElementById('mainPanel');
@@ -640,7 +628,6 @@
                 tagsContainer.appendChild(tagEl);
             });
 
-            // 再次确保图片渲染完成后滚动条稳稳停在顶部
             if (viewScrollEl) {
                 viewScrollEl.scrollTop = 0;
             }
@@ -758,7 +745,7 @@
                         headers: { 'Authorization': `token ${githubConfig.token}` }
                     });
                     if (getRes.ok) {
-                        const fileData = await getRes.json();
+                        const fileData = await res.json();
                         await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${jsonPath}`, {
                             method: 'DELETE',
                             headers: {
@@ -820,7 +807,6 @@
                 renderCategoryList();
                 renderDocList();
 
-                // 修复问题1：点击“全部条目”时，重置左侧栏与中间文档列表滚动条
                 const sidebarScroll = document.getElementById('sidebarScrollContainer');
                 if (sidebarScroll) sidebarScroll.scrollTop = 0;
                 const docListEl = document.getElementById('docList');
@@ -829,6 +815,7 @@
                 closeMobileSidebar();
             };
 
+            // 新建文档按钮事件
             document.getElementById('newDocBtn').onclick = () => {
                 currentDocId = null;
                 isEditing = true;
@@ -932,11 +919,31 @@
                 syncToGithub();
             };
 
-            document.getElementById('githubConfigBtn').onclick = () => {
+            // GitHub 图标及下拉菜单逻辑
+            const githubBtn = document.getElementById('githubConfigBtn');
+            const githubDropdown = document.getElementById('githubDropdown');
+
+            githubBtn.onclick = (e) => {
+                e.stopPropagation();
+                githubDropdown.classList.toggle('hidden');
+            };
+
+            document.addEventListener('click', (e) => {
+                if (!githubBtn.contains(e.target) && !githubDropdown.contains(e.target)) {
+                    githubDropdown.classList.add('hidden');
+                }
+            });
+
+            document.getElementById('menuConfigBtn').onclick = () => {
+                githubDropdown.classList.add('hidden');
                 document.getElementById('ghTokenInput').value = githubConfig.token;
                 document.getElementById('ghRepoInput').value = githubConfig.repo || 'XiandeShen/Xiande-kb';
                 document.getElementById('ghPathInput').value = githubConfig.path || 'kb_docs.json';
                 document.getElementById('githubModal').classList.remove('hidden');
+            };
+
+            document.getElementById('menuResetBtn').onclick = () => {
+                handleResetBinding();
             };
 
             document.getElementById('closeModalBtn').onclick = () => {
@@ -951,8 +958,6 @@
                 document.getElementById('githubModal').classList.add('hidden');
                 pullFromGithub();
             };
-
-            document.getElementById('manualSyncBtn').onclick = pullFromGithub;
 
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -1054,7 +1059,7 @@
                     const data = await res.json();
                     githubConfig.sha = data.content.sha;
                     localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
-                    updateSyncStatus('success', '`已同步`');
+                    updateSyncStatus('success', '已同步');
                 } else {
                     const errJson = await res.json().catch(() => ({}));
                     if (res.status === 409 && githubConfig.sha) {
