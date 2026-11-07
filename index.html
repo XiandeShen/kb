@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>椿沐智库</title>
-    <!-- 精致纯净矢量 Icon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%232563eb%22><path d=%22M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3ZM11 5V11H5V5H11ZM5 13H11V19H5V13ZM19 19H13V13H19V19ZM19 11H13V5H19V11Z%22/></svg>">
+    <!-- 精致纯净矢量 Icon (Gemini Style SVG Favicon) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='g1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='100%' stop-color='%230072ff'/></linearGradient><linearGradient id='g2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%230052d4'/><stop offset='100%' stop-color='%234364f7'/></linearGradient><linearGradient id='g3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='50%' stop-color='%230072ff'/><stop offset='100%' stop-color='%230052d4'/></linearGradient></defs><g><path d='M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z' fill='url(%23g2)'/><path d='M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z' fill='url(%23g1)' opacity='0.9'/><path d='M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z' fill='url(%23g3)'/><path d='M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z' fill='%23ffffff'/></g></svg>">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -26,7 +26,7 @@
         }
     </script>
     <!-- Marked.js Markdown Parser -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- RemixIcon -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
@@ -75,7 +75,30 @@
         </script>
         <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6">
             <div class="flex items-center space-x-3 pb-2 border-b border-slate-100">
-                <svg class="w-8 h-8 text-brand-600 flex-shrink-0 fill-current" viewBox="0 0 24 24"><path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3ZM11 5V11H5V5H11ZM5 13H11V19H5V13ZM19 19H13V13H19V19ZM19 11H13V5H19V11Z"/></svg>
+                <!-- 登录界面 Logo SVG -->
+                <svg class="w-9 h-9 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="auth-g1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#00c6ff"/>
+                            <stop offset="100%" stop-color="#0072ff"/>
+                        </linearGradient>
+                        <linearGradient id="auth-g2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#0052d4"/>
+                            <stop offset="100%" stop-color="#4364f7"/>
+                        </linearGradient>
+                        <linearGradient id="auth-g3" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#00c6ff"/>
+                            <stop offset="50%" stop-color="#0072ff"/>
+                            <stop offset="100%" stop-color="#0052d4"/>
+                        </linearGradient>
+                    </defs>
+                    <g>
+                        <path d="M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z" fill="url(#auth-g2)"/>
+                        <path d="M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z" fill="url(#auth-g1)" opacity="0.9"/>
+                        <path d="M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z" fill="url(#auth-g3)"/>
+                        <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
+                    </g>
+                </svg>
                 <h1 class="text-xl font-extrabold tracking-tight text-slate-900">椿沐智库</h1>
             </div>
             <p class="text-xs text-slate-500 leading-relaxed">请输入你的 GitHub Personal Access Token (PAT) 以安全连接云端知识库。</p>
@@ -105,8 +128,31 @@
             <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
                 <i class="ri-menu-line text-xl"></i>
             </button>
-            <div class="hidden lg:flex items-center space-x-2">
-                <svg class="w-6 h-6 text-brand-500 flex-shrink-0 fill-current" viewBox="0 0 24 24"><path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3ZM11 5V11H5V5H11ZM5 13H11V19H5V13ZM19 19H13V13H19V19ZM19 11H13V5H19V11Z"/></svg>
+            <div class="hidden lg:flex items-center space-x-2.5">
+                <!-- 主界面 Header Logo SVG -->
+                <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="header-g1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#00c6ff"/>
+                            <stop offset="100%" stop-color="#0072ff"/>
+                        </linearGradient>
+                        <linearGradient id="header-g2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#0052d4"/>
+                            <stop offset="100%" stop-color="#4364f7"/>
+                        </linearGradient>
+                        <linearGradient id="header-g3" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#00c6ff"/>
+                            <stop offset="50%" stop-color="#0072ff"/>
+                            <stop offset="100%" stop-color="#0052d4"/>
+                        </linearGradient>
+                    </defs>
+                    <g>
+                        <path d="M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z" fill="url(#header-g2)"/>
+                        <path d="M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z" fill="url(#header-g1)" opacity="0.9"/>
+                        <path d="M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z" fill="url(#header-g3)"/>
+                        <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
+                    </g>
+                </svg>
                 <span class="font-extrabold text-base tracking-tight text-white whitespace-nowrap">椿沐智库</span>
             </div>
         </div>
