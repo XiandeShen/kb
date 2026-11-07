@@ -937,7 +937,7 @@
 
         async function pullFromGithub() {
             if (!githubConfig.token || !githubConfig.repo) return;
-            updateSyncStatus('loading', '拉取中...');
+            updateSyncStatus('loading', '同步中');
 
             try {
                 const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
@@ -963,7 +963,7 @@
 
         async function syncToGithub() {
             if (!githubConfig.token || !githubConfig.repo) return;
-            updateSyncStatus('loading', '拉取中...');
+            updateSyncStatus('loading', '同步中');
 
             try {
                 if (!githubConfig.sha) {
