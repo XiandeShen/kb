@@ -68,11 +68,8 @@
 </head>
 <body class="bg-slate-50 text-slate-800 h-screen w-screen overflow-hidden flex flex-col font-sans antialiased selection:bg-brand-500 selection:text-white">
 
-    <!-- 全局全屏抽屉遮罩 (层级 z-40，覆盖包括 Header 在内的全部屏幕，遮挡右侧不可点击) -->
-    <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity"></div>
-
-    <!-- 首次登录授权拦截层 -->
-    <div id="authOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <!-- 首次登录授权拦截层 (层级提升至 z-[70]，确保稳稳浮于最上层，不受侧边栏或遮罩干扰) -->
+    <div id="authOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/60 backdrop-blur-md z-[70] flex items-center justify-center p-4">
         <script>
             (function() {
                 try {
@@ -108,6 +105,9 @@
             </button>
         </div>
     </div>
+
+    <!-- 全局全屏抽屉遮罩 (层级 z-40) -->
+    <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity"></div>
 
     <!-- Top Header -->
     <header class="h-14 border-b border-slate-200 bg-white/90 backdrop-blur flex-shrink-0 flex items-center justify-between px-3 sm:px-6 z-30 gap-2">
@@ -151,7 +151,7 @@
     <!-- Main Container -->
     <div class="flex-1 flex overflow-hidden relative">
 
-        <!-- Left Navigation Sidebar (固定全局定位层级 z-50，带着精致细腻的平滑右侧阴影) -->
+        <!-- Left Navigation Sidebar (层级 z-50) -->
         <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-xl lg:shadow-none">
             
             <!-- 导航与分类滚动区 -->
@@ -681,7 +681,7 @@
                         headers: { 'Authorization': `token ${githubConfig.token}` }
                     });
                     if (getRes.ok) {
-                        const fileData = await res.json();
+                        const fileData = await getRes.json();
                         await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${jsonPath}`, {
                             method: 'DELETE',
                             headers: {
