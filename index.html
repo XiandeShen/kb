@@ -162,10 +162,10 @@
             <div class="relative flex items-center">
                 <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                 <input type="text" id="searchInput" placeholder="搜索标题、内容或标签..." 
-                    class="w-full pl-10 pr-9 py-2 text-xs sm:text-sm rounded-full bg-slate-800/90 border border-slate-700/60 outline-none focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-400 transition shadow-inner">
-                <!-- 清空按钮 X -->
-                <button id="clearSearchBtn" title="清空搜索" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 rounded-full transition">
-                    <i class="ri-close-line text-base"></i>
+                    class="w-full pl-10 pr-10 py-2 text-xs sm:text-sm rounded-full bg-slate-800/90 border border-slate-700/60 outline-none focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-400 transition shadow-inner">
+                <!-- 带有独立底色和悬停高亮的清空按钮 X -->
+                <button id="clearSearchBtn" title="清空搜索" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition text-xs">
+                    <i class="ri-close-line"></i>
                 </button>
             </div>
         </div>
@@ -776,7 +776,6 @@
             const searchInput = document.getElementById('searchInput');
             const clearSearchBtn = document.getElementById('clearSearchBtn');
 
-            // 统一管理搜索框输入和清空按钮状态更新
             function handleSearchInput() {
                 const val = searchInput.value;
                 if (val.length > 0) {
@@ -789,7 +788,6 @@
 
             searchInput.oninput = handleSearchInput;
 
-            // 点击清空按钮
             clearSearchBtn.onclick = () => {
                 searchInput.value = '';
                 clearSearchBtn.classList.add('hidden');
@@ -970,18 +968,22 @@
             updateSyncStatus('loading', '同步中');
 
             try {
-                const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
+                const res = addSearchEndpoint(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
+                    headers: { 'Authorization': `token ${githubConfig.token}` }
+                });
+                // 恢复原网络请求逻辑
+                const actualRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
                     headers: { 'Authorization': `token ${githubConfig.token}` }
                 });
 
-                if (res.ok) {
-                    const data = await res.json();
+                if (actualRes.ok) {
+                    const data = await actualRes.json();
                     githubConfig.sha = data.sha;
                     const content = decodeURIComponent(escape(atob(data.content)));
                     docs = JSON.parse(content);
                     saveLocalDocs();
                     updateSyncStatus('success', '已同步');
-                } else if (res.status === 404) {
+                } else if (actualRes.status === 404) {
                     await syncToGithub();
                 } else {
                     updateSyncStatus('error', '凭证错误');
@@ -1043,6 +1045,7 @@
                 updateSyncStatus('error', '推送失败');
             }
         }
+        function addSearchEndpoint(u, o) { return fetch(u, o); }
     </script>
 </body>
 </html>
