@@ -93,6 +93,13 @@
             0% { left: -40%; }
             100% { left: 100%; }
         }
+
+        #syncRefreshBtn {
+            -webkit-tap-highlight-color: transparent;
+        }
+        #syncRefreshBtn:active {
+            transform: scale(0.9);
+        }
     </style>
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
@@ -103,7 +110,7 @@
         <span id="toastText">提示信息</span>
     </div>
 
-    <!-- 全局加载遮罩（知识库内刷新等场景使用） -->
+    <!-- 全局加载遮罩 -->
     <div id="loadingOverlay" class="fixed inset-0 w-screen h-screen z-[160] flex items-center justify-center overflow-hidden bg-slate-950">
         <div id="loadingDecor" class="absolute inset-0 overflow-hidden pointer-events-none">
             <div class="absolute -top-40 -left-32 w-[28rem] h-[28rem] bg-blue-600/20 rounded-full blur-3xl"></div>
@@ -119,7 +126,6 @@
     <!-- ===================== 登录页（PC 左右分栏 / 移动端单列） ===================== -->
     <div id="authOverlay" class="fixed inset-0 w-screen h-screen z-[150] bg-slate-950 overflow-y-auto hidden">
 
-        <!-- 背景柔光 -->
         <div class="fixed inset-0 overflow-hidden pointer-events-none">
             <div class="absolute top-0 left-1/4 -translate-x-1/2 w-[44rem] h-[44rem] -translate-y-1/2 bg-blue-500/[0.10] rounded-full blur-3xl"></div>
             <div class="absolute bottom-0 right-0 w-[32rem] h-[32rem] translate-x-1/4 translate-y-1/4 bg-cyan-500/[0.07] rounded-full blur-3xl"></div>
@@ -127,11 +133,9 @@
 
         <div class="relative min-h-full flex flex-col sm:flex-row">
 
-            <!-- 介绍区：移动端顶部居中，PC 左侧 -->
             <div class="flex-1 flex flex-col items-center justify-center px-6 py-14 sm:items-start sm:justify-center sm:px-12 sm:py-0 lg:px-20 xl:px-28">
                 <div class="w-full max-w-lg">
 
-                    <!-- Logo + 标题 -->
                     <div class="flex flex-col items-center sm:flex-row sm:items-center sm:space-x-3">
                         <svg class="w-14 h-14 sm:w-12 sm:h-12 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
@@ -149,12 +153,10 @@
                         <span class="mt-4 text-xl sm:mt-0 sm:text-2xl font-extrabold tracking-tight text-white whitespace-nowrap">椿沐智库</span>
                     </div>
 
-                    <!-- 移动端简介 -->
                     <p class="sm:hidden text-center text-xs text-slate-400 leading-relaxed mt-4">
                         云端知识库 · 安全可控 · 随时访问
                     </p>
 
-                    <!-- PC 端标语 / 描述 / 特点 -->
                     <div class="hidden sm:block">
                         <h2 class="text-3xl lg:text-4xl font-light text-white leading-snug mt-14">
                             让知识沉淀，<br class="hidden lg:block">让经验传承
@@ -196,12 +198,10 @@
                 </div>
             </div>
 
-            <!-- 表单区：移动端底部，PC 右侧固定宽度 -->
             <div class="w-full sm:w-[460px] lg:w-[520px] flex-shrink-0 px-6 pb-14 sm:flex sm:items-center sm:justify-center sm:border-l border-white/[0.06] sm:px-8 sm:py-0">
                 <div class="w-full sm:max-w-[340px]">
                     <form id="authForm" class="space-y-8" autocomplete="off">
 
-                        <!-- 访问令牌 -->
                         <div>
                             <label for="authTokInput" class="block text-[11px] font-medium text-slate-400 mb-2.5 tracking-widest uppercase">访问令牌</label>
                             <div class="relative">
@@ -214,7 +214,6 @@
                             </div>
                         </div>
 
-                        <!-- 登录按钮 -->
                         <button type="submit" id="authSubmitBtn"
                             class="relative overflow-hidden w-full py-3.5 bg-white text-slate-900 font-medium text-sm rounded-full hover:bg-slate-100 active:bg-slate-200 active:scale-[0.99] transition-all duration-200 disabled:opacity-80 disabled:cursor-not-allowed disabled:hover:bg-white disabled:active:scale-100">
                             <span class="relative z-10 flex items-center justify-center space-x-2">
@@ -226,7 +225,6 @@
                             </div>
                         </button>
 
-                        <!-- 高级选项 -->
                         <div>
                             <button type="button" id="toggleAdvancedBtn"
                                 class="group flex items-center space-x-1.5 text-[11px] text-slate-500 hover:text-slate-300 transition-colors">
@@ -296,10 +294,13 @@
             </div>
 
             <div class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-                <div class="hidden sm:block relative w-[85px] h-7">
-                    <div id="syncStatus" class="absolute right-0 top-0 flex items-center justify-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                <div class="hidden sm:block relative w-[120px] h-7">
+                    <div id="syncStatus" class="absolute right-0 top-0 flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 transition-colors">
                         <span class="w-2 h-2 rounded-full bg-slate-400 flex-shrink-0" id="syncDot"></span>
                         <span id="syncText" class="truncate">未连接</span>
+                        <button id="syncRefreshBtn" type="button" title="刷新同步" class="flex-shrink-0 w-4 h-4 flex items-center justify-center rounded text-slate-400 hover:text-white active:text-brand-400 transition-colors">
+                            <i id="syncRefreshIcon" class="ri-refresh-line text-[12px] pointer-events-none"></i>
+                        </button>
                     </div>
                 </div>
                 <button id="newDocBtn" title="新建知识条目" class="w-9 h-9 no-sticky-hover flex items-center justify-center rounded-xl text-slate-300 transition-colors">
@@ -528,9 +529,11 @@
         let activeTag = null;
         let isEditing = false;
         let isLoggingIn = false;
+        let isManualSyncing = false;
         let githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
 
         const imageJsonCache = {};
+        const DEFAULT_LOADING_TEXT = '正在加载知识库...';
 
         function setLoadingMode(mode) {
             const overlay = document.getElementById('loadingOverlay');
@@ -544,6 +547,21 @@
                 overlay.classList.add('bg-slate-900/60', 'backdrop-blur-sm');
                 decor.classList.add('hidden');
             }
+        }
+
+        /* 显示/隐藏全局遮罩，可指定文案 */
+        function showLoading(text) {
+            setLoadingMode('app');
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            if (loadingText) loadingText.textContent = text || DEFAULT_LOADING_TEXT;
+            overlay.classList.remove('hidden');
+        }
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            overlay.classList.add('hidden');
+            if (loadingText) loadingText.textContent = DEFAULT_LOADING_TEXT;
         }
 
         function setLoginButtonLoading(loading) {
@@ -638,6 +656,7 @@
                 hideAuth();
                 setLoadingMode('auth');
                 document.getElementById('loadingOverlay').classList.remove('hidden');
+                document.getElementById('loadingText').textContent = DEFAULT_LOADING_TEXT;
                 loadLocalDocs();
                 renderCategoryList();
                 renderTagList();
@@ -686,6 +705,19 @@
             pullFromGithub();
         });
 
+        /* ---------------- 手动刷新同步 ---------------- */
+        function manualSyncRefresh() {
+            if (isManualSyncing) return;
+            if (!githubConfig.token || !githubConfig.repo) {
+                showToast('请先配置访问令牌', 'error');
+                return;
+            }
+            isManualSyncing = true;
+            pullFromGithub().finally(() => {
+                isManualSyncing = false;
+            });
+        }
+
         function handleResetBinding() {
             if (confirm('确定要解除 GitHub 绑定并重置吗？')) {
                 localStorage.removeItem('kb_gh_config');
@@ -696,7 +728,7 @@
                 githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
                 document.getElementById('authTokInput').value = '';
                 document.getElementById('githubDropdown').classList.add('hidden');
-                document.getElementById('loadingOverlay').classList.add('hidden');
+                hideLoading();
 
                 hideApp();
                 fillAdvancedOptions();
@@ -888,7 +920,9 @@
             });
         }
 
-        async function openDocView(id) {
+        /* openDocView 支持 skipOverlay：外部已经在显示遮罩时跳过自带的遮罩控制 */
+        async function openDocView(id, options = {}) {
+            const skipOverlay = !!options.skipOverlay;
             currentDocId = id;
             previousDocId = id;
             isEditing = false;
@@ -900,9 +934,9 @@
                 viewScrollEl.scrollTop = 0;
             }
 
-            setLoadingMode('app');
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            loadingOverlay.classList.remove('hidden');
+            if (!skipOverlay) {
+                showLoading('正在加载文章...');
+            }
 
             const parsedHtml = marked.parse(doc.content || '');
             const tempDiv = document.createElement('div');
@@ -939,7 +973,9 @@
             });
 
             await Promise.all(imagePromises);
-            loadingOverlay.classList.add('hidden');
+            if (!skipOverlay) {
+                hideLoading();
+            }
 
             const mainPanel = document.getElementById('mainPanel');
             mainPanel.classList.remove('hidden');
@@ -1308,6 +1344,7 @@
             reader.readAsDataURL(file);
         }
 
+        /* 并行删除内容中引用的图片 JSON，缩短等待时间 */
         async function deleteGithubImageJsonsInContent(content) {
             if (!githubConfig.token || !githubConfig.repo || !content) return;
 
@@ -1315,7 +1352,9 @@
             const matches = content.match(regex);
             if (!matches) return;
 
-            for (let jsonPath of matches) {
+            const uniquePaths = [...new Set(matches)];
+
+            await Promise.allSettled(uniquePaths.map(async (jsonPath) => {
                 try {
                     const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${jsonPath}`, {
                         headers: { 'Authorization': `token ${githubConfig.token}` }
@@ -1335,7 +1374,7 @@
                         });
                     }
                 } catch (e) {}
-            }
+            }));
         }
 
         function insertAtCursor(textarea, text) {
@@ -1374,6 +1413,15 @@
                 renderDocList();
                 searchInput.focus();
             };
+
+            const syncRefreshBtn = document.getElementById('syncRefreshBtn');
+            if (syncRefreshBtn) {
+                syncRefreshBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    manualSyncRefresh();
+                });
+            }
 
             document.getElementById('newDocBtn').onclick = () => {
                 previousDocId = currentDocId || null;
@@ -1438,7 +1486,8 @@
                 checkBackToTopBtnVisibility();
             };
 
-            document.getElementById('saveDocBtn').onclick = () => {
+            /* 保存：显示加载遮罩，直到同步完成 */
+            document.getElementById('saveDocBtn').onclick = async () => {
                 const title = document.getElementById('editTitleInput').value.trim() || '未命名文章';
                 const category = document.getElementById('editCategoryInput').value.trim() || '通用';
                 const tagsStr = document.getElementById('editTagsInput').value.trim();
@@ -1446,55 +1495,74 @@
                 const content = document.getElementById('editContentInput').value;
                 const now = new Date().toLocaleString();
 
-                if (currentDocId) {
-                    const doc = docs.find(d => d.id === currentDocId);
-                    if (doc) {
-                        doc.title = title;
-                        doc.category = category;
-                        doc.tags = tags;
-                        doc.content = content;
-                        doc.updatedAt = now;
-                        if (!doc.code || !doc.code.startsWith('CM-')) doc.code = generateDocCode();
+                showLoading('正在保存并同步...');
+                try {
+                    if (currentDocId) {
+                        const doc = docs.find(d => d.id === currentDocId);
+                        if (doc) {
+                            doc.title = title;
+                            doc.category = category;
+                            doc.tags = tags;
+                            doc.content = content;
+                            doc.updatedAt = now;
+                            if (!doc.code || !doc.code.startsWith('CM-')) doc.code = generateDocCode();
+                        }
+                    } else {
+                        const newDoc = {
+                            id: 'doc-' + Date.now(),
+                            code: generateDocCode(),
+                            title, category, tags, content, updatedAt: now
+                        };
+                        docs.unshift(newDoc);
+                        currentDocId = newDoc.id;
+                        previousDocId = newDoc.id;
                     }
-                } else {
-                    const newDoc = {
-                        id: 'doc-' + Date.now(),
-                        code: generateDocCode(),
-                        title, category, tags, content, updatedAt: now
-                    };
-                    docs.unshift(newDoc);
-                    currentDocId = newDoc.id;
-                    previousDocId = newDoc.id;
-                }
 
-                saveLocalDocs();
-                openDocView(currentDocId);
-                syncToGithub();
-                showToast('保存成功并已同步', 'success');
+                    saveLocalDocs();
+                    await syncToGithub();
+                    await openDocView(currentDocId, { skipOverlay: true });
+                    showToast('保存成功并已同步', 'success');
+                } catch (err) {
+                    showToast('保存失败，请重试', 'error');
+                } finally {
+                    hideLoading();
+                }
             };
 
+            /* 删除：显示加载遮罩，直到图片清理、删除与同步全部完成 */
             document.getElementById('deleteDocBtn').onclick = async () => {
                 if (!confirm('确定要删除这篇知识条目吗？关联的独立图片 JSON 会同步从 GitHub 中清理。')) return;
 
                 const docToDelete = docs.find(d => d.id === currentDocId);
-                if (docToDelete && docToDelete.content) {
-                    await deleteGithubImageJsonsInContent(docToDelete.content);
-                }
+                const docIdToDelete = currentDocId;
 
-                docs = docs.filter(d => d.id !== currentDocId);
-                currentDocId = null;
-                previousDocId = null;
-                saveLocalDocs();
-                document.getElementById('viewPanel').classList.add('hidden');
-                document.getElementById('editPanel').classList.add('hidden');
-                if (window.innerWidth < 768) {
-                    document.getElementById('mainPanel').classList.add('hidden');
-                } else {
-                    document.getElementById('emptyState').classList.remove('hidden');
+                showLoading('正在删除并同步...');
+                try {
+                    if (docToDelete && docToDelete.content) {
+                        await deleteGithubImageJsonsInContent(docToDelete.content);
+                    }
+
+                    docs = docs.filter(d => d.id !== docIdToDelete);
+                    currentDocId = null;
+                    previousDocId = null;
+                    saveLocalDocs();
+
+                    await syncToGithub();
+
+                    document.getElementById('viewPanel').classList.add('hidden');
+                    document.getElementById('editPanel').classList.add('hidden');
+                    if (window.innerWidth < 768) {
+                        document.getElementById('mainPanel').classList.add('hidden');
+                    } else {
+                        document.getElementById('emptyState').classList.remove('hidden');
+                    }
+                    showToast('删除成功', 'success');
+                    checkBackToTopBtnVisibility();
+                } catch (err) {
+                    showToast('删除失败，请重试', 'error');
+                } finally {
+                    hideLoading();
                 }
-                syncToGithub();
-                showToast('删除成功', 'success');
-                checkBackToTopBtnVisibility();
             };
 
             const githubBtn = document.getElementById('githubConfigBtn');
@@ -1534,8 +1602,7 @@
                 githubConfig.sha = '';
                 localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
                 document.getElementById('githubModal').classList.add('hidden');
-                setLoadingMode('app');
-                document.getElementById('loadingOverlay').classList.remove('hidden');
+                showLoading(DEFAULT_LOADING_TEXT);
                 pullFromGithub();
                 showToast('GitHub 配置已保存', 'success');
             };
@@ -1573,16 +1640,20 @@
         function updateSyncStatus(type, msg) {
             const dot = document.getElementById('syncDot');
             const text = document.getElementById('syncText');
+            const refreshIcon = document.getElementById('syncRefreshIcon');
             if (!dot || !text) return;
             if (type === 'success') {
                 dot.className = 'w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0';
                 text.textContent = msg || '已同步';
+                if (refreshIcon) refreshIcon.classList.remove('animate-spin');
             } else if (type === 'loading') {
                 dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse flex-shrink-0';
                 text.textContent = msg || '同步中';
+                if (refreshIcon) refreshIcon.classList.add('animate-spin');
             } else {
                 dot.className = 'w-2 h-2 rounded-full bg-red-500 flex-shrink-0';
                 text.textContent = msg || '同步失败';
+                if (refreshIcon) refreshIcon.classList.remove('animate-spin');
             }
         }
 
@@ -1592,7 +1663,7 @@
                     isLoggingIn = false;
                     setLoginButtonLoading(false);
                 } else {
-                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    hideLoading();
                     hideApp();
                     fillAdvancedOptions();
                     showAuth();
@@ -1616,7 +1687,7 @@
                     });
                     saveLocalDocs();
                     updateSyncStatus('success', '已同步');
-                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    hideLoading();
                     hideAuth();
                     showApp();
                     if (isLoggingIn) {
@@ -1625,7 +1696,7 @@
                     }
                 } else if (actualRes.status === 404) {
                     await syncToGithub();
-                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    hideLoading();
                     hideAuth();
                     showApp();
                     if (isLoggingIn) {
@@ -1640,7 +1711,7 @@
                     renderDocList();
                     updateSyncStatus('error', 'Token 错误');
                     showToast('访问令牌认证失败，请重新输入', 'error');
-                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    hideLoading();
                     if (isLoggingIn) {
                         isLoggingIn = false;
                         setLoginButtonLoading(false);
@@ -1652,7 +1723,7 @@
                 }
             } catch (e) {
                 updateSyncStatus('error', '网络异常');
-                document.getElementById('loadingOverlay').classList.add('hidden');
+                hideLoading();
                 if (isLoggingIn) {
                     isLoggingIn = false;
                     setLoginButtonLoading(false);
