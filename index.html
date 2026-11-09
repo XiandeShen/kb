@@ -71,6 +71,34 @@
             outline: none !important;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25) !important;
         }
+
+        /* 高级选项展开动画 */
+        #advancedOptions {
+            transition: max-height 0.3s ease, opacity 0.2s ease;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+        }
+        #advancedOptions.is-open {
+            max-height: 320px;
+            opacity: 1;
+        }
+        #advancedChevron {
+            transition: transform 0.25s ease;
+        }
+        #advancedChevron.is-open {
+            transform: rotate(180deg);
+        }
+
+        /* 登录按钮进度条动画 */
+        .login-progress-fill {
+            width: 40%;
+            animation: loginProgressMove 1.3s ease-in-out infinite;
+        }
+        @keyframes loginProgressMove {
+            0% { left: -40%; }
+            100% { left: 100%; }
+        }
     </style>
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
@@ -81,9 +109,8 @@
         <span id="toastText">提示信息</span>
     </div>
 
-    <!-- 全局加载遮罩（登录页及首次进入知识库均为深色光晕；文档内加载为半透明） -->
+    <!-- 全局加载遮罩（知识库内刷新等场景使用） -->
     <div id="loadingOverlay" class="fixed inset-0 w-screen h-screen z-[160] flex items-center justify-center overflow-hidden bg-slate-950">
-        <!-- 深色光晕装饰 -->
         <div id="loadingDecor" class="absolute inset-0 overflow-hidden pointer-events-none">
             <div class="absolute -top-40 -left-32 w-[28rem] h-[28rem] bg-blue-600/20 rounded-full blur-3xl"></div>
             <div class="absolute -bottom-40 -right-32 w-[28rem] h-[28rem] bg-cyan-500/20 rounded-full blur-3xl"></div>
@@ -95,59 +122,90 @@
         </div>
     </div>
 
-    <!-- 授权拦截层（全屏不透明登录页，未授权时完全隐藏主界面） -->
-    <div id="authOverlay" class="fixed inset-0 w-screen h-screen z-[150] flex items-center justify-center p-4 bg-slate-950 overflow-y-auto hidden">
-        <!-- 背景光晕装饰 -->
-        <div class="absolute inset-0 overflow-hidden pointer-events-none">
-            <div class="absolute -top-40 -left-32 w-[28rem] h-[28rem] bg-blue-600/20 rounded-full blur-3xl"></div>
-            <div class="absolute -bottom-40 -right-32 w-[28rem] h-[28rem] bg-cyan-500/20 rounded-full blur-3xl"></div>
-            <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-[36rem] h-[36rem] bg-indigo-600/10 rounded-full blur-3xl"></div>
+    <!-- ===================== 登录页 ===================== -->
+    <div id="authOverlay" class="fixed inset-0 w-screen h-screen z-[150] bg-slate-950 overflow-y-auto hidden">
+
+        <!-- 顶部柔光 -->
+        <div class="fixed inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[50rem] h-[50rem] -translate-y-1/2 bg-blue-500/[0.09] rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 w-[30rem] h-[30rem] translate-x-1/3 translate-y-1/3 bg-cyan-500/[0.06] rounded-full blur-3xl"></div>
         </div>
 
-        <div class="relative w-full max-w-md bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl space-y-6 my-auto">
-            <div class="flex items-center space-x-3 pb-4 border-b border-slate-100">
-                <svg class="w-10 h-10 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- 左上角 Logo + 文字（与系统顶部栏位置、大小完全一致） -->
+        <div class="absolute top-0 left-0 right-0 h-14 px-3 sm:px-6 flex items-center z-10">
+            <div class="flex items-center space-x-2.5">
+                <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                        <linearGradient id="auth-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
-                        <linearGradient id="auth-g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0052d4"/><stop offset="100%" stop-color="#4364f7"/></linearGradient>
-                        <linearGradient id="auth-g3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="50%" stop-color="#0072ff"/><stop offset="100%" stop-color="#0052d4"/></linearGradient>
+                        <linearGradient id="login-logo-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
+                        <linearGradient id="login-logo-g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0052d4"/><stop offset="100%" stop-color="#4364f7"/></linearGradient>
+                        <linearGradient id="login-logo-g3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="50%" stop-color="#0072ff"/><stop offset="100%" stop-color="#0052d4"/></linearGradient>
                     </defs>
                     <g>
-                        <path d="M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z" fill="url(#auth-g2)"/>
-                        <path d="M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z" fill="url(#auth-g1)" opacity="0.9"/>
-                        <path d="M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z" fill="url(#auth-g3)"/>
+                        <path d="M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z" fill="url(#login-logo-g2)"/>
+                        <path d="M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z" fill="url(#login-logo-g1)" opacity="0.9"/>
+                        <path d="M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z" fill="url(#login-logo-g3)"/>
                         <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
                     </g>
                 </svg>
-                <div>
-                    <h1 class="text-xl font-extrabold tracking-tight text-slate-900 leading-tight">椿沐智库</h1>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Chunmu Knowledge Base</p>
-                </div>
+                <span class="font-extrabold text-base tracking-tight text-white whitespace-nowrap">椿沐智库</span>
             </div>
+        </div>
 
-            <p class="text-xs text-slate-500 leading-relaxed">请输入你的 GitHub Personal Access Token (PAT) 以安全连接云端知识库。凭证仅保存在本机浏览器中。</p>
+        <!-- 表单区域：垂直居中 -->
+        <div class="relative min-h-full flex items-center justify-center px-5 py-16 sm:py-20">
+            <div class="w-full max-w-[400px]">
+                <form id="authForm" class="space-y-8" autocomplete="off">
 
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">GitHub Token (PAT)</label>
-                    <input type="password" id="authTokInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"
-                        class="w-full px-4 py-3 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wider">仓库路径 (Owner/Repo)</label>
-                    <input type="text" id="authRepoInput" value="XiandeShen/Xiande-kb" autocomplete="off"
-                        class="w-full px-4 py-3 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
-                </div>
+                    <!-- 访问令牌输入（居中，全宽） -->
+                    <div>
+                        <label for="authTokInput" class="block text-[11px] font-medium text-slate-400 mb-2.5 tracking-widest uppercase">访问令牌</label>
+                        <div class="relative">
+                            <input type="password" id="authTokInput" placeholder="请输入访问令牌" spellcheck="false"
+                                class="w-full bg-transparent border-0 border-b border-white/15 px-0 py-3 pr-9 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/60 transition-colors duration-200">
+                            <button type="button" id="toggleTokenVisibility" title="显示/隐藏令牌"
+                                class="absolute right-0 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-300 transition">
+                                <i id="toggleTokenIcon" class="ri-eye-line text-base"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 登录按钮：带加载中状态与进度条 -->
+                    <button type="submit" id="authSubmitBtn"
+                        class="relative overflow-hidden w-full py-3.5 bg-white text-slate-900 font-medium text-sm rounded-full hover:bg-slate-100 active:bg-slate-200 active:scale-[0.99] transition-all duration-200 disabled:opacity-80 disabled:cursor-not-allowed disabled:hover:bg-white disabled:active:scale-100">
+                        <span class="relative z-10 flex items-center justify-center space-x-2">
+                            <i id="loginSpinner" class="hidden ri-loader-4-line animate-spin text-base"></i>
+                            <span id="loginBtnText">登录</span>
+                        </span>
+                        <div id="loginProgressBar" class="hidden absolute bottom-0 left-0 right-0 h-[3px] overflow-hidden">
+                            <div class="login-progress-fill absolute top-0 bottom-0 bg-brand-500 rounded-full"></div>
+                        </div>
+                    </button>
+
+                    <!-- 高级选项折叠 -->
+                    <div>
+                        <button type="button" id="toggleAdvancedBtn"
+                            class="group flex items-center space-x-1.5 text-[11px] text-slate-500 hover:text-slate-300 transition-colors">
+                            <i id="advancedChevron" class="ri-arrow-down-s-line text-sm"></i>
+                            <span class="tracking-widest uppercase">高级选项</span>
+                        </button>
+
+                        <div id="advancedOptions" class="pt-3">
+                            <div class="space-y-5 pl-0.5">
+                                <div>
+                                    <label for="authRepoInput" class="block text-[11px] font-medium text-slate-400 mb-2 tracking-widest uppercase">仓库地址</label>
+                                    <input type="text" id="authRepoInput" placeholder="Owner/Repo" spellcheck="false"
+                                        class="w-full bg-transparent border-0 border-b border-white/10 px-0 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/50 transition-colors duration-200">
+                                </div>
+                                <div>
+                                    <label for="authPathInput" class="block text-[11px] font-medium text-slate-400 mb-2 tracking-widest uppercase">JSON 文件名</label>
+                                    <input type="text" id="authPathInput" placeholder="kb_docs.json" spellcheck="false"
+                                        class="w-full bg-transparent border-0 border-b border-white/10 px-0 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/50 transition-colors duration-200">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
-
-            <button id="authSubmitBtn" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 active:bg-brand-700 text-white font-medium text-sm rounded-xl shadow-md transition flex items-center justify-center space-x-2">
-                <span>进入知识库</span>
-                <i class="ri-arrow-right-line"></i>
-            </button>
-
-            <p class="text-[11px] text-slate-400 leading-relaxed text-center">
-                Token 需具备仓库 <span class="font-mono text-slate-500">Contents</span> 读写权限
-            </p>
         </div>
     </div>
 
@@ -224,7 +282,6 @@
             <!-- Left Navigation Sidebar -->
             <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
 
-                <!-- 移动端专属侧边栏顶部 Logo 区域 -->
                 <div class="lg:hidden flex items-center space-x-2.5 px-4 h-14 border-b border-slate-100 flex-shrink-0">
                     <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
@@ -275,7 +332,6 @@
             <!-- Detail / Editor Main Panel -->
             <main id="mainPanel" class="hidden md:flex flex-1 bg-slate-50 flex-col overflow-hidden absolute md:relative inset-0 z-30 md:z-auto h-full w-full">
 
-                <!-- Empty State -->
                 <div id="emptyState" class="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center overflow-y-auto">
                     <i class="ri-draft-line text-6xl mb-4 opacity-40"></i>
                     <p class="text-sm font-medium">选择左侧列表中的文章查看，或新建知识条目</p>
@@ -304,7 +360,6 @@
                         <div class="max-w-4xl mx-auto w-full pb-12">
                             <h1 id="viewTitle" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3"></h1>
 
-                            <!-- 日期、编码与标签 -->
                             <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 mb-6 pb-4 border-b border-slate-200">
                                 <span id="viewDate"><i class="ri-time-line mr-1"></i>--</span>
                                 <span id="viewCodeBtn" title="点击复制知识编码" class="cursor-pointer hover:text-brand-600 active:text-brand-700 transition flex items-center space-x-1 select-none outline-none focus:outline-none focus:ring-0">
@@ -432,17 +487,17 @@
     <script>
         let docs = [];
         let currentDocId = null;
-        let previousDocId = null; // 记录点“+”号前正在浏览的文章 ID，用于取消时恢复
+        let previousDocId = null;
         let activeCategory = 'ALL';
         let activeTag = null;
         let isEditing = false;
+        let isLoggingIn = false;
         let githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
 
         const imageJsonCache = {};
 
         /* ---------------- 加载遮罩样式切换 ---------------- */
         function setLoadingMode(mode) {
-            // mode: 'auth' -> 深色登录背景（登录页及首次进入知识库均使用）；'app' -> 半透明浅色背景
             const overlay = document.getElementById('loadingOverlay');
             const decor = document.getElementById('loadingDecor');
             if (mode === 'auth') {
@@ -456,23 +511,67 @@
             }
         }
 
+        /* ---------------- 登录按钮加载状态 ---------------- */
+        function setLoginButtonLoading(loading) {
+            const btn = document.getElementById('authSubmitBtn');
+            const text = document.getElementById('loginBtnText');
+            const spinner = document.getElementById('loginSpinner');
+            const progress = document.getElementById('loginProgressBar');
+            if (!btn) return;
+            if (loading) {
+                btn.disabled = true;
+                if (text) text.textContent = '登录中...';
+                if (spinner) spinner.classList.remove('hidden');
+                if (progress) progress.classList.remove('hidden');
+            } else {
+                btn.disabled = false;
+                if (text) text.textContent = '登录';
+                if (spinner) spinner.classList.add('hidden');
+                if (progress) progress.classList.add('hidden');
+            }
+        }
+
         /* ---------------- 界面显隐控制（登录态隔离） ---------------- */
         function showAuth() {
             const el = document.getElementById('authOverlay');
             el.classList.remove('hidden');
-            el.classList.add('flex');
+            const tokInput = document.getElementById('authTokInput');
+            const tokIcon = document.getElementById('toggleTokenIcon');
+            if (tokInput) tokInput.type = 'password';
+            if (tokIcon) tokIcon.className = 'ri-eye-line text-base';
+            collapseAdvancedOptions();
+            setLoginButtonLoading(false);
         }
         function hideAuth() {
-            const el = document.getElementById('authOverlay');
-            el.classList.add('hidden');
+            document.getElementById('authOverlay').classList.add('hidden');
         }
         function showApp() {
-            const shell = document.getElementById('appShell');
-            shell.classList.remove('hidden');
+            document.getElementById('appShell').classList.remove('hidden');
         }
         function hideApp() {
-            const shell = document.getElementById('appShell');
-            shell.classList.add('hidden');
+            document.getElementById('appShell').classList.add('hidden');
+        }
+
+        /* ---------------- 高级选项折叠控制 ---------------- */
+        function collapseAdvancedOptions() {
+            const adv = document.getElementById('advancedOptions');
+            const chevron = document.getElementById('advancedChevron');
+            if (adv) adv.classList.remove('is-open');
+            if (chevron) chevron.classList.remove('is-open');
+        }
+        function setupAdvancedToggle() {
+            const btn = document.getElementById('toggleAdvancedBtn');
+            const adv = document.getElementById('advancedOptions');
+            const chevron = document.getElementById('advancedChevron');
+            btn.addEventListener('click', () => {
+                const isOpen = adv.classList.toggle('is-open');
+                chevron.classList.toggle('is-open', isOpen);
+            });
+        }
+
+        function fillAdvancedOptions() {
+            document.getElementById('authRepoInput').value = githubConfig.repo || 'XiandeShen/Xiande-kb';
+            document.getElementById('authPathInput').value = githubConfig.path || 'kb_docs.json';
         }
 
         function showToast(msg, type = 'success') {
@@ -499,15 +598,14 @@
             loadGithubConfig();
 
             if (!githubConfig.token) {
-                // 未授权：主界面完全隐藏，只展示登录页
                 hideApp();
                 document.getElementById('loadingOverlay').classList.add('hidden');
+                fillAdvancedOptions();
                 showAuth();
             } else {
                 hideAuth();
-                setLoadingMode('auth'); // 首次自动登录也使用深色光晕背景
+                setLoadingMode('auth');
                 document.getElementById('loadingOverlay').classList.remove('hidden');
-                // 先渲染本地缓存，保证极速首屏
                 loadLocalDocs();
                 renderCategoryList();
                 renderTagList();
@@ -515,42 +613,48 @@
                 pullFromGithub();
             }
 
+            setupAdvancedToggle();
             setupEventListeners();
             setupImageHandling();
             setupImageViewerModal();
             setupGlobalBackToTop();
         };
 
-        document.getElementById('authSubmitBtn').onclick = () => {
+        /* ---------------- 登录页：令牌可见性切换 ---------------- */
+        document.getElementById('toggleTokenVisibility').addEventListener('click', () => {
+            const input = document.getElementById('authTokInput');
+            const icon = document.getElementById('toggleTokenIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'ri-eye-off-line text-base';
+            } else {
+                input.type = 'password';
+                icon.className = 'ri-eye-line text-base';
+            }
+        });
+
+        /* ---------------- 登录页：提交登录（原地加载，不跳转） ---------------- */
+        document.getElementById('authForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (isLoggingIn) return;
             const token = document.getElementById('authTokInput').value.trim();
-            const repo = document.getElementById('authRepoInput').value.trim() || 'XiandeShen/Xiande-kb';
             if (!token) {
-                showToast('请输入有效的 GitHub Token！', 'error');
+                showToast('请输入访问令牌', 'error');
                 return;
             }
+            const repoInput = document.getElementById('authRepoInput').value.trim();
+            const pathInput = document.getElementById('authPathInput').value.trim();
+
             githubConfig.token = token;
-            githubConfig.repo = repo;
-            githubConfig.path = githubConfig.path || 'kb_docs.json';
+            githubConfig.repo = repoInput || githubConfig.repo || 'XiandeShen/Xiande-kb';
+            githubConfig.path = pathInput || githubConfig.path || 'kb_docs.json';
             githubConfig.sha = '';
             localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
 
-            hideAuth();
-            setLoadingMode('auth'); // 从登录页进入知识库，保留深色光晕背景
-            document.getElementById('loadingOverlay').classList.remove('hidden');
+            // 不隐藏登录页，不显示全局加载遮罩，直接原地加载
+            isLoggingIn = true;
+            setLoginButtonLoading(true);
             pullFromGithub();
-        };
-
-        // 登录页支持回车提交
-        ['authTokInput', 'authRepoInput'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        document.getElementById('authSubmitBtn').click();
-                    }
-                });
-            }
         });
 
         function handleResetBinding() {
@@ -562,12 +666,11 @@
                 previousDocId = null;
                 githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
                 document.getElementById('authTokInput').value = '';
-                document.getElementById('authRepoInput').value = 'XiandeShen/Xiande-kb';
                 document.getElementById('githubDropdown').classList.add('hidden');
                 document.getElementById('loadingOverlay').classList.add('hidden');
 
-                // 回到登录态
                 hideApp();
+                fillAdvancedOptions();
                 showAuth();
 
                 renderCategoryList();
@@ -619,6 +722,12 @@
             allNavBtn.onclick = () => {
                 activeCategory = 'ALL';
                 activeTag = null;
+
+                if (window.innerWidth < 768) {
+                    currentDocId = null;
+                    document.getElementById('mainPanel').classList.add('hidden');
+                }
+
                 renderCategoryList();
                 renderTagList();
                 renderDocList();
@@ -627,11 +736,6 @@
                 if (sidebarScroll) sidebarScroll.scrollTop = 0;
                 const docListEl = document.getElementById('docList');
                 if (docListEl) docListEl.scrollTop = 0;
-
-                if (window.innerWidth < 768) {
-                    currentDocId = null;
-                    document.getElementById('mainPanel').classList.add('hidden');
-                }
 
                 closeMobileSidebar();
             };
@@ -644,6 +748,12 @@
                 btn.onclick = () => {
                     activeCategory = cat;
                     activeTag = null;
+
+                    if (window.innerWidth < 768) {
+                        currentDocId = null;
+                        document.getElementById('mainPanel').classList.add('hidden');
+                    }
+
                     renderCategoryList();
                     renderTagList();
                     renderDocList();
@@ -652,11 +762,6 @@
                     if (sidebarScroll) sidebarScroll.scrollTop = 0;
                     const docListEl = document.getElementById('docList');
                     if (docListEl) docListEl.scrollTop = 0;
-
-                    if (window.innerWidth < 768) {
-                        currentDocId = null;
-                        document.getElementById('mainPanel').classList.add('hidden');
-                    }
 
                     closeMobileSidebar();
                 };
@@ -680,6 +785,12 @@
                     if (activeTag) {
                         activeCategory = 'ALL';
                     }
+
+                    if (window.innerWidth < 768) {
+                        currentDocId = null;
+                        document.getElementById('mainPanel').classList.add('hidden');
+                    }
+
                     renderCategoryList();
                     renderTagList();
                     renderDocList();
@@ -688,11 +799,6 @@
                     if (sidebarScroll) sidebarScroll.scrollTop = 0;
                     const docListEl = document.getElementById('docList');
                     if (docListEl) docListEl.scrollTop = 0;
-
-                    if (window.innerWidth < 768) {
-                        currentDocId = null;
-                        document.getElementById('mainPanel').classList.add('hidden');
-                    }
 
                     closeMobileSidebar();
                 };
@@ -755,7 +861,7 @@
 
         async function openDocView(id) {
             currentDocId = id;
-            previousDocId = id; // 更新当前浏览的文章记录
+            previousDocId = id;
             isEditing = false;
             const doc = docs.find(d => d.id === id);
             if (!doc) return;
@@ -888,7 +994,6 @@
                 } else if (!document.getElementById('editPanel').classList.contains('hidden')) {
                     editScroll.scrollTo({ top: 0, behavior: 'smooth' });
                 }
-                // 移动端点击后立刻移除悬停/焦点残留状态
                 btn.blur();
             };
         }
@@ -1241,9 +1346,8 @@
                 searchInput.focus();
             };
 
-            // 点击新建 (+) 号时：暂存当前的浏览文章 ID，然后切换到新建编辑面板
             document.getElementById('newDocBtn').onclick = () => {
-                previousDocId = currentDocId || null; // 暂存当前正在预览的文章 ID
+                previousDocId = currentDocId || null;
                 currentDocId = null;
                 isEditing = true;
                 renderDocList();
@@ -1278,10 +1382,9 @@
                 checkBackToTopBtnVisibility();
             };
 
-            // 点击取消/返回时，若之前有正在浏览的文章，则无缝恢复到该文章的预览状态
             const handleCancelEdit = () => {
                 if (previousDocId && docs.some(d => d.id === previousDocId)) {
-                    openDocView(previousDocId); // 恢复到之前预览的文章
+                    openDocView(previousDocId);
                 } else {
                     currentDocId = null;
                     document.getElementById('editPanel').classList.add('hidden');
@@ -1456,9 +1559,15 @@
 
         async function pullFromGithub() {
             if (!githubConfig.token || !githubConfig.repo) {
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                hideApp();
-                showAuth();
+                if (isLoggingIn) {
+                    isLoggingIn = false;
+                    setLoginButtonLoading(false);
+                } else {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    hideApp();
+                    fillAdvancedOptions();
+                    showAuth();
+                }
                 return;
             }
             updateSyncStatus('loading', '同步中');
@@ -1481,12 +1590,19 @@
                     document.getElementById('loadingOverlay').classList.add('hidden');
                     hideAuth();
                     showApp();
+                    if (isLoggingIn) {
+                        isLoggingIn = false;
+                        setLoginButtonLoading(false);
+                    }
                 } else if (actualRes.status === 404) {
-                    // 云端文件不存在（首次使用），直接推送本地数据初始化
                     await syncToGithub();
                     document.getElementById('loadingOverlay').classList.add('hidden');
                     hideAuth();
                     showApp();
+                    if (isLoggingIn) {
+                        isLoggingIn = false;
+                        setLoginButtonLoading(false);
+                    }
                 } else {
                     docs = [];
                     localStorage.removeItem('kb_docs');
@@ -1494,16 +1610,28 @@
                     renderTagList();
                     renderDocList();
                     updateSyncStatus('error', 'Token 错误');
-                    showToast('Token 认证失败，请重新输入！', 'error');
+                    showToast('访问令牌认证失败，请重新输入', 'error');
                     document.getElementById('loadingOverlay').classList.add('hidden');
-                    hideApp();
-                    showAuth();
+                    if (isLoggingIn) {
+                        isLoggingIn = false;
+                        setLoginButtonLoading(false);
+                    } else {
+                        hideApp();
+                        fillAdvancedOptions();
+                        showAuth();
+                    }
                 }
             } catch (e) {
                 updateSyncStatus('error', '网络异常');
                 document.getElementById('loadingOverlay').classList.add('hidden');
-                hideApp();
-                showAuth();
+                if (isLoggingIn) {
+                    isLoggingIn = false;
+                    setLoginButtonLoading(false);
+                } else {
+                    hideApp();
+                    fillAdvancedOptions();
+                    showAuth();
+                }
             }
         }
 
