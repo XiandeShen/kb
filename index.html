@@ -56,6 +56,21 @@
         .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
+
+        /* 回到顶部按钮：强制清除移动端点击后的残留状态 */
+        #backToTopBtn {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            outline: none;
+        }
+        #backToTopBtn:active,
+        #backToTopBtn:focus,
+        #backToTopBtn:focus-visible,
+        #backToTopBtn:hover {
+            background-color: rgb(30 41 59) !important;
+            outline: none !important;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25) !important;
+        }
     </style>
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
@@ -66,10 +81,10 @@
         <span id="toastText">提示信息</span>
     </div>
 
-    <!-- 全局加载遮罩（背景与登录页一致，仅保留一个纯CSS圆圈动画） -->
-    <div id="loadingOverlay" class="fixed inset-0 w-screen h-screen bg-slate-950 z-[160] flex items-center justify-center overflow-hidden">
-        <!-- 背景光晕装饰（与登录页一致） -->
-        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <!-- 全局加载遮罩（登录页及首次进入知识库均为深色光晕；文档内加载为半透明） -->
+    <div id="loadingOverlay" class="fixed inset-0 w-screen h-screen z-[160] flex items-center justify-center overflow-hidden bg-slate-950">
+        <!-- 深色光晕装饰 -->
+        <div id="loadingDecor" class="absolute inset-0 overflow-hidden pointer-events-none">
             <div class="absolute -top-40 -left-32 w-[28rem] h-[28rem] bg-blue-600/20 rounded-full blur-3xl"></div>
             <div class="absolute -bottom-40 -right-32 w-[28rem] h-[28rem] bg-cyan-500/20 rounded-full blur-3xl"></div>
             <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-[36rem] h-[36rem] bg-indigo-600/10 rounded-full blur-3xl"></div>
@@ -425,6 +440,22 @@
 
         const imageJsonCache = {};
 
+        /* ---------------- 加载遮罩样式切换 ---------------- */
+        function setLoadingMode(mode) {
+            // mode: 'auth' -> 深色登录背景（登录页及首次进入知识库均使用）；'app' -> 半透明浅色背景
+            const overlay = document.getElementById('loadingOverlay');
+            const decor = document.getElementById('loadingDecor');
+            if (mode === 'auth') {
+                overlay.classList.remove('bg-slate-900/60', 'backdrop-blur-sm');
+                overlay.classList.add('bg-slate-950');
+                decor.classList.remove('hidden');
+            } else {
+                overlay.classList.remove('bg-slate-950');
+                overlay.classList.add('bg-slate-900/60', 'backdrop-blur-sm');
+                decor.classList.add('hidden');
+            }
+        }
+
         /* ---------------- 界面显隐控制（登录态隔离） ---------------- */
         function showAuth() {
             const el = document.getElementById('authOverlay');
@@ -474,6 +505,8 @@
                 showAuth();
             } else {
                 hideAuth();
+                setLoadingMode('auth'); // 首次自动登录也使用深色光晕背景
+                document.getElementById('loadingOverlay').classList.remove('hidden');
                 // 先渲染本地缓存，保证极速首屏
                 loadLocalDocs();
                 renderCategoryList();
@@ -502,6 +535,7 @@
             localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
 
             hideAuth();
+            setLoadingMode('auth'); // 从登录页进入知识库，保留深色光晕背景
             document.getElementById('loadingOverlay').classList.remove('hidden');
             pullFromGithub();
         };
@@ -731,6 +765,7 @@
                 viewScrollEl.scrollTop = 0;
             }
 
+            setLoadingMode('app');
             const loadingOverlay = document.getElementById('loadingOverlay');
             loadingOverlay.classList.remove('hidden');
 
@@ -853,6 +888,8 @@
                 } else if (!document.getElementById('editPanel').classList.contains('hidden')) {
                     editScroll.scrollTo({ top: 0, behavior: 'smooth' });
                 }
+                // 移动端点击后立刻移除悬停/焦点残留状态
+                btn.blur();
             };
         }
 
@@ -1365,6 +1402,7 @@
                 githubConfig.sha = '';
                 localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
                 document.getElementById('githubModal').classList.add('hidden');
+                setLoadingMode('app');
                 document.getElementById('loadingOverlay').classList.remove('hidden');
                 pullFromGithub();
                 showToast('GitHub 配置已保存', 'success');
