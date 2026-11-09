@@ -100,6 +100,15 @@
         #syncRefreshBtn:active {
             transform: scale(0.9);
         }
+
+        /* 确认弹窗入场动画 */
+        #confirmModal .confirm-card {
+            animation: confirmPop 0.18s ease-out;
+        }
+        @keyframes confirmPop {
+            0% { opacity: 0; transform: scale(0.96) translateY(6px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
     </style>
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
@@ -120,6 +129,34 @@
         <div class="relative bg-white px-6 py-4 rounded-2xl shadow-xl flex items-center space-x-3">
             <div class="w-6 h-6 border-[3px] border-brand-600 border-t-transparent rounded-full animate-spin"></div>
             <span id="loadingText" class="text-xs font-medium text-slate-700">正在加载知识库...</span>
+        </div>
+    </div>
+
+    <!-- ===================== 通用确认弹窗（居中对称布局） ===================== -->
+    <div id="confirmModal" class="fixed inset-0 z-[170] flex items-center justify-center p-4 hidden">
+        <!-- 遮罩背景 -->
+        <div id="confirmModalOverlay" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"></div>
+
+        <!-- 弹窗卡片 -->
+        <div class="confirm-card relative w-full max-w-[340px] bg-white rounded-2xl shadow-2xl px-6 pt-7 pb-6">
+            <!-- 顶部居中图标 -->
+            <div class="flex justify-center mb-4">
+                <div id="confirmIconWrap" class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
+                    <i id="confirmIcon" class="ri-delete-bin-line text-2xl text-red-500"></i>
+                </div>
+            </div>
+
+            <!-- 居中标题 -->
+            <h3 id="confirmTitle" class="text-base font-bold text-slate-900 text-center leading-snug">确认操作</h3>
+
+            <!-- 居中描述 -->
+            <p id="confirmDesc" class="text-xs text-slate-500 leading-relaxed text-center mt-2 mb-6 px-1"></p>
+
+            <!-- 按钮：左右等分 -->
+            <div class="flex items-center gap-2.5">
+                <button id="confirmCancelBtn" type="button" class="flex-1 py-2.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 active:bg-slate-200 rounded-xl transition">取消</button>
+                <button id="confirmOkBtn" type="button" class="flex-1 py-2.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 active:bg-red-600 rounded-xl shadow-sm transition">确定</button>
+            </div>
         </div>
     </div>
 
@@ -535,6 +572,81 @@
         const imageJsonCache = {};
         const DEFAULT_LOADING_TEXT = '正在加载知识库...';
 
+        /* ---------------- 内部确认弹窗 ---------------- */
+        let confirmResolve = null;
+
+        function showConfirm(options = {}) {
+            const {
+                title = '确认操作',
+                desc = '',
+                okText = '确定',
+                cancelText = '取消',
+                type = 'danger'
+            } = options;
+
+            return new Promise((resolve) => {
+                confirmResolve = resolve;
+
+                const modal = document.getElementById('confirmModal');
+                const iconWrap = document.getElementById('confirmIconWrap');
+                const icon = document.getElementById('confirmIcon');
+                const okBtn = document.getElementById('confirmOkBtn');
+                const cancelBtn = document.getElementById('confirmCancelBtn');
+
+                document.getElementById('confirmTitle').textContent = title;
+                document.getElementById('confirmDesc').textContent = desc;
+                okBtn.textContent = okText;
+                cancelBtn.textContent = cancelText;
+
+                if (type === 'danger') {
+                    iconWrap.className = 'w-14 h-14 rounded-full bg-red-50 flex items-center justify-center';
+                    icon.className = 'ri-delete-bin-line text-2xl text-red-500';
+                    okBtn.className = 'flex-1 py-2.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 active:bg-red-600 rounded-xl shadow-sm transition';
+                } else {
+                    iconWrap.className = 'w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center';
+                    icon.className = 'ri-error-warning-line text-2xl text-amber-500';
+                    okBtn.className = 'flex-1 py-2.5 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-700 rounded-xl shadow-sm transition';
+                }
+
+                modal.classList.remove('hidden');
+                setTimeout(() => { try { okBtn.focus(); } catch (e) {} }, 0);
+            });
+        }
+
+        function closeConfirm(result) {
+            const modal = document.getElementById('confirmModal');
+            if (!modal || modal.classList.contains('hidden')) return;
+            modal.classList.add('hidden');
+            if (confirmResolve) {
+                const r = confirmResolve;
+                confirmResolve = null;
+                r(result);
+            }
+        }
+
+        function setupConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            const okBtn = document.getElementById('confirmOkBtn');
+            const cancelBtn = document.getElementById('confirmCancelBtn');
+            const overlay = document.getElementById('confirmModalOverlay');
+
+            okBtn.addEventListener('click', () => closeConfirm(true));
+            cancelBtn.addEventListener('click', () => closeConfirm(false));
+            overlay.addEventListener('click', () => closeConfirm(false));
+
+            document.addEventListener('keydown', (e) => {
+                if (!modal.classList.contains('hidden')) {
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        closeConfirm(false);
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        closeConfirm(true);
+                    }
+                }
+            });
+        }
+
         function setLoadingMode(mode) {
             const overlay = document.getElementById('loadingOverlay');
             const decor = document.getElementById('loadingDecor');
@@ -549,7 +661,6 @@
             }
         }
 
-        /* 显示/隐藏全局遮罩，可指定文案 */
         function showLoading(text) {
             setLoadingMode('app');
             const overlay = document.getElementById('loadingOverlay');
@@ -664,6 +775,7 @@
                 pullFromGithub();
             }
 
+            setupConfirmModal();
             setupAdvancedToggle();
             setupEventListeners();
             setupImageHandling();
@@ -705,7 +817,6 @@
             pullFromGithub();
         });
 
-        /* ---------------- 手动刷新同步 ---------------- */
         function manualSyncRefresh() {
             if (isManualSyncing) return;
             if (!githubConfig.token || !githubConfig.repo) {
@@ -718,26 +829,33 @@
             });
         }
 
-        function handleResetBinding() {
-            if (confirm('确定要解除 GitHub 绑定并重置吗？')) {
-                localStorage.removeItem('kb_gh_config');
-                localStorage.removeItem('kb_docs');
-                docs = [];
-                currentDocId = null;
-                previousDocId = null;
-                githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
-                document.getElementById('authTokInput').value = '';
-                document.getElementById('githubDropdown').classList.add('hidden');
-                hideLoading();
+        async function handleResetBinding() {
+            const ok = await showConfirm({
+                title: '解除绑定并重置',
+                desc: '确定要解除 GitHub 绑定并重置吗？本地的知识缓存也会被清空，需要重新输入访问令牌。',
+                okText: '确定重置',
+                cancelText: '再想想',
+                type: 'normal'
+            });
+            if (!ok) return;
 
-                hideApp();
-                fillAdvancedOptions();
-                showAuth();
+            localStorage.removeItem('kb_gh_config');
+            localStorage.removeItem('kb_docs');
+            docs = [];
+            currentDocId = null;
+            previousDocId = null;
+            githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
+            document.getElementById('authTokInput').value = '';
+            document.getElementById('githubDropdown').classList.add('hidden');
+            hideLoading();
 
-                renderCategoryList();
-                renderTagList();
-                renderDocList();
-            }
+            hideApp();
+            fillAdvancedOptions();
+            showAuth();
+
+            renderCategoryList();
+            renderTagList();
+            renderDocList();
         }
 
         function generateDocCode() {
@@ -920,7 +1038,6 @@
             });
         }
 
-        /* openDocView 支持 skipOverlay：外部已经在显示遮罩时跳过自带的遮罩控制 */
         async function openDocView(id, options = {}) {
             const skipOverlay = !!options.skipOverlay;
             currentDocId = id;
@@ -1344,7 +1461,6 @@
             reader.readAsDataURL(file);
         }
 
-        /* 并行删除内容中引用的图片 JSON，缩短等待时间 */
         async function deleteGithubImageJsonsInContent(content) {
             if (!githubConfig.token || !githubConfig.repo || !content) return;
 
@@ -1486,7 +1602,6 @@
                 checkBackToTopBtnVisibility();
             };
 
-            /* 保存：显示加载遮罩，直到同步完成 */
             document.getElementById('saveDocBtn').onclick = async () => {
                 const title = document.getElementById('editTitleInput').value.trim() || '未命名文章';
                 const category = document.getElementById('editCategoryInput').value.trim() || '通用';
@@ -1529,9 +1644,15 @@
                 }
             };
 
-            /* 删除：显示加载遮罩，直到图片清理、删除与同步全部完成 */
             document.getElementById('deleteDocBtn').onclick = async () => {
-                if (!confirm('确定要删除这篇知识条目吗？关联的独立图片 JSON 会同步从 GitHub 中清理。')) return;
+                const ok = await showConfirm({
+                    title: '删除知识条目',
+                    desc: '确定要删除这篇知识条目吗？关联的独立图片 JSON 会同步从 GitHub 中清理，此操作不可撤销。',
+                    okText: '确定删除',
+                    cancelText: '取消',
+                    type: 'danger'
+                });
+                if (!ok) return;
 
                 const docToDelete = docs.find(d => d.id === currentDocId);
                 const docIdToDelete = currentDocId;
