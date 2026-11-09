@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>椿沐智库</title>
-    <!-- 精致纯净矢量 Icon (Gemini Style SVG Favicon) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='g1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='100%' stop-color='%230072ff'/></linearGradient><linearGradient id='g2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%230052d4'/><stop offset='100%' stop-color='%234364f7'/></linearGradient><linearGradient id='g3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='50%' stop-color='%230072ff'/><stop offset='100%' stop-color='%230052d4'/></linearGradient></defs><g><path d='M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z' fill='url(%23g2)'/><path d='M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z' fill='url(%23g1)' opacity='0.9'/><path d='M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z' fill='url(%23g3)'/><path d='M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z' fill='%23ffffff'/></g></svg>">
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -16,6 +14,7 @@
                         brand: {
                             50: '#eff6ff',
                             100: '#dbeafe',
+                            400: '#60a5fa',
                             500: '#3b82f6',
                             600: '#2563eb',
                             700: '#1d4ed8',
@@ -25,9 +24,7 @@
             }
         }
     </script>
-    <!-- Marked.js Markdown Parser -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- RemixIcon -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
@@ -57,7 +54,6 @@
         .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
 
-        /* 回到顶部按钮：强制清除移动端点击后的残留状态 */
         #backToTopBtn {
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
@@ -72,7 +68,6 @@
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25) !important;
         }
 
-        /* 高级选项展开动画 */
         #advancedOptions {
             transition: max-height 0.3s ease, opacity 0.2s ease;
             overflow: hidden;
@@ -90,7 +85,6 @@
             transform: rotate(180deg);
         }
 
-        /* 登录按钮进度条动画 */
         .login-progress-fill {
             width: 40%;
             animation: loginProgressMove 1.3s ease-in-out infinite;
@@ -122,89 +116,141 @@
         </div>
     </div>
 
-    <!-- ===================== 登录页 ===================== -->
+    <!-- ===================== 登录页（PC 左右分栏 / 移动端单列） ===================== -->
     <div id="authOverlay" class="fixed inset-0 w-screen h-screen z-[150] bg-slate-950 overflow-y-auto hidden">
 
-        <!-- 顶部柔光 -->
+        <!-- 背景柔光 -->
         <div class="fixed inset-0 overflow-hidden pointer-events-none">
-            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[50rem] h-[50rem] -translate-y-1/2 bg-blue-500/[0.09] rounded-full blur-3xl"></div>
-            <div class="absolute bottom-0 right-0 w-[30rem] h-[30rem] translate-x-1/3 translate-y-1/3 bg-cyan-500/[0.06] rounded-full blur-3xl"></div>
+            <div class="absolute top-0 left-1/4 -translate-x-1/2 w-[44rem] h-[44rem] -translate-y-1/2 bg-blue-500/[0.10] rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 w-[32rem] h-[32rem] translate-x-1/4 translate-y-1/4 bg-cyan-500/[0.07] rounded-full blur-3xl"></div>
         </div>
 
-        <!-- 左上角 Logo + 文字（与系统顶部栏位置、大小完全一致） -->
-        <div class="absolute top-0 left-0 right-0 h-14 px-3 sm:px-6 flex items-center z-10">
-            <div class="flex items-center space-x-2.5">
-                <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="login-logo-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
-                        <linearGradient id="login-logo-g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0052d4"/><stop offset="100%" stop-color="#4364f7"/></linearGradient>
-                        <linearGradient id="login-logo-g3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="50%" stop-color="#0072ff"/><stop offset="100%" stop-color="#0052d4"/></linearGradient>
-                    </defs>
-                    <g>
-                        <path d="M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z" fill="url(#login-logo-g2)"/>
-                        <path d="M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z" fill="url(#login-logo-g1)" opacity="0.9"/>
-                        <path d="M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z" fill="url(#login-logo-g3)"/>
-                        <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
-                    </g>
-                </svg>
-                <span class="font-extrabold text-base tracking-tight text-white whitespace-nowrap">椿沐智库</span>
-            </div>
-        </div>
+        <div class="relative min-h-full flex flex-col sm:flex-row">
 
-        <!-- 表单区域：垂直居中 -->
-        <div class="relative min-h-full flex items-center justify-center px-5 py-16 sm:py-20">
-            <div class="w-full max-w-[400px]">
-                <form id="authForm" class="space-y-8" autocomplete="off">
+            <!-- 介绍区：移动端顶部居中，PC 左侧 -->
+            <div class="flex-1 flex flex-col items-center justify-center px-6 py-14 sm:items-start sm:justify-center sm:px-12 sm:py-0 lg:px-20 xl:px-28">
+                <div class="w-full max-w-lg">
 
-                    <!-- 访问令牌输入（居中，全宽） -->
-                    <div>
-                        <label for="authTokInput" class="block text-[11px] font-medium text-slate-400 mb-2.5 tracking-widest uppercase">访问令牌</label>
-                        <div class="relative">
-                            <input type="password" id="authTokInput" placeholder="请输入访问令牌" spellcheck="false"
-                                class="w-full bg-transparent border-0 border-b border-white/15 px-0 py-3 pr-9 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/60 transition-colors duration-200">
-                            <button type="button" id="toggleTokenVisibility" title="显示/隐藏令牌"
-                                class="absolute right-0 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-300 transition">
-                                <i id="toggleTokenIcon" class="ri-eye-line text-base"></i>
-                            </button>
-                        </div>
+                    <!-- Logo + 标题 -->
+                    <div class="flex flex-col items-center sm:flex-row sm:items-center sm:space-x-3">
+                        <svg class="w-14 h-14 sm:w-12 sm:h-12 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="login-logo-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
+                                <linearGradient id="login-logo-g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0052d4"/><stop offset="100%" stop-color="#4364f7"/></linearGradient>
+                                <linearGradient id="login-logo-g3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="50%" stop-color="#0072ff"/><stop offset="100%" stop-color="#0052d4"/></linearGradient>
+                            </defs>
+                            <g>
+                                <path d="M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z" fill="url(#login-logo-g2)"/>
+                                <path d="M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z" fill="url(#login-logo-g1)" opacity="0.9"/>
+                                <path d="M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z" fill="url(#login-logo-g3)"/>
+                                <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
+                            </g>
+                        </svg>
+                        <span class="mt-4 text-xl sm:mt-0 sm:text-2xl font-extrabold tracking-tight text-white whitespace-nowrap">椿沐智库</span>
                     </div>
 
-                    <!-- 登录按钮：带加载中状态与进度条 -->
-                    <button type="submit" id="authSubmitBtn"
-                        class="relative overflow-hidden w-full py-3.5 bg-white text-slate-900 font-medium text-sm rounded-full hover:bg-slate-100 active:bg-slate-200 active:scale-[0.99] transition-all duration-200 disabled:opacity-80 disabled:cursor-not-allowed disabled:hover:bg-white disabled:active:scale-100">
-                        <span class="relative z-10 flex items-center justify-center space-x-2">
-                            <i id="loginSpinner" class="hidden ri-loader-4-line animate-spin text-base"></i>
-                            <span id="loginBtnText">登录</span>
-                        </span>
-                        <div id="loginProgressBar" class="hidden absolute bottom-0 left-0 right-0 h-[3px] overflow-hidden">
-                            <div class="login-progress-fill absolute top-0 bottom-0 bg-brand-500 rounded-full"></div>
-                        </div>
-                    </button>
+                    <!-- 移动端简介 -->
+                    <p class="sm:hidden text-center text-xs text-slate-400 leading-relaxed mt-4">
+                        云端知识库 · 安全可控 · 随时访问
+                    </p>
 
-                    <!-- 高级选项折叠 -->
-                    <div>
-                        <button type="button" id="toggleAdvancedBtn"
-                            class="group flex items-center space-x-1.5 text-[11px] text-slate-500 hover:text-slate-300 transition-colors">
-                            <i id="advancedChevron" class="ri-arrow-down-s-line text-sm"></i>
-                            <span class="tracking-widest uppercase">高级选项</span>
-                        </button>
+                    <!-- PC 端标语 / 描述 / 特点 -->
+                    <div class="hidden sm:block">
+                        <h2 class="text-3xl lg:text-4xl font-light text-white leading-snug mt-14">
+                            让知识沉淀，<br class="hidden lg:block">让经验传承
+                        </h2>
+                        <p class="text-sm text-slate-400 leading-relaxed mt-5 max-w-md">
+                            安全连接你的 GitHub 知识库，支持 Markdown 编辑、独立图片存储、分类与标签检索，随时随地访问你的知识资产。
+                        </p>
 
-                        <div id="advancedOptions" class="pt-3">
-                            <div class="space-y-5 pl-0.5">
-                                <div>
-                                    <label for="authRepoInput" class="block text-[11px] font-medium text-slate-400 mb-2 tracking-widest uppercase">仓库地址</label>
-                                    <input type="text" id="authRepoInput" placeholder="Owner/Repo" spellcheck="false"
-                                        class="w-full bg-transparent border-0 border-b border-white/10 px-0 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/50 transition-colors duration-200">
+                        <div class="space-y-6 mt-14">
+                            <div class="flex items-start space-x-4">
+                                <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0">
+                                    <i class="ri-file-text-line text-lg text-brand-400"></i>
                                 </div>
                                 <div>
-                                    <label for="authPathInput" class="block text-[11px] font-medium text-slate-400 mb-2 tracking-widest uppercase">JSON 文件名</label>
-                                    <input type="text" id="authPathInput" placeholder="kb_docs.json" spellcheck="false"
-                                        class="w-full bg-transparent border-0 border-b border-white/10 px-0 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/50 transition-colors duration-200">
+                                    <h3 class="text-sm font-medium text-white mb-1">Markdown 编辑</h3>
+                                    <p class="text-xs text-slate-500 leading-relaxed">简洁高效的写作体验，支持截图粘贴与独立图片存储</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0">
+                                    <i class="ri-cloud-line text-lg text-brand-400"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-medium text-white mb-1">云端同步</h3>
+                                    <p class="text-xs text-slate-500 leading-relaxed">数据存储于你的 GitHub 仓库，安全可控</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0">
+                                    <i class="ri-search-eye-line text-lg text-brand-400"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-medium text-white mb-1">智能检索</h3>
+                                    <p class="text-xs text-slate-500 leading-relaxed">按标题、内容、编码、标签快速定位知识条目</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </form>
+                </div>
+            </div>
+
+            <!-- 表单区：移动端底部，PC 右侧固定宽度 -->
+            <div class="w-full sm:w-[460px] lg:w-[520px] flex-shrink-0 px-6 pb-14 sm:flex sm:items-center sm:justify-center sm:border-l border-white/[0.06] sm:px-8 sm:py-0">
+                <div class="w-full sm:max-w-[340px]">
+                    <form id="authForm" class="space-y-8" autocomplete="off">
+
+                        <!-- 访问令牌 -->
+                        <div>
+                            <label for="authTokInput" class="block text-[11px] font-medium text-slate-400 mb-2.5 tracking-widest uppercase">访问令牌</label>
+                            <div class="relative">
+                                <input type="password" id="authTokInput" placeholder="请输入访问令牌" spellcheck="false"
+                                    class="w-full bg-transparent border-0 border-b border-white/15 px-0 py-3 pr-9 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/60 transition-colors duration-200">
+                                <button type="button" id="toggleTokenVisibility" title="显示/隐藏令牌"
+                                    class="absolute right-0 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-300 transition">
+                                    <i id="toggleTokenIcon" class="ri-eye-line text-base"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 登录按钮 -->
+                        <button type="submit" id="authSubmitBtn"
+                            class="relative overflow-hidden w-full py-3.5 bg-white text-slate-900 font-medium text-sm rounded-full hover:bg-slate-100 active:bg-slate-200 active:scale-[0.99] transition-all duration-200 disabled:opacity-80 disabled:cursor-not-allowed disabled:hover:bg-white disabled:active:scale-100">
+                            <span class="relative z-10 flex items-center justify-center space-x-2">
+                                <i id="loginSpinner" class="hidden ri-loader-4-line animate-spin text-base"></i>
+                                <span id="loginBtnText">登录</span>
+                            </span>
+                            <div id="loginProgressBar" class="hidden absolute bottom-0 left-0 right-0 h-[3px] overflow-hidden">
+                                <div class="login-progress-fill absolute top-0 bottom-0 bg-brand-500 rounded-full"></div>
+                            </div>
+                        </button>
+
+                        <!-- 高级选项 -->
+                        <div>
+                            <button type="button" id="toggleAdvancedBtn"
+                                class="group flex items-center space-x-1.5 text-[11px] text-slate-500 hover:text-slate-300 transition-colors">
+                                <i id="advancedChevron" class="ri-arrow-down-s-line text-sm"></i>
+                                <span class="tracking-widest uppercase">高级选项</span>
+                            </button>
+
+                            <div id="advancedOptions" class="pt-3">
+                                <div class="space-y-5 pl-0.5">
+                                    <div>
+                                        <label for="authRepoInput" class="block text-[11px] font-medium text-slate-400 mb-2 tracking-widest uppercase">仓库地址</label>
+                                        <input type="text" id="authRepoInput" placeholder="Owner/Repo" spellcheck="false"
+                                            class="w-full bg-transparent border-0 border-b border-white/10 px-0 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/50 transition-colors duration-200">
+                                    </div>
+                                    <div>
+                                        <label for="authPathInput" class="block text-[11px] font-medium text-slate-400 mb-2 tracking-widest uppercase">JSON 文件名</label>
+                                        <input type="text" id="authPathInput" placeholder="kb_docs.json" spellcheck="false"
+                                            class="w-full bg-transparent border-0 border-b border-white/10 px-0 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/50 transition-colors duration-200">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -212,7 +258,6 @@
     <!-- ===================== 主应用（未授权时整体隐藏） ===================== -->
     <div id="appShell" class="hidden flex flex-col flex-1 min-h-0 w-full">
 
-        <!-- 抽屉遮罩 -->
         <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-[100] hidden lg:hidden transition-opacity"></div>
 
         <!-- Top Header -->
@@ -276,10 +321,8 @@
             </div>
         </header>
 
-        <!-- Main Container -->
         <div class="flex-1 flex overflow-hidden relative w-full min-h-0">
 
-            <!-- Left Navigation Sidebar -->
             <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
 
                 <div class="lg:hidden flex items-center space-x-2.5 px-4 h-14 border-b border-slate-100 flex-shrink-0">
@@ -320,7 +363,6 @@
                 </div>
             </aside>
 
-            <!-- Document List Panel -->
             <div id="listPanel" class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full relative">
                 <div class="h-12 px-4 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500 flex-shrink-0 bg-slate-50/50">
                     <span id="listTitle" class="font-bold text-slate-700 truncate max-w-[200px]">所有条目</span>
@@ -329,7 +371,6 @@
                 <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pb-4"></div>
             </div>
 
-            <!-- Detail / Editor Main Panel -->
             <main id="mainPanel" class="hidden md:flex flex-1 bg-slate-50 flex-col overflow-hidden absolute md:relative inset-0 z-30 md:z-auto h-full w-full">
 
                 <div id="emptyState" class="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center overflow-y-auto">
@@ -337,7 +378,6 @@
                     <p class="text-sm font-medium">选择左侧列表中的文章查看，或新建知识条目</p>
                 </div>
 
-                <!-- View Mode Panel -->
                 <div id="viewPanel" class="hidden flex-1 flex flex-col overflow-hidden bg-white md:bg-transparent h-full relative">
                     <div class="h-12 px-4 md:px-6 border-b border-slate-200 bg-white flex items-center justify-between flex-shrink-0 gap-2 z-10">
                         <div class="flex items-center space-x-2 min-w-0 flex-1">
@@ -375,7 +415,6 @@
                     </div>
                 </div>
 
-                <!-- Edit Panel -->
                 <div id="editPanel" class="hidden flex-1 flex flex-col bg-white overflow-hidden h-full">
                     <div class="h-12 px-4 md:px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50 flex-shrink-0">
                         <div class="flex items-center space-x-2">
@@ -430,12 +469,10 @@
         </div>
     </div>
 
-    <!-- 全局回到顶部悬浮按钮 -->
     <button id="backToTopBtn" title="回到顶部" class="hidden fixed right-6 bottom-6 w-10 h-10 bg-slate-800/90 hover:bg-brand-600 active:bg-brand-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-200 z-[60] backdrop-blur-md active:scale-95 outline-none focus:outline-none focus:ring-0 border-0">
         <i class="ri-arrow-up-line text-lg pointer-events-none"></i>
     </button>
 
-    <!-- 全屏图片查看器 Modal -->
     <div id="imageModal" class="fixed inset-0 w-screen h-screen bg-slate-950/90 backdrop-blur-md z-[130] flex items-center justify-center hidden select-none">
         <div class="fixed top-0 right-0 h-14 flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 z-[135] pointer-events-auto">
             <button id="downloadImageBtn" title="下载图片" class="w-9 h-9 no-sticky-hover flex items-center justify-center rounded-xl text-slate-300 hover:text-white transition-colors">
@@ -450,7 +487,6 @@
         </div>
     </div>
 
-    <!-- GitHub Config Modal -->
     <div id="githubModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[145] flex items-center justify-center p-4 hidden">
         <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div class="flex items-center justify-between">
@@ -496,7 +532,6 @@
 
         const imageJsonCache = {};
 
-        /* ---------------- 加载遮罩样式切换 ---------------- */
         function setLoadingMode(mode) {
             const overlay = document.getElementById('loadingOverlay');
             const decor = document.getElementById('loadingDecor');
@@ -511,7 +546,6 @@
             }
         }
 
-        /* ---------------- 登录按钮加载状态 ---------------- */
         function setLoginButtonLoading(loading) {
             const btn = document.getElementById('authSubmitBtn');
             const text = document.getElementById('loginBtnText');
@@ -531,7 +565,6 @@
             }
         }
 
-        /* ---------------- 界面显隐控制（登录态隔离） ---------------- */
         function showAuth() {
             const el = document.getElementById('authOverlay');
             el.classList.remove('hidden');
@@ -552,7 +585,6 @@
             document.getElementById('appShell').classList.add('hidden');
         }
 
-        /* ---------------- 高级选项折叠控制 ---------------- */
         function collapseAdvancedOptions() {
             const adv = document.getElementById('advancedOptions');
             const chevron = document.getElementById('advancedChevron');
@@ -620,7 +652,6 @@
             setupGlobalBackToTop();
         };
 
-        /* ---------------- 登录页：令牌可见性切换 ---------------- */
         document.getElementById('toggleTokenVisibility').addEventListener('click', () => {
             const input = document.getElementById('authTokInput');
             const icon = document.getElementById('toggleTokenIcon');
@@ -633,7 +664,6 @@
             }
         });
 
-        /* ---------------- 登录页：提交登录（原地加载，不跳转） ---------------- */
         document.getElementById('authForm').addEventListener('submit', (e) => {
             e.preventDefault();
             if (isLoggingIn) return;
@@ -651,7 +681,6 @@
             githubConfig.sha = '';
             localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
 
-            // 不隐藏登录页，不显示全局加载遮罩，直接原地加载
             isLoggingIn = true;
             setLoginButtonLoading(true);
             pullFromGithub();
