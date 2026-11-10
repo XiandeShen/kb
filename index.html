@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>椿沐智库</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='g1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='100%' stop-color='%230072ff'/></linearGradient><linearGradient id='g2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%230052d4'/><stop offset='100%' stop-color='%234364f7'/></linearGradient><linearGradient id='g3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='50%' stop-color='%230072ff'/><stop offset='100%' stop-color='%230052d4'/></linearGradient></defs><g><path d='M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z' fill='url(%23g2)'/><path d='M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z' fill='url(%23g1)' opacity='0.9'/><path d='M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z' fill='url(%23g3)'/><path d='M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z' fill='%23ffffff'/></g></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -53,6 +53,12 @@
         .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
+
+        /* 文档列表容器：底部安全区，避免最后一条被浏览器工具栏/系统导航栏遮挡 */
+        #docList {
+            padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+            -webkit-overflow-scrolling: touch;
+        }
 
         #backToTopBtn {
             -webkit-tap-highlight-color: transparent;
@@ -291,18 +297,18 @@
                 </div>
             </div>
 
-            <!-- 一体式搜索框（Bing 风格） -->
-            <div class="flex-1 max-w-xl mx-2 sm:mx-6">
-                <div class="flex items-center w-full rounded-full bg-slate-800/90 border border-slate-700/60 focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-transparent transition shadow-inner pl-3 sm:pl-3.5 pr-1 py-1">
-                    <i class="ri-search-line text-slate-400 text-sm flex-shrink-0"></i>
+            <!-- 纤细一体式搜索框：外层 min-w-0 保证移动端可收缩 -->
+            <div class="flex-1 min-w-0 max-w-lg mx-2 sm:mx-5">
+                <div class="flex items-center w-full h-9 rounded-full bg-slate-800/60 border border-slate-700/50 focus-within:ring-1 focus-within:ring-brand-500/60 focus-within:border-brand-500/40 focus-within:bg-slate-800/90 transition-all duration-200 pl-3 sm:pl-3.5 pr-1">
+                    <i class="ri-search-line text-slate-500 text-[13px] flex-shrink-0"></i>
                     <input type="text" id="searchInput" placeholder="搜索标题、摘要、编码或标签..."
-                        class="flex-1 min-w-0 bg-transparent border-0 outline-none px-2 sm:px-2.5 py-1 text-xs sm:text-sm text-white placeholder-slate-400">
-                    <button id="clearSearchBtn" title="清空搜索" class="hidden w-5 h-5 flex items-center justify-center rounded-full bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white transition text-xs flex-shrink-0 mr-1">
+                        class="flex-1 min-w-0 bg-transparent border-0 outline-none px-2 sm:px-2.5 py-0 text-[13px] text-white placeholder-slate-500 leading-none">
+                    <button id="clearSearchBtn" title="清空搜索" class="hidden w-5 h-5 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-slate-700/60 transition text-[11px] flex-shrink-0 mr-0.5">
                         <i class="ri-close-line"></i>
                     </button>
                     <button id="searchSubmitBtn" type="button" title="搜索"
-                        class="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-700 text-white transition shadow-sm">
-                        <i class="ri-arrow-right-line text-sm sm:text-base"></i>
+                        class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white transition shadow-sm">
+                        <i class="ri-arrow-right-line text-[13px]"></i>
                     </button>
                 </div>
             </div>
@@ -631,7 +637,7 @@
             spacer: null,
             items: [],
             itemHeight: 96,
-            buffer: 6,
+            buffer: 8,       // 由 6 提升到 8，进一步保证底部条目可见
             rafPending: false
         };
 
@@ -1440,7 +1446,6 @@
             searchQuery = (document.getElementById('searchInput').value || '').trim();
             showLoading(searchQuery ? '正在搜索...' : '正在加载列表...');
             setTimeout(() => {
-                // 移动端：搜索后自动回到列表页，确保结果可见
                 if (window.innerWidth < 768) {
                     currentDocId = null;
                     previousDocId = null;
