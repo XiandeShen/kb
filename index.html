@@ -101,7 +101,6 @@
             transform: scale(0.9);
         }
 
-        /* 确认弹窗入场动画 */
         #confirmModal .confirm-card {
             animation: confirmPop 0.18s ease-out;
         }
@@ -113,7 +112,7 @@
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
 
-    <!-- Toast 提示 -->
+    <!-- Toast -->
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-medium z-[200] transition-all duration-300 transform translate-y-12 opacity-0 pointer-events-none flex items-center space-x-2">
         <i id="toastIcon" class="ri-checkbox-circle-line text-emerald-400 text-sm"></i>
         <span id="toastText">提示信息</span>
@@ -132,27 +131,17 @@
         </div>
     </div>
 
-    <!-- ===================== 通用确认弹窗（居中对称布局） ===================== -->
+    <!-- 内部确认弹窗 -->
     <div id="confirmModal" class="fixed inset-0 z-[170] flex items-center justify-center p-4 hidden">
-        <!-- 遮罩背景 -->
         <div id="confirmModalOverlay" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"></div>
-
-        <!-- 弹窗卡片 -->
         <div class="confirm-card relative w-full max-w-[340px] bg-white rounded-2xl shadow-2xl px-6 pt-7 pb-6">
-            <!-- 顶部居中图标 -->
             <div class="flex justify-center mb-4">
                 <div id="confirmIconWrap" class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
                     <i id="confirmIcon" class="ri-delete-bin-line text-2xl text-red-500"></i>
                 </div>
             </div>
-
-            <!-- 居中标题 -->
             <h3 id="confirmTitle" class="text-base font-bold text-slate-900 text-center leading-snug">确认操作</h3>
-
-            <!-- 居中描述 -->
             <p id="confirmDesc" class="text-xs text-slate-500 leading-relaxed text-center mt-2 mb-6 px-1"></p>
-
-            <!-- 按钮：左右等分 -->
             <div class="flex items-center gap-2.5">
                 <button id="confirmCancelBtn" type="button" class="flex-1 py-2.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 active:bg-slate-200 rounded-xl transition">取消</button>
                 <button id="confirmOkBtn" type="button" class="flex-1 py-2.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 active:bg-red-600 rounded-xl shadow-sm transition">确定</button>
@@ -160,19 +149,15 @@
         </div>
     </div>
 
-    <!-- ===================== 登录页（PC 左右分栏 / 移动端单列） ===================== -->
+    <!-- 登录页 -->
     <div id="authOverlay" class="fixed inset-0 w-screen h-screen z-[150] bg-slate-950 overflow-y-auto hidden">
-
         <div class="fixed inset-0 overflow-hidden pointer-events-none">
             <div class="absolute top-0 left-1/4 -translate-x-1/2 w-[44rem] h-[44rem] -translate-y-1/2 bg-blue-500/[0.10] rounded-full blur-3xl"></div>
             <div class="absolute bottom-0 right-0 w-[32rem] h-[32rem] translate-x-1/4 translate-y-1/4 bg-cyan-500/[0.07] rounded-full blur-3xl"></div>
         </div>
-
         <div class="relative min-h-full flex flex-col sm:flex-row">
-
             <div class="flex-1 flex flex-col items-center justify-center px-6 py-14 sm:items-start sm:justify-center sm:px-12 sm:py-0 lg:px-20 xl:px-28">
                 <div class="w-full max-w-lg">
-
                     <div class="flex flex-col items-center sm:flex-row sm:items-center sm:space-x-3">
                         <svg class="w-14 h-14 sm:w-12 sm:h-12 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
@@ -189,19 +174,16 @@
                         </svg>
                         <span class="mt-4 text-xl sm:mt-0 sm:text-2xl font-extrabold tracking-tight text-white whitespace-nowrap">椿沐智库</span>
                     </div>
-
                     <p class="sm:hidden text-center text-xs text-slate-400 leading-relaxed mt-4">
                         云端知识库 · 安全可控 · 随时访问
                     </p>
-
                     <div class="hidden sm:block">
                         <h2 class="text-3xl lg:text-4xl font-light text-white leading-snug mt-14">
                             让知识沉淀，<br class="hidden lg:block">让经验传承
                         </h2>
                         <p class="text-sm text-slate-400 leading-relaxed mt-5 max-w-md">
-                            安全连接你的 GitHub 知识库，支持 Markdown 编辑、独立图片存储、分类与标签检索，随时随地访问你的知识资产。
+                            安全连接你的 GitHub 知识库，支持 Markdown 编辑、多格式附件上传、分类与标签检索，随时随地访问你的知识资产。
                         </p>
-
                         <div class="space-y-6 mt-14">
                             <div class="flex items-start space-x-4">
                                 <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0">
@@ -214,11 +196,11 @@
                             </div>
                             <div class="flex items-start space-x-4">
                                 <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0">
-                                    <i class="ri-cloud-line text-lg text-brand-400"></i>
+                                    <i class="ri-attachment-2 text-lg text-brand-400"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-sm font-medium text-white mb-1">云端同步</h3>
-                                    <p class="text-xs text-slate-500 leading-relaxed">数据存储于你的 GitHub 仓库，安全可控</p>
+                                    <h3 class="text-sm font-medium text-white mb-1">多格式附件</h3>
+                                    <p class="text-xs text-slate-500 leading-relaxed">支持表格、Word、PPT、PDF、压缩包等格式，按类型分类存放</p>
                                 </div>
                             </div>
                             <div class="flex items-start space-x-4">
@@ -234,11 +216,9 @@
                     </div>
                 </div>
             </div>
-
             <div class="w-full sm:w-[460px] lg:w-[520px] flex-shrink-0 px-6 pb-14 sm:flex sm:items-center sm:justify-center sm:border-l border-white/[0.06] sm:px-8 sm:py-0">
                 <div class="w-full sm:max-w-[340px]">
                     <form id="authForm" class="space-y-8" autocomplete="off">
-
                         <div>
                             <label for="authTokInput" class="block text-[11px] font-medium text-slate-400 mb-2.5 tracking-widest uppercase">访问令牌</label>
                             <div class="relative">
@@ -250,7 +230,6 @@
                                 </button>
                             </div>
                         </div>
-
                         <button type="submit" id="authSubmitBtn"
                             class="relative overflow-hidden w-full py-3.5 bg-white text-slate-900 font-medium text-sm rounded-full hover:bg-slate-100 active:bg-slate-200 active:scale-[0.99] transition-all duration-200 disabled:opacity-80 disabled:cursor-not-allowed disabled:hover:bg-white disabled:active:scale-100">
                             <span class="relative z-10 flex items-center justify-center space-x-2">
@@ -261,14 +240,12 @@
                                 <div class="login-progress-fill absolute top-0 bottom-0 bg-brand-500 rounded-full"></div>
                             </div>
                         </button>
-
                         <div>
                             <button type="button" id="toggleAdvancedBtn"
                                 class="group flex items-center space-x-1.5 text-[11px] text-slate-500 hover:text-slate-300 transition-colors">
                                 <i id="advancedChevron" class="ri-arrow-down-s-line text-sm"></i>
                                 <span class="tracking-widest uppercase">高级选项</span>
                             </button>
-
                             <div id="advancedOptions" class="pt-3">
                                 <div class="space-y-5 pl-0.5">
                                     <div>
@@ -290,12 +267,10 @@
         </div>
     </div>
 
-    <!-- ===================== 主应用（未授权时整体隐藏） ===================== -->
+    <!-- 主应用 -->
     <div id="appShell" class="hidden flex flex-col flex-1 min-h-0 w-full">
-
         <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-[100] hidden lg:hidden transition-opacity"></div>
 
-        <!-- Top Header -->
         <header class="h-14 w-full bg-slate-900 border-b border-slate-800 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 z-50 shadow-md relative">
             <div class="flex items-center space-x-2 flex-shrink-0">
                 <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
@@ -318,7 +293,6 @@
                     <span class="font-extrabold text-base tracking-tight text-white whitespace-nowrap">椿沐智库</span>
                 </div>
             </div>
-
             <div class="flex-1 max-w-xl mx-2 sm:mx-6">
                 <div class="relative flex items-center">
                     <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
@@ -329,7 +303,6 @@
                     </button>
                 </div>
             </div>
-
             <div class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
                 <div class="hidden sm:block relative w-[120px] h-7">
                     <div id="syncStatus" class="absolute right-0 top-0 flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 transition-colors">
@@ -360,9 +333,7 @@
         </header>
 
         <div class="flex-1 flex overflow-hidden relative w-full min-h-0">
-
             <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
-
                 <div class="lg:hidden flex items-center space-x-2.5 px-4 h-14 border-b border-slate-100 flex-shrink-0">
                     <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
@@ -379,7 +350,6 @@
                     </svg>
                     <span class="font-extrabold text-base tracking-tight text-slate-900 whitespace-nowrap">椿沐智库</span>
                 </div>
-
                 <div id="sidebarScrollContainer" class="p-4 space-y-6 overflow-y-auto flex-1">
                     <div class="space-y-1">
                         <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">视图</div>
@@ -388,12 +358,10 @@
                             <span id="allCount" class="text-[11px] bg-brand-100 px-2 py-0.5 rounded-full">0</span>
                         </button>
                     </div>
-
                     <div class="space-y-1">
                         <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">分类</div>
                         <div id="categoryList" class="space-y-1"></div>
                     </div>
-
                     <div class="space-y-1">
                         <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">热门标签</div>
                         <div id="tagList" class="flex flex-wrap gap-1.5 px-1"></div>
@@ -410,12 +378,12 @@
             </div>
 
             <main id="mainPanel" class="hidden md:flex flex-1 bg-slate-50 flex-col overflow-hidden absolute md:relative inset-0 z-30 md:z-auto h-full w-full">
-
                 <div id="emptyState" class="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center overflow-y-auto">
                     <i class="ri-draft-line text-6xl mb-4 opacity-40"></i>
                     <p class="text-sm font-medium">选择左侧列表中的文章查看，或新建知识条目</p>
                 </div>
 
+                <!-- 查看模式 -->
                 <div id="viewPanel" class="hidden flex-1 flex flex-col overflow-hidden bg-white md:bg-transparent h-full relative">
                     <div class="h-12 px-4 md:px-6 border-b border-slate-200 bg-white flex items-center justify-between flex-shrink-0 gap-2 z-10">
                         <div class="flex items-center space-x-2 min-w-0 flex-1">
@@ -433,11 +401,9 @@
                             </button>
                         </div>
                     </div>
-
                     <div id="viewScrollContainer" class="flex-1 overflow-y-auto p-4 md:p-10 w-full relative">
                         <div class="max-w-4xl mx-auto w-full pb-12">
                             <h1 id="viewTitle" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3"></h1>
-
                             <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 mb-6 pb-4 border-b border-slate-200">
                                 <span id="viewDate"><i class="ri-time-line mr-1"></i>--</span>
                                 <span id="viewCodeBtn" title="点击复制知识编码" class="cursor-pointer hover:text-brand-600 active:text-brand-700 transition flex items-center space-x-1 select-none outline-none focus:outline-none focus:ring-0">
@@ -447,12 +413,13 @@
                                 </span>
                                 <div id="viewTags" class="flex flex-wrap gap-1"></div>
                             </div>
-
                             <div id="viewContent" class="markdown-body text-slate-700"></div>
+                            <div id="viewAttachments"></div>
                         </div>
                     </div>
                 </div>
 
+                <!-- 编辑模式 -->
                 <div id="editPanel" class="hidden flex-1 flex flex-col bg-white overflow-hidden h-full">
                     <div class="h-12 px-4 md:px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50 flex-shrink-0">
                         <div class="flex items-center space-x-2">
@@ -468,14 +435,12 @@
                             </button>
                         </div>
                     </div>
-
                     <div id="editScrollContainer" class="flex-1 overflow-y-auto p-4 md:p-6">
                         <div class="max-w-5xl mx-auto w-full space-y-4 pb-12">
                             <div>
                                 <input type="text" id="editTitleInput" placeholder="输入文章标题..."
                                     class="w-full text-xl font-bold bg-transparent border-b border-slate-200 pb-2 focus:outline-none focus:border-brand-500 text-slate-900 placeholder-slate-400">
                             </div>
-
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-medium text-slate-500 mb-1">分类</label>
@@ -488,17 +453,23 @@
                                         class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800">
                                 </div>
                             </div>
-
                             <div class="flex flex-col h-[400px] md:h-[500px] border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
                                 <div class="bg-slate-100 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500 flex-shrink-0">
                                     <span class="font-medium truncate mr-2" id="uploadStatusTip">Markdown 源码（支持粘贴截图）</span>
                                     <label class="cursor-pointer text-brand-600 hover:underline flex items-center space-x-1 flex-shrink-0">
-                                        <i class="ri-image-add-line"></i><span>上传图片</span>
-                                        <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
+                                        <i class="ri-attachment-2"></i><span>上传附件</span>
+                                        <input type="file" id="attachmentUploadInput" multiple class="hidden"
+                                            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.zip,.rar,.7z,.tar,.gz,.txt,.md,.json,.rtf,.odt,.ods,.odp,.pages,.numbers,.key">
                                     </label>
                                 </div>
                                 <textarea id="editContentInput" placeholder="使用 Markdown 语法编写内容..."
                                     class="flex-1 w-full p-4 bg-transparent font-mono text-sm resize-none focus:outline-none text-slate-800 placeholder-slate-400"></textarea>
+                            </div>
+
+                            <!-- 编辑态附件列表 -->
+                            <div class="pt-2">
+                                <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">附件</div>
+                                <div id="editAttachmentsList" class="space-y-2"></div>
                             </div>
                         </div>
                     </div>
@@ -557,7 +528,6 @@
         </div>
     </div>
 
-    <!-- Application Logic -->
     <script>
         let docs = [];
         let currentDocId = null;
@@ -568,36 +538,97 @@
         let isLoggingIn = false;
         let isManualSyncing = false;
         let githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
+        let editAttachments = [];
 
         const imageJsonCache = {};
         const DEFAULT_LOADING_TEXT = '正在加载知识库...';
+        const MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
+        const ATTACHMENT_FOLDERS = {
+            table: '表格',
+            word: 'Word',
+            ppt: 'PPT',
+            pdf: 'PDF',
+            archive: '压缩包',
+            other: '其他'
+        };
+
+        /* ---------------- 附件工具函数 ---------------- */
+        function getAttachmentType(file) {
+            const name = (file.name || '').toLowerCase();
+            const mime = (file.type || '').toLowerCase();
+            if (mime.startsWith('image/') || /\.(jpe?g|png|gif|webp|bmp|svg)$/.test(name)) return 'image';
+            if (/\.(xlsx?|csv|numbers|ods)$/.test(name)) return 'table';
+            if (/\.(docx?|pages|rtf|odt)$/.test(name)) return 'word';
+            if (/\.(pptx?|key|odp)$/.test(name)) return 'ppt';
+            if (/\.pdf$/.test(name)) return 'pdf';
+            if (/\.(zip|rar|7z|tar|gz|tgz)$/.test(name)) return 'archive';
+            return 'other';
+        }
+        function getAttachIcon(type) {
+            const map = {
+                table: 'ri-file-excel-2-line text-emerald-600',
+                word: 'ri-file-word-line text-blue-600',
+                ppt: 'ri-file-ppt-line text-orange-600',
+                pdf: 'ri-file-pdf-line text-red-600',
+                archive: 'ri-file-zip-line text-purple-600',
+                image: 'ri-image-line text-pink-600',
+                other: 'ri-file-line text-slate-600'
+            };
+            return map[type] || map.other;
+        }
+        function getAttachIconBg(type) {
+            const map = {
+                table: 'bg-emerald-50',
+                word: 'bg-blue-50',
+                ppt: 'bg-orange-50',
+                pdf: 'bg-red-50',
+                archive: 'bg-purple-50',
+                image: 'bg-pink-50',
+                other: 'bg-slate-100'
+            };
+            return map[type] || map.other;
+        }
+        function formatSize(bytes) {
+            const n = Number(bytes) || 0;
+            if (n < 1024) return n + ' B';
+            if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+            if (n < 1024 * 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + ' MB';
+            return (n / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+        }
+        function sanitizeFileName(name) {
+            return (name || 'file').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').slice(0, 100);
+        }
+        function encodeRepoPath(path) {
+            return path.split('/').map(encodeURIComponent).join('/');
+        }
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = reader.result || '';
+                    const idx = result.indexOf(',');
+                    resolve(idx >= 0 ? result.slice(idx + 1) : '');
+                };
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(file);
+            });
+        }
 
         /* ---------------- 内部确认弹窗 ---------------- */
         let confirmResolve = null;
-
         function showConfirm(options = {}) {
-            const {
-                title = '确认操作',
-                desc = '',
-                okText = '确定',
-                cancelText = '取消',
-                type = 'danger'
-            } = options;
-
+            const { title = '确认操作', desc = '', okText = '确定', cancelText = '取消', type = 'danger' } = options;
             return new Promise((resolve) => {
                 confirmResolve = resolve;
-
                 const modal = document.getElementById('confirmModal');
                 const iconWrap = document.getElementById('confirmIconWrap');
                 const icon = document.getElementById('confirmIcon');
                 const okBtn = document.getElementById('confirmOkBtn');
                 const cancelBtn = document.getElementById('confirmCancelBtn');
-
                 document.getElementById('confirmTitle').textContent = title;
                 document.getElementById('confirmDesc').textContent = desc;
                 okBtn.textContent = okText;
                 cancelBtn.textContent = cancelText;
-
                 if (type === 'danger') {
                     iconWrap.className = 'w-14 h-14 rounded-full bg-red-50 flex items-center justify-center';
                     icon.className = 'ri-delete-bin-line text-2xl text-red-500';
@@ -607,12 +638,10 @@
                     icon.className = 'ri-error-warning-line text-2xl text-amber-500';
                     okBtn.className = 'flex-1 py-2.5 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-700 rounded-xl shadow-sm transition';
                 }
-
                 modal.classList.remove('hidden');
                 setTimeout(() => { try { okBtn.focus(); } catch (e) {} }, 0);
             });
         }
-
         function closeConfirm(result) {
             const modal = document.getElementById('confirmModal');
             if (!modal || modal.classList.contains('hidden')) return;
@@ -623,30 +652,23 @@
                 r(result);
             }
         }
-
         function setupConfirmModal() {
             const modal = document.getElementById('confirmModal');
             const okBtn = document.getElementById('confirmOkBtn');
             const cancelBtn = document.getElementById('confirmCancelBtn');
             const overlay = document.getElementById('confirmModalOverlay');
-
             okBtn.addEventListener('click', () => closeConfirm(true));
             cancelBtn.addEventListener('click', () => closeConfirm(false));
             overlay.addEventListener('click', () => closeConfirm(false));
-
             document.addEventListener('keydown', (e) => {
                 if (!modal.classList.contains('hidden')) {
-                    if (e.key === 'Escape') {
-                        e.preventDefault();
-                        closeConfirm(false);
-                    } else if (e.key === 'Enter') {
-                        e.preventDefault();
-                        closeConfirm(true);
-                    }
+                    if (e.key === 'Escape') { e.preventDefault(); closeConfirm(false); }
+                    else if (e.key === 'Enter') { e.preventDefault(); closeConfirm(true); }
                 }
             });
         }
 
+        /* ---------------- 加载与界面显隐 ---------------- */
         function setLoadingMode(mode) {
             const overlay = document.getElementById('loadingOverlay');
             const decor = document.getElementById('loadingDecor');
@@ -660,7 +682,6 @@
                 decor.classList.add('hidden');
             }
         }
-
         function showLoading(text) {
             setLoadingMode('app');
             const overlay = document.getElementById('loadingOverlay');
@@ -674,7 +695,6 @@
             overlay.classList.add('hidden');
             if (loadingText) loadingText.textContent = DEFAULT_LOADING_TEXT;
         }
-
         function setLoginButtonLoading(loading) {
             const btn = document.getElementById('authSubmitBtn');
             const text = document.getElementById('loginBtnText');
@@ -693,7 +713,6 @@
                 if (progress) progress.classList.add('hidden');
             }
         }
-
         function showAuth() {
             const el = document.getElementById('authOverlay');
             el.classList.remove('hidden');
@@ -704,15 +723,9 @@
             collapseAdvancedOptions();
             setLoginButtonLoading(false);
         }
-        function hideAuth() {
-            document.getElementById('authOverlay').classList.add('hidden');
-        }
-        function showApp() {
-            document.getElementById('appShell').classList.remove('hidden');
-        }
-        function hideApp() {
-            document.getElementById('appShell').classList.add('hidden');
-        }
+        function hideAuth() { document.getElementById('authOverlay').classList.add('hidden'); }
+        function showApp() { document.getElementById('appShell').classList.remove('hidden'); }
+        function hideApp() { document.getElementById('appShell').classList.add('hidden'); }
 
         function collapseAdvancedOptions() {
             const adv = document.getElementById('advancedOptions');
@@ -729,7 +742,6 @@
                 chevron.classList.toggle('is-open', isOpen);
             });
         }
-
         function fillAdvancedOptions() {
             document.getElementById('authRepoInput').value = githubConfig.repo || 'XiandeShen/Xiande-kb';
             document.getElementById('authPathInput').value = githubConfig.path || 'kb_docs.json';
@@ -739,14 +751,12 @@
             const toast = document.getElementById('toast');
             const toastText = document.getElementById('toastText');
             const toastIcon = document.getElementById('toastIcon');
-
             toastText.textContent = msg;
             if (type === 'error') {
                 toastIcon.className = 'ri-error-warning-line text-rose-400 text-sm';
             } else {
                 toastIcon.className = 'ri-checkbox-circle-line text-emerald-400 text-sm';
             }
-
             toast.classList.remove('translate-y-12', 'opacity-0', 'pointer-events-none');
             toast.classList.add('translate-y-0', 'opacity-100');
             setTimeout(() => {
@@ -757,7 +767,6 @@
 
         window.onload = function() {
             loadGithubConfig();
-
             if (!githubConfig.token) {
                 hideApp();
                 document.getElementById('loadingOverlay').classList.add('hidden');
@@ -774,7 +783,6 @@
                 renderDocList();
                 pullFromGithub();
             }
-
             setupConfirmModal();
             setupAdvancedToggle();
             setupEventListeners();
@@ -799,19 +807,14 @@
             e.preventDefault();
             if (isLoggingIn) return;
             const token = document.getElementById('authTokInput').value.trim();
-            if (!token) {
-                showToast('请输入访问令牌', 'error');
-                return;
-            }
+            if (!token) { showToast('请输入访问令牌', 'error'); return; }
             const repoInput = document.getElementById('authRepoInput').value.trim();
             const pathInput = document.getElementById('authPathInput').value.trim();
-
             githubConfig.token = token;
             githubConfig.repo = repoInput || githubConfig.repo || 'XiandeShen/Xiande-kb';
             githubConfig.path = pathInput || githubConfig.path || 'kb_docs.json';
             githubConfig.sha = '';
             localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
-
             isLoggingIn = true;
             setLoginButtonLoading(true);
             pullFromGithub();
@@ -819,14 +822,9 @@
 
         function manualSyncRefresh() {
             if (isManualSyncing) return;
-            if (!githubConfig.token || !githubConfig.repo) {
-                showToast('请先配置访问令牌', 'error');
-                return;
-            }
+            if (!githubConfig.token || !githubConfig.repo) { showToast('请先配置访问令牌', 'error'); return; }
             isManualSyncing = true;
-            pullFromGithub().finally(() => {
-                isManualSyncing = false;
-            });
+            pullFromGithub().finally(() => { isManualSyncing = false; });
         }
 
         async function handleResetBinding() {
@@ -838,40 +836,34 @@
                 type: 'normal'
             });
             if (!ok) return;
-
             localStorage.removeItem('kb_gh_config');
             localStorage.removeItem('kb_docs');
             docs = [];
             currentDocId = null;
             previousDocId = null;
+            editAttachments = [];
             githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
             document.getElementById('authTokInput').value = '';
             document.getElementById('githubDropdown').classList.add('hidden');
             hideLoading();
-
             hideApp();
             fillAdvancedOptions();
             showAuth();
-
             renderCategoryList();
             renderTagList();
             renderDocList();
         }
 
-        function generateDocCode() {
-            return 'CM-' + Math.floor(1000 + Math.random() * 9000);
-        }
+        function generateDocCode() { return 'CM-' + Math.floor(1000 + Math.random() * 9000); }
 
         function loadLocalDocs() {
             const saved = localStorage.getItem('kb_docs');
             docs = saved ? JSON.parse(saved) : [];
             docs.forEach(d => {
-                if (!d.code || !d.code.startsWith('CM-')) {
-                    d.code = generateDocCode();
-                }
+                if (!d.code || !d.code.startsWith('CM-')) d.code = generateDocCode();
+                if (!Array.isArray(d.attachments)) d.attachments = [];
             });
         }
-
         function saveLocalDocs() {
             localStorage.setItem('kb_docs', JSON.stringify(docs));
             renderCategoryList();
@@ -885,63 +877,38 @@
                 const cat = d.category || '通用';
                 categories[cat] = (categories[cat] || 0) + 1;
             });
-
             document.getElementById('allCount').textContent = docs.length;
-
             const allNavBtn = document.getElementById('allDocsNavBtn');
             if (activeCategory === 'ALL' && !activeTag) {
                 allNavBtn.className = 'nav-filter-btn active w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium bg-brand-50 text-brand-600';
             } else {
                 allNavBtn.className = 'nav-filter-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition';
             }
-
             const catListEl = document.getElementById('categoryList');
             catListEl.innerHTML = '';
-
             allNavBtn.onclick = () => {
-                activeCategory = 'ALL';
-                activeTag = null;
-
-                if (window.innerWidth < 768) {
-                    currentDocId = null;
-                    document.getElementById('mainPanel').classList.add('hidden');
-                }
-
-                renderCategoryList();
-                renderTagList();
-                renderDocList();
-
+                activeCategory = 'ALL'; activeTag = null;
+                if (window.innerWidth < 768) { currentDocId = null; document.getElementById('mainPanel').classList.add('hidden'); }
+                renderCategoryList(); renderTagList(); renderDocList();
                 const sidebarScroll = document.getElementById('sidebarScrollContainer');
                 if (sidebarScroll) sidebarScroll.scrollTop = 0;
                 const docListEl = document.getElementById('docList');
                 if (docListEl) docListEl.scrollTop = 0;
-
                 closeMobileSidebar();
             };
-
             Object.entries(categories).forEach(([cat, count]) => {
                 const btn = document.createElement('button');
                 const isSelected = (activeCategory === cat && !activeTag);
                 btn.className = `w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition ${isSelected ? 'bg-brand-50 text-brand-600' : 'text-slate-600 hover:bg-slate-100'}`;
                 btn.innerHTML = `<span class="truncate">${cat}</span><span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-100">${count}</span>`;
                 btn.onclick = () => {
-                    activeCategory = cat;
-                    activeTag = null;
-
-                    if (window.innerWidth < 768) {
-                        currentDocId = null;
-                        document.getElementById('mainPanel').classList.add('hidden');
-                    }
-
-                    renderCategoryList();
-                    renderTagList();
-                    renderDocList();
-
+                    activeCategory = cat; activeTag = null;
+                    if (window.innerWidth < 768) { currentDocId = null; document.getElementById('mainPanel').classList.add('hidden'); }
+                    renderCategoryList(); renderTagList(); renderDocList();
                     const sidebarScroll = document.getElementById('sidebarScrollContainer');
                     if (sidebarScroll) sidebarScroll.scrollTop = 0;
                     const docListEl = document.getElementById('docList');
                     if (docListEl) docListEl.scrollTop = 0;
-
                     closeMobileSidebar();
                 };
                 catListEl.appendChild(btn);
@@ -953,7 +920,6 @@
             docs.forEach(d => (d.tags || []).forEach(t => tags.add(t)));
             const tagListEl = document.getElementById('tagList');
             tagListEl.innerHTML = '';
-
             tags.forEach(t => {
                 const badge = document.createElement('span');
                 const isSelected = (activeTag === t);
@@ -961,24 +927,13 @@
                 badge.textContent = `# ${t}`;
                 badge.onclick = () => {
                     activeTag = activeTag === t ? null : t;
-                    if (activeTag) {
-                        activeCategory = 'ALL';
-                    }
-
-                    if (window.innerWidth < 768) {
-                        currentDocId = null;
-                        document.getElementById('mainPanel').classList.add('hidden');
-                    }
-
-                    renderCategoryList();
-                    renderTagList();
-                    renderDocList();
-
+                    if (activeTag) activeCategory = 'ALL';
+                    if (window.innerWidth < 768) { currentDocId = null; document.getElementById('mainPanel').classList.add('hidden'); }
+                    renderCategoryList(); renderTagList(); renderDocList();
                     const sidebarScroll = document.getElementById('sidebarScrollContainer');
                     if (sidebarScroll) sidebarScroll.scrollTop = 0;
                     const docListEl = document.getElementById('docList');
                     if (docListEl) docListEl.scrollTop = 0;
-
                     closeMobileSidebar();
                 };
                 tagListEl.appendChild(badge);
@@ -996,37 +951,28 @@
                 const matchTag = !activeTag || (d.tags && d.tags.includes(activeTag));
                 return matchSearch && matchCat && matchTag;
             });
-
             const listTitleEl = document.getElementById('listTitle');
-            if (query) {
-                listTitleEl.textContent = `搜索: "${query}"`;
-            } else if (activeTag) {
-                listTitleEl.textContent = `# ${activeTag}`;
-            } else if (activeCategory !== 'ALL') {
-                listTitleEl.textContent = activeCategory;
-            } else {
-                listTitleEl.textContent = '所有条目';
-            }
-
+            if (query) listTitleEl.textContent = `搜索: "${query}"`;
+            else if (activeTag) listTitleEl.textContent = `# ${activeTag}`;
+            else if (activeCategory !== 'ALL') listTitleEl.textContent = activeCategory;
+            else listTitleEl.textContent = '所有条目';
             document.getElementById('docCountText').textContent = `${filtered.length} 个文档`;
             const docListEl = document.getElementById('docList');
             docListEl.innerHTML = '';
-
             filtered.forEach(d => {
                 const item = document.createElement('div');
                 const isSelected = currentDocId === d.id;
                 item.className = `relative p-4 cursor-pointer hover:bg-slate-100 transition ${isSelected ? 'bg-brand-50/70' : ''}`;
-
                 let html = '';
-                if (isSelected) {
-                    html += `<div class="absolute left-0 inset-y-0 w-1 bg-brand-600 rounded-r"></div>`;
-                }
+                if (isSelected) html += `<div class="absolute left-0 inset-y-0 w-1 bg-brand-600 rounded-r"></div>`;
+                const attCount = (d.attachments || []).length;
                 html += `
                     <h4 class="font-bold text-xs text-slate-800 truncate pr-16">${d.title || '无标题'}</h4>
                     <p class="text-[11px] text-slate-500 line-clamp-2 mt-1">${(d.content || '').replace(/[#*`!]/g, '')}</p>
                     <div class="flex items-center justify-between text-[10px] text-slate-400 mt-2">
                         <span class="px-1.5 py-0.5 rounded bg-slate-100 truncate max-w-[110px]">${d.category || '通用'}</span>
                         <div class="flex items-center space-x-1.5">
+                            ${attCount > 0 ? `<span class="text-slate-400"><i class="ri-attachment-2 mr-0.5"></i>${attCount}</span>` : ''}
                             <span class="font-mono text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded font-semibold">${d.code || ''}</span>
                             <span>${d.updatedAt ? d.updatedAt.split(' ')[0] : ''}</span>
                         </div>
@@ -1038,6 +984,307 @@
             });
         }
 
+        /* ---------------- 附件渲染 ---------------- */
+        function renderEditAttachments() {
+            const container = document.getElementById('editAttachmentsList');
+            if (!container) return;
+            if (!editAttachments.length) {
+                container.innerHTML = '<div class="text-[11px] text-slate-400 py-1 px-1">暂无附件，可点击上方“上传附件”添加</div>';
+                return;
+            }
+            container.innerHTML = editAttachments.map((att, i) => `
+                <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div class="flex items-center space-x-2.5 min-w-0 flex-1">
+                        <div class="w-8 h-8 rounded-lg ${getAttachIconBg(att.type)} flex items-center justify-center flex-shrink-0">
+                            <i class="${getAttachIcon(att.type)} text-base"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs font-medium text-slate-700 truncate" title="${att.name}">${att.name}</div>
+                            <div class="text-[10px] text-slate-400">${formatSize(att.size)}</div>
+                        </div>
+                    </div>
+                    <button type="button" data-att-index="${i}" class="delete-att-btn w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition flex-shrink-0 ml-2">
+                        <i class="ri-close-line text-sm"></i>
+                    </button>
+                </div>
+            `).join('');
+            container.querySelectorAll('.delete-att-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.getAttribute('data-att-index'), 10);
+                    deleteEditAttachment(idx);
+                });
+            });
+        }
+
+        function renderViewAttachments() {
+            const container = document.getElementById('viewAttachments');
+            const doc = docs.find(d => d.id === currentDocId);
+            const atts = (doc && doc.attachments) || [];
+            if (!atts.length) { container.innerHTML = ''; return; }
+            container.innerHTML = `
+                <div class="mt-10 pt-6 border-t border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center space-x-2">
+                        <i class="ri-attachment-2 text-base text-slate-500"></i>
+                        <span>附件</span>
+                        <span class="text-[10px] font-normal text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">${atts.length}</span>
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        ${atts.map((att, i) => `
+                            <button type="button" data-att-index="${i}" class="download-att-btn flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-brand-300 hover:bg-brand-50/50 active:scale-[0.99] transition text-left group">
+                                <div class="flex items-center space-x-3 min-w-0 flex-1">
+                                    <div class="w-9 h-9 rounded-lg ${getAttachIconBg(att.type)} flex items-center justify-center flex-shrink-0">
+                                        <i class="${getAttachIcon(att.type)} text-lg"></i>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="text-xs font-medium text-slate-700 truncate" title="${att.name}">${att.name}</div>
+                                        <div class="text-[10px] text-slate-400 mt-0.5">${formatSize(att.size)}</div>
+                                    </div>
+                                </div>
+                                <i class="ri-download-line text-slate-400 group-hover:text-brand-600 transition flex-shrink-0 ml-2"></i>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            container.querySelectorAll('.download-att-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.getAttribute('data-att-index'), 10);
+                    downloadAttachment(idx);
+                });
+            });
+        }
+
+        /* ---------------- 附件上传 / 删除 / 下载 ---------------- */
+        function uploadImageAsJson(file) {
+            return new Promise((resolve) => {
+                if (!githubConfig.token || !githubConfig.repo) {
+                    showToast('请先绑定 GitHub Token！', 'error');
+                    resolve();
+                    return;
+                }
+                const tipEl = document.getElementById('uploadStatusTip');
+                if (tipEl) tipEl.textContent = '正在压缩图片并打包为独立 JSON 上传...';
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = async function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const maxWidth = 1200;
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const base64DataUrl = canvas.toDataURL('image/webp', 0.7);
+                        const payload = { data: base64DataUrl };
+                        const jsonString = JSON.stringify(payload);
+                        const contentEncoded = btoa(unescape(encodeURIComponent(jsonString)));
+                        const filename = `images/img_${Date.now()}_${Math.floor(Math.random() * 1000)}.json`;
+                        const apiPath = encodeRepoPath(filename);
+                        try {
+                            const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `token ${githubConfig.token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    message: `kb: upload image json ${filename}`,
+                                    content: contentEncoded
+                                })
+                            });
+                            if (res.ok) {
+                                insertAtCursor(document.getElementById('editContentInput'), `\n![图片](${filename})\n`);
+                                if (tipEl) tipEl.textContent = 'Markdown 源码（图片已上传并插入）';
+                                showToast('图片上传成功', 'success');
+                            } else {
+                                showToast('图片上传失败', 'error');
+                            }
+                        } catch (err) {
+                            showToast('网络异常，图片上传失败', 'error');
+                        }
+                        resolve();
+                    };
+                    img.onerror = () => resolve();
+                    img.src = event.target.result;
+                };
+                reader.onerror = () => resolve();
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function uploadGenericAttachment(file, currentIdx = 1, total = 1) {
+            if (!githubConfig.token || !githubConfig.repo) {
+                showToast('请先绑定 GitHub Token！', 'error');
+                return;
+            }
+            if (file.size > MAX_ATTACHMENT_SIZE) {
+                showToast(`「${file.name}」超过 20MB，无法上传`, 'error');
+                return;
+            }
+            const type = getAttachmentType(file);
+            const folder = ATTACHMENT_FOLDERS[type] || '其他';
+            const safeName = sanitizeFileName(file.name);
+            const path = `attachments/${folder}/${Date.now()}_${safeName}`;
+            const apiPath = encodeRepoPath(path);
+            showLoading(total > 1 ? `正在上传附件 ${currentIdx}/${total}...` : '正在上传附件...');
+            try {
+                const base64 = await fileToBase64(file);
+                const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${githubConfig.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `kb: upload attachment ${file.name}`,
+                        content: base64
+                    })
+                });
+                if (res.ok) {
+                    editAttachments.push({
+                        name: file.name,
+                        path,
+                        size: file.size,
+                        type,
+                        uploadedAt: new Date().toLocaleString()
+                    });
+                    renderEditAttachments();
+                    showToast(`「${file.name}」上传成功`, 'success');
+                } else {
+                    const errJson = await res.json().catch(() => ({}));
+                    showToast(`「${file.name}」上传失败：${errJson.message || '未知错误'}`, 'error');
+                }
+            } catch (e) {
+                showToast(`「${file.name}」上传失败`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function handleAttachmentUpload(files) {
+            if (!files || !files.length) return;
+            const imageFiles = [];
+            const otherFiles = [];
+            for (const file of files) {
+                if (getAttachmentType(file) === 'image') imageFiles.push(file);
+                else otherFiles.push(file);
+            }
+            for (const file of imageFiles) {
+                await uploadImageAsJson(file);
+            }
+            for (let i = 0; i < otherFiles.length; i++) {
+                await uploadGenericAttachment(otherFiles[i], i + 1, otherFiles.length);
+            }
+        }
+
+        async function deleteEditAttachment(index) {
+            const att = editAttachments[index];
+            if (!att) return;
+            const ok = await showConfirm({
+                title: '删除附件',
+                desc: `确定要删除附件「${att.name}」吗？文件也会从 GitHub 中清理。`,
+                okText: '确定删除',
+                cancelText: '取消',
+                type: 'danger'
+            });
+            if (!ok) return;
+            showLoading('正在删除附件...');
+            try {
+                if (githubConfig.token && githubConfig.repo) {
+                    const apiPath = encodeRepoPath(att.path);
+                    const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                        headers: { 'Authorization': `token ${githubConfig.token}` }
+                    });
+                    if (getRes.ok) {
+                        const fileData = await getRes.json();
+                        await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `token ${githubConfig.token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                message: `kb: delete attachment ${att.name}`,
+                                sha: fileData.sha
+                            })
+                        });
+                    }
+                }
+                editAttachments.splice(index, 1);
+                renderEditAttachments();
+                showToast('附件已删除', 'success');
+            } catch (e) {
+                showToast('删除失败', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function downloadAttachment(index) {
+            const doc = docs.find(d => d.id === currentDocId);
+            if (!doc || !doc.attachments || !doc.attachments[index]) return;
+            const att = doc.attachments[index];
+            showLoading('正在获取附件...');
+            try {
+                const apiPath = encodeRepoPath(att.path);
+                const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                    headers: { 'Authorization': `token ${githubConfig.token}` }
+                });
+                if (!res.ok) { showToast('获取附件失败', 'error'); return; }
+                const fileData = await res.json();
+                const binary = atob(fileData.content.replace(/\n/g, ''));
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                const blob = new Blob([bytes]);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = att.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('附件下载已开始', 'success');
+            } catch (e) {
+                showToast('下载失败', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function deleteGithubAttachments(attachments) {
+            if (!githubConfig.token || !githubConfig.repo || !attachments || !attachments.length) return;
+            await Promise.allSettled(attachments.map(async (att) => {
+                try {
+                    const apiPath = encodeRepoPath(att.path);
+                    const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                        headers: { 'Authorization': `token ${githubConfig.token}` }
+                    });
+                    if (getRes.ok) {
+                        const fileData = await getRes.json();
+                        await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `token ${githubConfig.token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                message: `kb: delete attachment ${att.name}`,
+                                sha: fileData.sha
+                            })
+                        });
+                    }
+                } catch (e) {}
+            }));
+        }
+
+        /* ---------------- 查看文档 ---------------- */
         async function openDocView(id, options = {}) {
             const skipOverlay = !!options.skipOverlay;
             currentDocId = id;
@@ -1045,31 +1292,19 @@
             isEditing = false;
             const doc = docs.find(d => d.id === id);
             if (!doc) return;
-
             const viewScrollEl = document.getElementById('viewScrollContainer');
-            if (viewScrollEl) {
-                viewScrollEl.scrollTop = 0;
-            }
-
-            if (!skipOverlay) {
-                showLoading('正在加载文章...');
-            }
-
+            if (viewScrollEl) viewScrollEl.scrollTop = 0;
+            if (!skipOverlay) showLoading('正在加载文章...');
             const parsedHtml = marked.parse(doc.content || '');
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = parsedHtml;
             const imgTags = tempDiv.querySelectorAll('img');
             const imagePromises = [];
-
             imgTags.forEach(img => {
                 const src = img.getAttribute('src');
                 if (src && src.startsWith('images/') && src.endsWith('.json')) {
                     const p = new Promise(async (resolve) => {
-                        if (imageJsonCache[src]) {
-                            img.src = imageJsonCache[src];
-                            resolve();
-                            return;
-                        }
+                        if (imageJsonCache[src]) { img.src = imageJsonCache[src]; resolve(); return; }
                         try {
                             const base64Data = await fetchImageJsonFromGithub(src);
                             if (base64Data) {
@@ -1088,11 +1323,8 @@
                     imagePromises.push(p);
                 }
             });
-
             await Promise.all(imagePromises);
-            if (!skipOverlay) {
-                hideLoading();
-            }
+            if (!skipOverlay) hideLoading();
 
             const mainPanel = document.getElementById('mainPanel');
             mainPanel.classList.remove('hidden');
@@ -1107,7 +1339,6 @@
             const codeTextEl = document.getElementById('viewCodeText');
             codeTextEl.textContent = doc.code || 'CM-0000';
             const codeBtn = document.getElementById('viewCodeBtn');
-
             const handleCodeCopy = (e) => {
                 if (e) e.preventDefault();
                 navigator.clipboard.writeText(doc.code || '').then(() => {
@@ -1122,12 +1353,9 @@
             codeBtn.ontouchend = handleCodeCopy;
 
             document.getElementById('viewContent').innerHTML = tempDiv.innerHTML;
-
             const renderedImages = document.getElementById('viewContent').querySelectorAll('img');
             renderedImages.forEach(imgEl => {
-                imgEl.onclick = () => {
-                    openImageViewerModal(imgEl.src);
-                };
+                imgEl.onclick = () => openImageViewerModal(imgEl.src);
             });
 
             const tagsContainer = document.getElementById('viewTags');
@@ -1139,10 +1367,9 @@
                 tagsContainer.appendChild(tagEl);
             });
 
-            if (viewScrollEl) {
-                viewScrollEl.scrollTop = 0;
-            }
+            renderViewAttachments();
 
+            if (viewScrollEl) viewScrollEl.scrollTop = 0;
             renderDocList();
             checkBackToTopBtnVisibility();
         }
@@ -1151,7 +1378,6 @@
             const btn = document.getElementById('backToTopBtn');
             const viewScroll = document.getElementById('viewScrollContainer');
             const editScroll = document.getElementById('editScrollContainer');
-
             window.checkBackToTopBtnVisibility = function() {
                 let currentScrollTop = 0;
                 if (!document.getElementById('viewPanel').classList.contains('hidden')) {
@@ -1159,17 +1385,11 @@
                 } else if (!document.getElementById('editPanel').classList.contains('hidden')) {
                     currentScrollTop = editScroll.scrollTop;
                 }
-
-                if (currentScrollTop > 200) {
-                    btn.classList.remove('hidden');
-                } else {
-                    btn.classList.add('hidden');
-                }
+                if (currentScrollTop > 200) btn.classList.remove('hidden');
+                else btn.classList.add('hidden');
             };
-
             viewScroll.addEventListener('scroll', checkBackToTopBtnVisibility);
             editScroll.addEventListener('scroll', checkBackToTopBtnVisibility);
-
             btn.onclick = () => {
                 if (!document.getElementById('viewPanel').classList.contains('hidden')) {
                     viewScroll.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1197,19 +1417,11 @@
             const downloadBtn = document.getElementById('downloadImageBtn');
             const container = document.getElementById('imageContainer');
             const imgView = document.getElementById('modalImageView');
-
-            const closeModal = () => {
-                modal.classList.add('hidden');
-            };
-
+            const closeModal = () => modal.classList.add('hidden');
             closeBtn.onclick = closeModal;
-
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-                    closeModal();
-                }
+                if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
             });
-
             downloadBtn.onclick = async () => {
                 if (!currentModalImgSrc) return;
                 try {
@@ -1218,7 +1430,6 @@
                     const isPng = blob.type.includes('png');
                     const ext = isPng ? 'png' : 'jpg';
                     const blobUrl = URL.createObjectURL(blob);
-
                     const a = document.createElement('a');
                     a.href = blobUrl;
                     a.download = `knowledge_image_${Date.now()}.${ext}`;
@@ -1236,26 +1447,21 @@
                     showToast('图片下载已触发', 'success');
                 }
             };
-
             container.addEventListener('wheel', (e) => {
                 e.preventDefault();
                 const zoomFactor = 0.15;
                 let newScale = e.deltaY < 0 ? currentScale + zoomFactor : currentScale - zoomFactor;
-
                 if (newScale < minScale) newScale = minScale;
                 if (newScale > maxScale) newScale = maxScale;
-
                 currentScale = newScale;
                 clampTranslation();
                 updateImageTransform();
             }, { passive: false });
-
             container.addEventListener('mousedown', (e) => {
                 isDraggingImg = true;
                 startDragX = e.clientX - imgTranslateX;
                 startDragY = e.clientY - imgTranslateY;
             });
-
             window.addEventListener('mousemove', (e) => {
                 if (!isDraggingImg) return;
                 imgTranslateX = e.clientX - startDragX;
@@ -1263,11 +1469,7 @@
                 clampTranslation();
                 updateImageTransform();
             });
-
-            window.addEventListener('mouseup', () => {
-                isDraggingImg = false;
-            });
-
+            window.addEventListener('mouseup', () => { isDraggingImg = false; });
             container.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 1) {
                     isDraggingImg = true;
@@ -1282,7 +1484,6 @@
                     initialPinchScale = currentScale;
                 }
             }, { passive: true });
-
             container.addEventListener('touchmove', (e) => {
                 if (isDraggingImg && e.touches.length === 1) {
                     imgTranslateX = e.touches[0].clientX - startDragX;
@@ -1302,62 +1503,46 @@
                     updateImageTransform();
                 }
             }, { passive: true });
-
             container.addEventListener('touchend', (e) => {
-                if (e.touches.length === 0) {
-                    isDraggingImg = false;
-                }
-                if (e.touches.length < 2) {
-                    initialPinchDistance = null;
-                }
+                if (e.touches.length === 0) isDraggingImg = false;
+                if (e.touches.length < 2) initialPinchDistance = null;
             });
         }
-
         function clampTranslation() {
             const imgView = document.getElementById('modalImageView');
             if (!imgView.naturalWidth) return;
             const containerW = window.innerWidth;
             const containerH = window.innerHeight;
-
             const renderedW = imgView.naturalWidth * currentScale;
             const renderedH = imgView.naturalHeight * currentScale;
-
             const maxTransX = Math.max(0, (renderedW - containerW) / 2 + 100);
             const maxTransY = Math.max(0, (renderedH - containerH) / 2 + 100);
-
             imgTranslateX = Math.min(Math.max(imgTranslateX, -maxTransX), maxTransX);
             imgTranslateY = Math.min(Math.max(imgTranslateY, -maxTransY), maxTransY);
         }
-
         function openImageViewerModal(src) {
             currentModalImgSrc = src;
             const modal = document.getElementById('imageModal');
             const imgView = document.getElementById('modalImageView');
-
             imgView.src = src;
             imgTranslateX = 0;
             imgTranslateY = 0;
-
             imgView.onload = () => {
                 const containerW = window.innerWidth * 0.85;
                 const containerH = window.innerHeight * 0.85;
                 const natW = imgView.naturalWidth || 800;
                 const natH = imgView.naturalHeight || 600;
-
                 const scaleW = containerW / natW;
                 const scaleH = containerH / natH;
                 minScale = Math.min(scaleW, scaleH, 1.0);
                 currentScale = minScale;
                 maxScale = Math.max(minScale * 5, 5.0);
-
                 imgView.style.width = natW + 'px';
                 imgView.style.height = natH + 'px';
-
                 updateImageTransform();
                 modal.classList.remove('hidden');
             };
         }
-
         function updateImageTransform() {
             const imgView = document.getElementById('modalImageView');
             imgView.style.transform = `translate3d(${imgTranslateX}px, ${imgTranslateY}px, 0px) scale(${currentScale})`;
@@ -1365,7 +1550,8 @@
 
         async function fetchImageJsonFromGithub(path) {
             if (!githubConfig.token || !githubConfig.repo) return null;
-            const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${path}`, {
+            const apiPath = encodeRepoPath(path);
+            const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                 headers: { 'Authorization': `token ${githubConfig.token}` }
             });
             if (res.ok) {
@@ -1379,8 +1565,7 @@
 
         function setupImageHandling() {
             const textarea = document.getElementById('editContentInput');
-            const fileInput = document.getElementById('imageUploadInput');
-
+            const fileInput = document.getElementById('attachmentUploadInput');
             textarea.addEventListener('paste', function(e) {
                 const items = (e.clipboardData || e.originalEvent.clipboardData).items;
                 for (let item of items) {
@@ -1390,94 +1575,30 @@
                     }
                 }
             });
-
-            fileInput.addEventListener('change', function(e) {
-                if (e.target.files && e.target.files[0]) {
-                    uploadImageAsJson(e.target.files[0]);
+            fileInput.addEventListener('change', async function(e) {
+                const files = e.target.files;
+                if (files && files.length) {
+                    await handleAttachmentUpload(files);
                 }
+                fileInput.value = '';
             });
-        }
-
-        async function uploadImageAsJson(file) {
-            if (!githubConfig.token || !githubConfig.repo) {
-                showToast('请先绑定 GitHub Token！', 'error');
-                return;
-            }
-
-            const tipEl = document.getElementById('uploadStatusTip');
-            tipEl.textContent = '正在压缩图片并打包为独立 JSON 上传...';
-
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.onload = async function() {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const maxWidth = 1200;
-                    if (width > maxWidth) {
-                        height = Math.round((height * maxWidth) / width);
-                        width = maxWidth;
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const base64DataUrl = canvas.toDataURL('image/webp', 0.7);
-                    const payload = { data: base64DataUrl };
-                    const jsonString = JSON.stringify(payload);
-                    const contentEncoded = btoa(unescape(encodeURIComponent(jsonString)));
-                    const filename = `images/img_${Date.now()}.json`;
-
-                    try {
-                        const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${filename}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `token ${githubConfig.token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                message: `kb: upload image json ${filename}`,
-                                content: contentEncoded
-                            })
-                        });
-
-                        if (res.ok) {
-                            insertAtCursor(document.getElementById('editContentInput'), `\n![图片](${filename})\n`);
-                            tipEl.textContent = 'Markdown 源码（独立 JSON 图片上传成功！）';
-                            showToast('图片上传成功并已插入', 'success');
-                        } else {
-                            showToast('图片上传 GitHub 失败。', 'error');
-                            tipEl.textContent = 'Markdown 源码（上传失败）';
-                        }
-                    } catch (err) {
-                        showToast('网络异常，图片上传失败', 'error');
-                        tipEl.textContent = 'Markdown 源码（上传异常）';
-                    }
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
         }
 
         async function deleteGithubImageJsonsInContent(content) {
             if (!githubConfig.token || !githubConfig.repo || !content) return;
-
-            const regex = /images\/img_\d+\.json/g;
+            const regex = /images\/img_\d+(?:_\d+)?\.json/g;
             const matches = content.match(regex);
             if (!matches) return;
-
             const uniquePaths = [...new Set(matches)];
-
             await Promise.allSettled(uniquePaths.map(async (jsonPath) => {
                 try {
-                    const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${jsonPath}`, {
+                    const apiPath = encodeRepoPath(jsonPath);
+                    const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                         headers: { 'Authorization': `token ${githubConfig.token}` }
                     });
                     if (getRes.ok) {
                         const fileData = await getRes.json();
-                        await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${jsonPath}`, {
+                        await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                             method: 'DELETE',
                             headers: {
                                 'Authorization': `token ${githubConfig.token}`,
@@ -1510,19 +1631,13 @@
         function setupEventListeners() {
             const searchInput = document.getElementById('searchInput');
             const clearSearchBtn = document.getElementById('clearSearchBtn');
-
             function handleSearchInput() {
                 const val = searchInput.value;
-                if (val.length > 0) {
-                    clearSearchBtn.classList.remove('hidden');
-                } else {
-                    clearSearchBtn.classList.add('hidden');
-                }
+                if (val.length > 0) clearSearchBtn.classList.remove('hidden');
+                else clearSearchBtn.classList.add('hidden');
                 renderDocList();
             }
-
             searchInput.oninput = handleSearchInput;
-
             clearSearchBtn.onclick = () => {
                 searchInput.value = '';
                 clearSearchBtn.classList.add('hidden');
@@ -1543,19 +1658,19 @@
                 previousDocId = currentDocId || null;
                 currentDocId = null;
                 isEditing = true;
+                editAttachments = [];
                 renderDocList();
-
                 const mainPanel = document.getElementById('mainPanel');
                 mainPanel.classList.remove('hidden');
                 document.getElementById('emptyState').classList.add('hidden');
                 document.getElementById('viewPanel').classList.add('hidden');
                 document.getElementById('editPanel').classList.remove('hidden');
-
                 document.getElementById('editorModeTitle').textContent = '新建知识条目';
                 document.getElementById('editTitleInput').value = '';
                 document.getElementById('editCategoryInput').value = activeCategory !== 'ALL' ? activeCategory : '通用';
                 document.getElementById('editTagsInput').value = '';
                 document.getElementById('editContentInput').value = '';
+                renderEditAttachments();
                 closeMobileSidebar();
                 checkBackToTopBtnVisibility();
             };
@@ -1564,29 +1679,28 @@
                 const doc = docs.find(d => d.id === currentDocId);
                 if (!doc) return;
                 isEditing = true;
+                editAttachments = (doc.attachments || []).map(a => ({...a}));
                 document.getElementById('viewPanel').classList.add('hidden');
                 document.getElementById('editPanel').classList.remove('hidden');
-
                 document.getElementById('editorModeTitle').textContent = '编辑文章';
                 document.getElementById('editTitleInput').value = doc.title || '';
                 document.getElementById('editCategoryInput').value = doc.category || '通用';
                 document.getElementById('editTagsInput').value = (doc.tags || []).join(' ');
                 document.getElementById('editContentInput').value = doc.content || '';
+                renderEditAttachments();
                 checkBackToTopBtnVisibility();
             };
 
             const handleCancelEdit = () => {
+                editAttachments = [];
                 if (previousDocId && docs.some(d => d.id === previousDocId)) {
                     openDocView(previousDocId);
                 } else {
                     currentDocId = null;
                     document.getElementById('editPanel').classList.add('hidden');
                     document.getElementById('viewPanel').classList.add('hidden');
-                    if (window.innerWidth < 768) {
-                        document.getElementById('mainPanel').classList.add('hidden');
-                    } else {
-                        document.getElementById('emptyState').classList.remove('hidden');
-                    }
+                    if (window.innerWidth < 768) document.getElementById('mainPanel').classList.add('hidden');
+                    else document.getElementById('emptyState').classList.remove('hidden');
                     renderDocList();
                 }
                 checkBackToTopBtnVisibility();
@@ -1609,7 +1723,6 @@
                 const tags = tagsStr ? tagsStr.split(/[,，\s]+/).filter(Boolean) : [];
                 const content = document.getElementById('editContentInput').value;
                 const now = new Date().toLocaleString();
-
                 showLoading('正在保存并同步...');
                 try {
                     if (currentDocId) {
@@ -1620,21 +1733,23 @@
                             doc.tags = tags;
                             doc.content = content;
                             doc.updatedAt = now;
+                            doc.attachments = editAttachments.slice();
                             if (!doc.code || !doc.code.startsWith('CM-')) doc.code = generateDocCode();
                         }
                     } else {
                         const newDoc = {
                             id: 'doc-' + Date.now(),
                             code: generateDocCode(),
-                            title, category, tags, content, updatedAt: now
+                            title, category, tags, content, updatedAt: now,
+                            attachments: editAttachments.slice()
                         };
                         docs.unshift(newDoc);
                         currentDocId = newDoc.id;
                         previousDocId = newDoc.id;
                     }
-
                     saveLocalDocs();
                     await syncToGithub();
+                    editAttachments = [];
                     await openDocView(currentDocId, { skipOverlay: true });
                     showToast('保存成功并已同步', 'success');
                 } catch (err) {
@@ -1647,29 +1762,28 @@
             document.getElementById('deleteDocBtn').onclick = async () => {
                 const ok = await showConfirm({
                     title: '删除知识条目',
-                    desc: '确定要删除这篇知识条目吗？关联的独立图片 JSON 会同步从 GitHub 中清理，此操作不可撤销。',
+                    desc: '确定要删除这篇知识条目吗？关联的独立图片 JSON 和附件会同步从 GitHub 中清理，此操作不可撤销。',
                     okText: '确定删除',
                     cancelText: '取消',
                     type: 'danger'
                 });
                 if (!ok) return;
-
                 const docToDelete = docs.find(d => d.id === currentDocId);
                 const docIdToDelete = currentDocId;
-
                 showLoading('正在删除并同步...');
                 try {
                     if (docToDelete && docToDelete.content) {
                         await deleteGithubImageJsonsInContent(docToDelete.content);
                     }
-
+                    if (docToDelete && docToDelete.attachments && docToDelete.attachments.length) {
+                        await deleteGithubAttachments(docToDelete.attachments);
+                    }
                     docs = docs.filter(d => d.id !== docIdToDelete);
                     currentDocId = null;
                     previousDocId = null;
+                    editAttachments = [];
                     saveLocalDocs();
-
                     await syncToGithub();
-
                     document.getElementById('viewPanel').classList.add('hidden');
                     document.getElementById('editPanel').classList.add('hidden');
                     if (window.innerWidth < 768) {
@@ -1688,18 +1802,15 @@
 
             const githubBtn = document.getElementById('githubConfigBtn');
             const githubDropdown = document.getElementById('githubDropdown');
-
             githubBtn.onclick = (e) => {
                 e.stopPropagation();
                 githubDropdown.classList.toggle('hidden');
             };
-
             document.addEventListener('click', (e) => {
                 if (!githubBtn.contains(e.target) && !githubDropdown.contains(e.target)) {
                     githubDropdown.classList.add('hidden');
                 }
             });
-
             document.getElementById('menuConfigBtn').onclick = () => {
                 githubDropdown.classList.add('hidden');
                 document.getElementById('ghTokenInput').value = githubConfig.token;
@@ -1707,15 +1818,10 @@
                 document.getElementById('ghPathInput').value = githubConfig.path || 'kb_docs.json';
                 document.getElementById('githubModal').classList.remove('hidden');
             };
-
-            document.getElementById('menuResetBtn').onclick = () => {
-                handleResetBinding();
-            };
-
+            document.getElementById('menuResetBtn').onclick = () => handleResetBinding();
             document.getElementById('closeModalBtn').onclick = () => {
                 document.getElementById('githubModal').classList.add('hidden');
             };
-
             document.getElementById('saveGithubConfigBtn').onclick = () => {
                 githubConfig.token = document.getElementById('ghTokenInput').value.trim();
                 githubConfig.repo = document.getElementById('ghRepoInput').value.trim() || 'XiandeShen/Xiande-kb';
@@ -1731,28 +1837,19 @@
             const sidebar = document.getElementById('sidebar');
             const sidebarScroll = document.getElementById('sidebarScrollContainer');
             const overlay = document.getElementById('sidebarOverlay');
-
             document.getElementById('mobileMenuBtn').onclick = () => {
                 sidebar.classList.remove('-translate-x-full');
                 overlay.classList.remove('hidden');
-                if (sidebarScroll) {
-                    sidebarScroll.scrollTop = 0;
-                }
+                if (sidebarScroll) sidebarScroll.scrollTop = 0;
             };
-
-            overlay.onclick = () => {
-                closeMobileSidebar();
-            };
+            overlay.onclick = () => closeMobileSidebar();
         }
 
         function loadGithubConfig() {
             const saved = localStorage.getItem('kb_gh_config');
             if (saved) {
-                try {
-                    githubConfig = JSON.parse(saved);
-                } catch (e) {
-                    githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
-                }
+                try { githubConfig = JSON.parse(saved); }
+                catch (e) { githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' }; }
                 if (!githubConfig.repo) githubConfig.repo = 'XiandeShen/Xiande-kb';
                 if (!githubConfig.path) githubConfig.path = 'kb_docs.json';
             }
@@ -1780,24 +1877,16 @@
 
         async function pullFromGithub() {
             if (!githubConfig.token || !githubConfig.repo) {
-                if (isLoggingIn) {
-                    isLoggingIn = false;
-                    setLoginButtonLoading(false);
-                } else {
-                    hideLoading();
-                    hideApp();
-                    fillAdvancedOptions();
-                    showAuth();
-                }
+                if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
+                else { hideLoading(); hideApp(); fillAdvancedOptions(); showAuth(); }
                 return;
             }
             updateSyncStatus('loading', '同步中');
-
             try {
-                const actualRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
+                const apiPath = encodeRepoPath(githubConfig.path);
+                const actualRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                     headers: { 'Authorization': `token ${githubConfig.token}` }
                 });
-
                 if (actualRes.ok) {
                     const data = await actualRes.json();
                     githubConfig.sha = data.sha;
@@ -1805,25 +1894,20 @@
                     docs = JSON.parse(content) || [];
                     docs.forEach(d => {
                         if (!d.code || !d.code.startsWith('CM-')) d.code = generateDocCode();
+                        if (!Array.isArray(d.attachments)) d.attachments = [];
                     });
                     saveLocalDocs();
                     updateSyncStatus('success', '已同步');
                     hideLoading();
                     hideAuth();
                     showApp();
-                    if (isLoggingIn) {
-                        isLoggingIn = false;
-                        setLoginButtonLoading(false);
-                    }
+                    if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
                 } else if (actualRes.status === 404) {
                     await syncToGithub();
                     hideLoading();
                     hideAuth();
                     showApp();
-                    if (isLoggingIn) {
-                        isLoggingIn = false;
-                        setLoginButtonLoading(false);
-                    }
+                    if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
                 } else {
                     docs = [];
                     localStorage.removeItem('kb_docs');
@@ -1833,37 +1917,25 @@
                     updateSyncStatus('error', 'Token 错误');
                     showToast('访问令牌认证失败，请重新输入', 'error');
                     hideLoading();
-                    if (isLoggingIn) {
-                        isLoggingIn = false;
-                        setLoginButtonLoading(false);
-                    } else {
-                        hideApp();
-                        fillAdvancedOptions();
-                        showAuth();
-                    }
+                    if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
+                    else { hideApp(); fillAdvancedOptions(); showAuth(); }
                 }
             } catch (e) {
                 updateSyncStatus('error', '网络异常');
                 hideLoading();
-                if (isLoggingIn) {
-                    isLoggingIn = false;
-                    setLoginButtonLoading(false);
-                } else {
-                    hideApp();
-                    fillAdvancedOptions();
-                    showAuth();
-                }
+                if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
+                else { hideApp(); fillAdvancedOptions(); showAuth(); }
             }
         }
 
         async function syncToGithub() {
             if (!githubConfig.token || !githubConfig.repo) return;
             updateSyncStatus('loading', '同步中');
-
             try {
                 if (!githubConfig.sha) {
                     try {
-                        const checkRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
+                        const apiPath = encodeRepoPath(githubConfig.path);
+                        const checkRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                             headers: { 'Authorization': `token ${githubConfig.token}` }
                         });
                         if (checkRes.ok) {
@@ -1872,17 +1944,15 @@
                         }
                     } catch (ex) {}
                 }
-
                 const jsonStr = JSON.stringify(docs, null, 2);
                 const contentEncoded = btoa(unescape(encodeURIComponent(jsonStr)));
-
                 const body = {
                     message: `kb: update docs ${new Date().toLocaleString()}`,
                     content: contentEncoded
                 };
                 if (githubConfig.sha) body.sha = githubConfig.sha;
-
-                const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
+                const apiPath = encodeRepoPath(githubConfig.path);
+                const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `token ${githubConfig.token}`,
@@ -1890,7 +1960,6 @@
                     },
                     body: JSON.stringify(body)
                 });
-
                 if (res.ok) {
                     const data = await res.json();
                     githubConfig.sha = data.content.sha;
