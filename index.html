@@ -7,7 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='g1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='100%' stop-color='%230072ff'/></linearGradient><linearGradient id='g2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%230052d4'/><stop offset='100%' stop-color='%234364f7'/></linearGradient><linearGradient id='g3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='50%' stop-color='%230072ff'/><stop offset='100%' stop-color='%230052d4'/></linearGradient></defs><g><path d='M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z' fill='url(%23g2)'/><path d='M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z' fill='url(%23g1)' opacity='0.9'/><path d='M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z' fill='url(%23g3)'/><path d='M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z' fill='%23ffffff'/></g></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { brand: { 50:'#eff6ff',100:'#dbeafe',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8' } } } } };
+        tailwind.config = { theme: { extend: { colors: { brand: { 50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a' } } } } };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -17,20 +17,65 @@
         button, a, input { -webkit-tap-highlight-color: transparent; }
         @media (hover: hover) { .no-sticky-hover:hover { background-color: rgb(30 41 59); } }
         .no-sticky-hover:active { background-color: rgb(30 41 59) !important; }
-        .markdown-body { word-break: break-word; overflow-wrap: break-word; }
+        .markdown-body { word-break: break-word; overflow-wrap: break-word; font-size: 15px; }
         .markdown-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); background: #f1f5f9; cursor: zoom-in; }
-        .markdown-body p { margin-bottom: 0.75rem; line-height: 1.625; color: inherit; }
+        .markdown-body p { margin-bottom: 0.8rem; line-height: 1.7; color: inherit; }
         .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 700; margin-top: 1.25rem; margin-bottom: 0.5rem; color: inherit; }
-        .markdown-body h1 { font-size: 1.5rem; }
-        .markdown-body h2 { font-size: 1.25rem; }
-        .markdown-body h3 { font-size: 1.1rem; }
+        .markdown-body h1 { font-size: 1.55rem; }
+        .markdown-body h2 { font-size: 1.3rem; }
+        .markdown-body h3 { font-size: 1.15rem; }
         .markdown-body code { background: rgba(110, 118, 129, 0.1); padding: 0.2em 0.4em; border-radius: 6px; font-size: 85%; word-break: break-all; }
         .markdown-body pre { background: #1e293b; color: #f8fafc; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
         .markdown-body pre code { background: transparent; padding: 0; color: inherit; }
-        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
-        .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.8rem; }
+        .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.8rem; }
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
-        #docList { -webkit-overflow-scrolling: touch; }
+
+        /* ===== 自定义滚动条：浅色区域（Firefox） ===== */
+        #docList, #viewScrollContainer, #editScrollContainer, #editContentInput {
+            scrollbar-width: thin;
+            scrollbar-color: #dbe2ea transparent;
+        }
+        /* ===== 自定义滚动条：深色侧边栏（Firefox） ===== */
+        #sidebarScrollContainer {
+            scrollbar-width: thin;
+            scrollbar-color: #334155 transparent;
+        }
+
+        /* ===== 列表滚动条 ===== */
+        #docList { -webkit-overflow-scrolling: touch; background: #f5f7fa; }
+        #docList::-webkit-scrollbar { width: 6px; height: 6px; }
+        #docList::-webkit-scrollbar-track { background: transparent; }
+        #docList::-webkit-scrollbar-thumb { background: #dbe2ea; border-radius: 999px; }
+        #docList::-webkit-scrollbar-thumb:hover { background: #c7d0da; }
+
+        /* ===== 深色侧边栏滚动条 ===== */
+        #sidebarScrollContainer::-webkit-scrollbar { width: 6px; height: 6px; }
+        #sidebarScrollContainer::-webkit-scrollbar-track { background: transparent; }
+        #sidebarScrollContainer::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+        #sidebarScrollContainer::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* ===== 右侧内容区 / 编辑器滚动条 ===== */
+        #viewScrollContainer::-webkit-scrollbar,
+        #editScrollContainer::-webkit-scrollbar,
+        #editContentInput::-webkit-scrollbar { width: 6px; height: 6px; }
+        #viewScrollContainer::-webkit-scrollbar-track,
+        #editScrollContainer::-webkit-scrollbar-track,
+        #editContentInput::-webkit-scrollbar-track { background: transparent; }
+        #viewScrollContainer::-webkit-scrollbar-thumb,
+        #editScrollContainer::-webkit-scrollbar-thumb,
+        #editContentInput::-webkit-scrollbar-thumb { background: #dbe2ea; border-radius: 999px; }
+        #viewScrollContainer::-webkit-scrollbar-thumb:hover,
+        #editScrollContainer::-webkit-scrollbar-thumb:hover,
+        #editContentInput::-webkit-scrollbar-thumb:hover { background: #c7d0da; }
+
+        /* ===== 登录页滚动条 ===== */
+        #authOverlay { scrollbar-width: thin; scrollbar-color: rgba(148,163,184,0.35) transparent; }
+        #authOverlay::-webkit-scrollbar { width: 6px; }
+        #authOverlay::-webkit-scrollbar-track { background: transparent; }
+        #authOverlay::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.35); border-radius: 999px; }
+        #authOverlay::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.55); }
+
         @media (max-width: 767px) {
             #docList { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); }
             #viewAttachments { padding-right: 4.5rem; }
@@ -50,11 +95,15 @@
         #syncRefreshBtn:active { transform: scale(0.9); }
         #confirmModal .confirm-card { animation: confirmPop 0.18s ease-out; }
         @keyframes confirmPop { 0% { opacity: 0; transform: scale(0.96) translateY(6px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+
+        /* ===== 列表卡片微阴影 ===== */
+        .doc-card { box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04); transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease; }
+        .doc-card:hover { box-shadow: 0 1px 3px rgba(16, 24, 40, 0.07); }
     </style>
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
 
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-medium z-[200] transition-all duration-300 transform translate-y-12 opacity-0 pointer-events-none flex items-center space-x-2">
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl text-[13px] font-medium z-[200] transition-all duration-300 transform translate-y-12 opacity-0 pointer-events-none flex items-center space-x-2">
         <i id="toastIcon" class="ri-checkbox-circle-line text-emerald-400 text-sm"></i>
         <span id="toastText">提示信息</span>
     </div>
@@ -67,7 +116,7 @@
         </div>
         <div class="relative bg-white px-6 py-4 rounded-2xl shadow-xl flex items-center space-x-3">
             <div class="w-6 h-6 border-[3px] border-brand-600 border-t-transparent rounded-full animate-spin"></div>
-            <span id="loadingText" class="text-xs font-medium text-slate-700">正在加载知识库...</span>
+            <span id="loadingText" class="text-[13px] font-medium text-slate-700">正在加载知识库...</span>
         </div>
     </div>
 
@@ -80,10 +129,10 @@
                 </div>
             </div>
             <h3 id="confirmTitle" class="text-base font-bold text-slate-900 text-center leading-snug">确认操作</h3>
-            <p id="confirmDesc" class="text-xs text-slate-500 leading-relaxed text-center mt-2 mb-6 px-1"></p>
+            <p id="confirmDesc" class="text-[13px] text-slate-500 leading-relaxed text-center mt-2 mb-6 px-1"></p>
             <div class="flex items-center gap-2.5">
-                <button id="confirmCancelBtn" type="button" class="flex-1 py-2.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 active:bg-slate-200 rounded-xl transition">取消</button>
-                <button id="confirmOkBtn" type="button" class="flex-1 py-2.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 active:bg-red-600 rounded-xl shadow-sm transition">确定</button>
+                <button id="confirmCancelBtn" type="button" class="flex-1 py-2.5 text-[13px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 active:bg-slate-200 rounded-xl transition">取消</button>
+                <button id="confirmOkBtn" type="button" class="flex-1 py-2.5 text-[13px] font-medium text-white bg-red-500 hover:bg-red-600 active:bg-red-600 rounded-xl shadow-sm transition">确定</button>
             </div>
         </div>
     </div>
@@ -141,7 +190,7 @@
                             <label for="authTokInput" class="block text-[11px] font-medium text-slate-400 mb-2.5 tracking-widest uppercase">访问令牌</label>
                             <div class="relative">
                                 <input type="password" id="authTokInput" placeholder="请输入访问令牌" spellcheck="false"
-                                    class="w-full bg-transparent border-0 border-b border-white/15 px-0 py-3 pr-9 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/60 transition-colors duration-200">
+                                    class="w-full bg-transparent border-0 border-b border-white/15 px-0 py-3 pr-9 text-[15px] text-white placeholder-slate-600 focus:outline-none focus:border-white/60 transition-colors duration-200">
                                 <button type="button" id="toggleTokenVisibility" title="显示/隐藏令牌"
                                     class="absolute right-0 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-300 transition">
                                     <i id="toggleTokenIcon" class="ri-eye-line text-base"></i>
@@ -149,7 +198,7 @@
                             </div>
                         </div>
                         <button type="submit" id="authSubmitBtn"
-                            class="relative overflow-hidden w-full py-3.5 bg-white text-slate-900 font-medium text-sm rounded-full hover:bg-slate-100 active:bg-slate-200 active:scale-[0.99] transition-all duration-200 disabled:opacity-80 disabled:cursor-not-allowed disabled:hover:bg-white disabled:active:scale-100">
+                            class="relative overflow-hidden w-full py-3.5 bg-white text-slate-900 font-medium text-[15px] rounded-full hover:bg-slate-100 active:bg-slate-200 active:scale-[0.99] transition-all duration-200 disabled:opacity-80 disabled:cursor-not-allowed disabled:hover:bg-white disabled:active:scale-100">
                             <span class="relative z-10 flex items-center justify-center space-x-2">
                                 <i id="loginSpinner" class="hidden ri-loader-4-line animate-spin text-base"></i>
                                 <span id="loginBtnText">登录</span>
@@ -159,7 +208,7 @@
                             </div>
                         </button>
                         <div>
-                            <button type="button" id="toggleAdvancedBtn" class="group flex items-center space-x-1.5 text-[11px] text-slate-500 hover:text-slate-300 transition-colors">
+                            <button type="button" id="toggleAdvancedBtn" class="group flex items-center space-x-1.5 text-[12px] text-slate-500 hover:text-slate-300 transition-colors">
                                 <i id="advancedChevron" class="ri-arrow-down-s-line text-sm"></i>
                                 <span class="tracking-widest uppercase">高级选项</span>
                             </button>
@@ -168,12 +217,12 @@
                                     <div>
                                         <label for="authRepoInput" class="block text-[11px] font-medium text-slate-400 mb-2 tracking-widest uppercase">仓库地址</label>
                                         <input type="text" id="authRepoInput" placeholder="Owner/Repo" spellcheck="false"
-                                            class="w-full bg-transparent border-0 border-b border-white/10 px-0 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/50 transition-colors duration-200">
+                                            class="w-full bg-transparent border-0 border-b border-white/10 px-0 py-2.5 text-[15px] text-white placeholder-slate-600 focus:outline-none focus:border-white/50 transition-colors duration-200">
                                     </div>
                                     <div>
                                         <label for="authPathInput" class="block text-[11px] font-medium text-slate-400 mb-2 tracking-widest uppercase">JSON 文件名</label>
                                         <input type="text" id="authPathInput" placeholder="kb_docs.json" spellcheck="false"
-                                            class="w-full bg-transparent border-0 border-b border-white/10 px-0 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-white/50 transition-colors duration-200">
+                                            class="w-full bg-transparent border-0 border-b border-white/10 px-0 py-2.5 text-[15px] text-white placeholder-slate-600 focus:outline-none focus:border-white/50 transition-colors duration-200">
                                     </div>
                                 </div>
                             </div>
@@ -186,7 +235,7 @@
 
     <!-- 主应用 -->
     <div id="appShell" class="hidden flex flex-col flex-1 min-h-0 w-full">
-        <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/40 backdrop-blur-sm z-[100] hidden lg:hidden transition-opacity"></div>
+        <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/50 backdrop-blur-md z-[100] hidden lg:hidden transition-opacity"></div>
 
         <header class="h-14 w-full bg-slate-900 border-b border-slate-800 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 z-50 shadow-md relative">
             <div class="flex items-center space-x-2 flex-shrink-0">
@@ -211,16 +260,16 @@
                 </div>
             </div>
             <div class="flex-1 min-w-0 max-w-lg mx-2 sm:mx-5">
-                <div class="flex items-center w-full h-9 rounded-full bg-slate-800/60 border border-slate-700/50 focus-within:ring-1 focus-within:ring-brand-500/60 focus-within:border-brand-500/40 focus-within:bg-slate-800/90 transition-all duration-200 pl-3 sm:pl-3.5 pr-1">
-                    <i class="ri-search-line text-slate-500 text-[13px] flex-shrink-0"></i>
+                <div class="flex items-center w-full h-10 rounded-full bg-slate-800/60 border border-slate-700/50 focus-within:ring-1 focus-within:ring-brand-500/60 focus-within:border-brand-500/40 focus-within:bg-slate-800/90 transition-all duration-200 pl-3 sm:pl-4 pr-1">
+                    <i class="ri-search-line text-slate-500 text-[14px] flex-shrink-0"></i>
                     <input type="text" id="searchInput" placeholder="搜索标题、摘要、编码或标签..."
-                        class="flex-1 min-w-0 bg-transparent border-0 outline-none px-2 sm:px-2.5 py-0 text-[13px] text-white placeholder-slate-500 leading-none">
+                        class="flex-1 min-w-0 bg-transparent border-0 outline-none px-2 sm:px-2.5 py-0 text-[14px] text-white placeholder-slate-500 leading-none">
                     <button id="clearSearchBtn" title="清空搜索" class="hidden w-5 h-5 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-slate-700/60 transition text-[11px] flex-shrink-0 mr-0.5">
                         <i class="ri-close-line"></i>
                     </button>
                     <button id="searchSubmitBtn" type="button" title="搜索"
-                        class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white transition shadow-sm">
-                        <i class="ri-arrow-right-line text-[13px]"></i>
+                        class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white transition shadow-sm">
+                        <i class="ri-arrow-right-line text-[14px]"></i>
                     </button>
                 </div>
             </div>
@@ -241,7 +290,7 @@
                     <button id="githubConfigBtn" title="GitHub 设置" class="w-9 h-9 no-sticky-hover flex items-center justify-center rounded-xl text-slate-300 transition-colors">
                         <i class="ri-github-fill text-lg pointer-events-none"></i>
                     </button>
-                    <div id="githubDropdown" class="hidden absolute right-0 mt-2 w-36 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl py-1 z-[110] text-xs">
+                    <div id="githubDropdown" class="hidden absolute right-0 mt-2 w-36 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl py-1 z-[110] text-[13px]">
                         <button id="menuConfigBtn" class="w-full text-left px-3.5 py-2 text-slate-200 hover:bg-slate-700 hover:text-white flex items-center space-x-2">
                             <i class="ri-settings-3-line"></i><span>仓库配置</span>
                         </button>
@@ -254,8 +303,10 @@
         </header>
 
         <div class="flex-1 flex overflow-hidden relative w-full min-h-0">
-            <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
-                <div class="lg:hidden flex items-center space-x-2.5 px-4 h-14 border-b border-slate-100 flex-shrink-0">
+            <!-- 侧边栏：PC 实色深底 / 移动端半透明毛玻璃 -->
+            <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-slate-900/80 backdrop-blur-2xl lg:bg-slate-900 lg:backdrop-blur-none border-r border-slate-800 z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
+                <!-- 移动端 logo 区：透明，继承毛玻璃背景 -->
+                <div class="lg:hidden flex items-center space-x-2.5 px-4 h-14 border-b border-slate-800/80 bg-transparent flex-shrink-0">
                     <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="sidebar-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
@@ -269,62 +320,63 @@
                             <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
                         </g>
                     </svg>
-                    <span class="font-extrabold text-base tracking-tight text-slate-900 whitespace-nowrap">椿沐智库</span>
+                    <span class="font-extrabold text-base tracking-tight text-white whitespace-nowrap">椿沐智库</span>
                 </div>
-                <div id="sidebarScrollContainer" class="p-4 space-y-6 overflow-y-auto flex-1">
+                <div id="sidebarScrollContainer" class="p-3.5 space-y-6 overflow-y-auto flex-1">
                     <div class="space-y-1">
-                        <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">视图</div>
-                        <button id="allDocsNavBtn" class="nav-filter-btn active w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium bg-brand-50 text-brand-600" data-category="ALL">
-                            <span class="flex items-center space-x-2"><i class="ri-stack-line"></i><span>全部条目</span></span>
-                            <span id="allCount" class="text-[11px] bg-brand-100 px-2 py-0.5 rounded-full">0</span>
+                        <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.12em] mb-1.5">视图</div>
+                        <button id="allDocsNavBtn" class="nav-filter-btn active w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[14px] font-medium bg-brand-500/20 text-brand-200 ring-1 ring-inset ring-brand-500/30 transition" data-category="ALL">
+                            <span class="flex items-center gap-2"><i class="ri-stack-line text-[15px]"></i><span>全部条目</span></span>
+                            <span id="allCount" class="text-[11px] font-semibold bg-brand-500 text-white px-1.5 py-0.5 rounded-md tabular-nums">0</span>
                         </button>
                     </div>
                     <div class="space-y-1">
-                        <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">分类</div>
-                        <div id="categoryList" class="space-y-1"></div>
+                        <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.12em] mb-1.5">分类</div>
+                        <div id="categoryList" class="space-y-0.5"></div>
                     </div>
                     <div class="space-y-1">
-                        <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">热门标签</div>
+                        <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.12em] mb-1.5">热门标签</div>
                         <div id="tagList" class="flex flex-wrap gap-1.5 px-1"></div>
                     </div>
                 </div>
             </aside>
 
-            <div id="listPanel" class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full relative">
-                <div class="h-12 px-4 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500 flex-shrink-0 bg-slate-50/50">
-                    <span id="listTitle" class="font-bold text-slate-700 truncate max-w-[200px]">所有条目</span>
-                    <span id="docCountText" class="text-slate-400 flex-shrink-0">0 个文档</span>
+            <!-- 列表面板：浅灰底 + 白卡片（中间层） -->
+            <div id="listPanel" class="w-full md:w-80 lg:w-96 bg-[#f5f7fa] border-r border-slate-200/80 flex flex-col flex-shrink-0 h-full relative">
+                <div class="h-12 px-4 border-b border-slate-200/70 flex items-center justify-between gap-2 flex-shrink-0 bg-[#f5f7fa]">
+                    <span id="listTitle" class="font-semibold text-[14px] text-slate-800 truncate min-w-0">所有条目</span>
+                    <span id="docCountText" class="text-[12px] text-slate-400 flex-shrink-0 tabular-nums">0 个文档</span>
                 </div>
                 <div id="docList" class="flex-1 overflow-y-auto relative"></div>
             </div>
 
-            <main id="mainPanel" class="hidden md:flex flex-1 bg-slate-50 flex-col overflow-hidden absolute md:relative inset-0 z-30 md:z-auto h-full w-full">
+            <main id="mainPanel" class="hidden md:flex flex-1 bg-[#f7f8fa] flex-col overflow-hidden absolute md:relative inset-0 z-30 md:z-auto h-full w-full">
                 <div id="emptyState" class="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center overflow-y-auto">
                     <i class="ri-draft-line text-6xl mb-4 opacity-40"></i>
-                    <p class="text-sm font-medium">选择左侧列表中的文章查看，或新建知识条目</p>
+                    <p class="text-[15px] font-medium">选择左侧列表中的文章查看，或新建知识条目</p>
                 </div>
 
-                <div id="viewPanel" class="hidden flex-1 flex flex-col overflow-hidden bg-white md:bg-transparent h-full relative">
+                <div id="viewPanel" class="hidden flex-1 flex flex-col overflow-hidden bg-white h-full relative">
                     <div class="h-12 px-4 md:px-6 border-b border-slate-200 bg-white flex items-center justify-between flex-shrink-0 gap-2 z-10">
                         <div class="flex items-center space-x-2 min-w-0 flex-1">
-                            <button id="backToListBtn" class="md:hidden p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg flex items-center space-x-1 text-xs font-medium flex-shrink-0">
+                            <button id="backToListBtn" class="md:hidden p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg flex items-center space-x-1 text-[13px] font-medium flex-shrink-0">
                                 <i class="ri-arrow-left-line text-base"></i><span>返回</span>
                             </button>
-                            <span id="viewCategoryBadge" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-600 truncate max-w-[140px] sm:max-w-xs flex-shrink-0">通用</span>
+                            <span id="viewCategoryBadge" class="px-2.5 py-1 rounded-full text-[13px] font-medium bg-brand-50 text-brand-600 truncate max-w-[140px] sm:max-w-xs flex-shrink-0">通用</span>
                         </div>
                         <div class="flex items-center space-x-2 flex-shrink-0">
-                            <button id="editDocBtn" class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl flex items-center space-x-1 transition">
+                            <button id="editDocBtn" class="px-3 py-2 text-[13px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl flex items-center space-x-1 transition">
                                 <i class="ri-edit-line"></i><span>编辑</span>
                             </button>
-                            <button id="deleteDocBtn" class="px-3 py-1.5 text-xs font-medium bg-red-50 hover:bg-red-100 text-red-600 rounded-xl flex items-center space-x-1 transition">
+                            <button id="deleteDocBtn" class="px-3 py-2 text-[13px] font-medium bg-red-50 hover:bg-red-100 text-red-600 rounded-xl flex items-center space-x-1 transition">
                                 <i class="ri-delete-bin-line"></i><span>删除</span>
                             </button>
                         </div>
                     </div>
                     <div id="viewScrollContainer" class="flex-1 overflow-y-auto p-4 md:p-10 w-full relative">
                         <div class="max-w-4xl mx-auto w-full pb-12">
-                            <h1 id="viewTitle" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3"></h1>
-                            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 mb-6 pb-4 border-b border-slate-200">
+                            <h1 id="viewTitle" class="text-2xl sm:text-[2rem] font-extrabold text-slate-900 mb-3 leading-tight"></h1>
+                            <div class="flex flex-wrap items-center gap-3 text-[13px] text-slate-400 mb-6 pb-4 border-b border-slate-200">
                                 <span id="viewDate"><i class="ri-time-line mr-1"></i>--</span>
                                 <span id="viewCodeBtn" title="点击复制知识编码" class="cursor-pointer hover:text-brand-600 active:text-brand-700 transition flex items-center space-x-1 select-none outline-none focus:outline-none focus:ring-0">
                                     <i class="ri-barcode-line mr-0.5"></i>
@@ -333,7 +385,7 @@
                                 </span>
                                 <div id="viewTags" class="flex flex-wrap gap-1"></div>
                             </div>
-                            <div id="viewContent" class="markdown-body text-slate-700"></div>
+                            <div id="viewContent" class="markdown-body text-slate-700 text-[15px]"></div>
                             <div id="viewAttachments"></div>
                         </div>
                     </div>
@@ -342,14 +394,14 @@
                 <div id="editPanel" class="hidden flex-1 flex flex-col bg-white overflow-hidden h-full">
                     <div class="h-12 px-4 md:px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50 flex-shrink-0">
                         <div class="flex items-center space-x-2">
-                            <button id="cancelEditBtn" class="md:hidden p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg flex items-center space-x-1 text-xs font-medium">
+                            <button id="cancelEditBtn" class="md:hidden p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg flex items-center space-x-1 text-[13px] font-medium">
                                 <i class="ri-arrow-left-line text-base"></i><span>返回</span>
                             </button>
-                            <span id="editorModeTitle" class="font-bold text-xs text-slate-700">编辑文章</span>
+                            <span id="editorModeTitle" class="font-bold text-[13px] text-slate-700">编辑文章</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button id="desktopCancelEditBtn" class="hidden md:inline-block px-3 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded-xl transition">取消</button>
-                            <button id="saveDocBtn" class="px-4 py-1.5 text-xs font-medium bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm transition flex items-center space-x-1">
+                            <button id="desktopCancelEditBtn" class="hidden md:inline-block px-3 py-1.5 text-[13px] text-slate-600 hover:bg-slate-200 rounded-xl transition">取消</button>
+                            <button id="saveDocBtn" class="px-4 py-2 text-[13px] font-medium bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm transition flex items-center space-x-1">
                                 <i class="ri-save-line"></i><span>保存</span>
                             </button>
                         </div>
@@ -358,22 +410,22 @@
                         <div class="max-w-5xl mx-auto w-full space-y-4 pb-12">
                             <div>
                                 <input type="text" id="editTitleInput" placeholder="输入文章标题..."
-                                    class="w-full text-xl font-bold bg-transparent border-b border-slate-200 pb-2 focus:outline-none focus:border-brand-500 text-slate-900 placeholder-slate-400">
+                                    class="w-full text-2xl font-bold bg-transparent border-b border-slate-200 pb-2 focus:outline-none focus:border-brand-500 text-slate-900 placeholder-slate-400">
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-500 mb-1">分类</label>
+                                    <label class="block text-[13px] font-medium text-slate-500 mb-1">分类</label>
                                     <input type="text" id="editCategoryInput" placeholder="例如：产品知识、FAQ..."
-                                        class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800">
+                                        class="w-full px-3.5 py-2.5 text-[14px] rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-500 mb-1">标签（用逗号或空格隔开）</label>
+                                    <label class="block text-[13px] font-medium text-slate-500 mb-1">标签（用逗号或空格隔开）</label>
                                     <input type="text" id="editTagsInput" placeholder="例如：甜虾 售后 质量说明"
-                                        class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800">
+                                        class="w-full px-3.5 py-2.5 text-[14px] rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800">
                                 </div>
                             </div>
                             <div class="flex flex-col h-[400px] md:h-[500px] border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
-                                <div class="bg-slate-100 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500 flex-shrink-0">
+                                <div class="bg-slate-100 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between text-[13px] text-slate-500 flex-shrink-0">
                                     <span class="font-medium truncate mr-2" id="uploadStatusTip">Markdown 源码（支持粘贴截图）</span>
                                     <label class="cursor-pointer text-brand-600 hover:underline flex items-center space-x-1 flex-shrink-0">
                                         <i class="ri-attachment-2"></i><span>上传附件</span>
@@ -382,10 +434,10 @@
                                     </label>
                                 </div>
                                 <textarea id="editContentInput" placeholder="使用 Markdown 语法编写内容..."
-                                    class="flex-1 w-full p-4 bg-transparent font-mono text-sm resize-none focus:outline-none text-slate-800 placeholder-slate-400"></textarea>
+                                    class="flex-1 w-full p-4 bg-transparent font-mono text-[14px] leading-relaxed resize-none focus:outline-none text-slate-800 placeholder-slate-400"></textarea>
                             </div>
                             <div class="pt-2">
-                                <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">附件</div>
+                                <div class="text-[12px] font-semibold text-slate-400 uppercase tracking-wider mb-2">附件</div>
                                 <div id="editAttachmentsList" class="space-y-2"></div>
                             </div>
                         </div>
@@ -424,23 +476,23 @@
                     <i class="ri-close-line text-xl"></i>
                 </button>
             </div>
-            <p class="text-xs text-slate-500 leading-relaxed">修改你的 GitHub 访问凭证与存储路径。</p>
+            <p class="text-[13px] text-slate-500 leading-relaxed">修改你的 GitHub 访问凭证与存储路径。</p>
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Personal Access Token (PAT)</label>
-                    <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxx" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-[13px] font-medium text-slate-600 mb-1">Personal Access Token (PAT)</label>
+                    <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxx" class="w-full px-3.5 py-2.5 text-[14px] rounded-xl border border-slate-200 bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-brand-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">仓库路径 (Owner/Repo)</label>
-                    <input type="text" id="ghRepoInput" value="XiandeShen/Xiande-kb" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-[13px] font-medium text-slate-600 mb-1">仓库路径 (Owner/Repo)</label>
+                    <input type="text" id="ghRepoInput" value="XiandeShen/Xiande-kb" class="w-full px-3.5 py-2.5 text-[14px] rounded-xl border border-slate-200 bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-brand-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">JSON 数据文件名</label>
-                    <input type="text" id="ghPathInput" value="kb_docs.json" class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-[13px] font-medium text-slate-600 mb-1">JSON 数据文件名</label>
+                    <input type="text" id="ghPathInput" value="kb_docs.json" class="w-full px-3.5 py-2.5 text-[14px] rounded-xl border border-slate-200 bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-brand-500">
                 </div>
             </div>
             <div class="flex items-center justify-end space-x-2 pt-2">
-                <button id="saveGithubConfigBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-medium text-sm rounded-xl transition">保存配置并同步</button>
+                <button id="saveGithubConfigBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-medium text-[14px] rounded-xl transition">保存配置并同步</button>
             </div>
         </div>
     </div>
@@ -465,6 +517,23 @@
         const DOWNLOAD_REVOKE_DELAY = 60000;
         const DOCS_FOLDER = 'docs';
         const ATTACHMENT_FOLDERS = { table: '表格', word: 'Word', ppt: 'PPT', pdf: 'PDF', archive: '压缩包', other: '其他' };
+
+        /* ==================== 列表分类小标签（统一浅灰） ==================== */
+        function getCategoryChipClass() {
+            return 'bg-slate-100 text-slate-600 ring-slate-200/70';
+        }
+        function escapeHtml(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        /* ==================== 搜索框 placeholder 自适应 ==================== */
+        function updateSearchPlaceholder() {
+            const input = document.getElementById('searchInput');
+            if (!input) return;
+            input.placeholder = window.innerWidth < 640 ? '搜索…' : '搜索标题、摘要、编码或标签...';
+        }
 
         /* ==================== IndexedDB ==================== */
         const IDB_NAME = 'chunmu_kb';
@@ -525,7 +594,7 @@
         }
 
         /* ==================== 虚拟列表 ==================== */
-        const virtualList = { container: null, spacer: null, items: [], itemHeight: 96, buffer: 8, rafPending: false };
+        const virtualList = { container: null, spacer: null, items: [], itemHeight: 122, buffer: 8, rafPending: false };
 
         function initVirtualList() {
             const container = document.getElementById('docList');
@@ -534,6 +603,7 @@
             container.style.position = 'relative';
             container.style.overflowY = 'auto';
             container.style.overflowX = 'hidden';
+            container.style.background = '#f5f7fa';
             const spacer = document.createElement('div');
             spacer.style.position = 'relative';
             spacer.style.width = '100%';
@@ -553,30 +623,41 @@
         }
 
         function createDocListItem(d) {
-            const item = document.createElement('div');
+            const wrapper = document.createElement('div');
             const isSelected = currentDocId === d.id;
-            item.className = `relative px-4 py-3 cursor-pointer hover:bg-slate-100 transition border-b border-slate-100 ${isSelected ? 'bg-brand-50/70' : ''}`;
-            item.style.boxSizing = 'border-box';
-            item.style.overflow = 'hidden';
-            item.style.height = virtualList.itemHeight + 'px';
-            let html = '';
-            if (isSelected) html += `<div class="absolute left-0 inset-y-0 w-1 bg-brand-600 rounded-r"></div>`;
+            wrapper.style.cssText = `position:absolute; left:0; right:0; height:${virtualList.itemHeight}px; padding:6px 10px; box-sizing:border-box;`;
+
+            const catName = d.category || '通用';
+            const catChip = getCategoryChipClass();
             const attCount = (d.attachments || []).length;
-            html += `
-                <h4 class="font-bold text-xs text-slate-800 truncate pr-16 leading-tight">${d.title || '无标题'}</h4>
-                <p class="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-snug">${(d.summary || '').replace(/[#*`!]/g, '')}</p>
-                <div class="flex items-center justify-between text-[10px] text-slate-400 mt-1.5">
-                    <span class="px-1.5 py-0.5 rounded bg-slate-100 truncate max-w-[110px]">${d.category || '通用'}</span>
-                    <div class="flex items-center space-x-1.5">
-                        ${attCount > 0 ? `<span class="text-slate-400"><i class="ri-attachment-2 mr-0.5"></i>${attCount}</span>` : ''}
-                        <span class="font-mono text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded font-semibold">${d.code || ''}</span>
-                        <span>${d.updatedAt ? d.updatedAt.split(' ')[0] : ''}</span>
+            const dateStr = d.updatedAt ? String(d.updatedAt).split(' ')[0] : '';
+
+            const summaryText = escapeHtml((d.summary || '').replace(/[#*`!]/g, '').trim());
+            const summaryHtml = summaryText || '<span class="text-slate-300">暂无摘要</span>';
+
+            const cardClass = isSelected
+                ? 'doc-card bg-brand-50/90 border-brand-200'
+                : 'doc-card bg-white border-slate-200/80 hover:border-slate-300 hover:bg-[#fbfcfe] active:bg-slate-50';
+
+            wrapper.innerHTML = `
+                <div class="relative h-full rounded-xl border ${cardClass} cursor-pointer overflow-hidden">
+                    ${isSelected ? '<span class="absolute left-0 top-3 bottom-3 w-[3px] rounded-full bg-brand-500"></span>' : ''}
+                    <div class="h-full flex flex-col justify-center pl-4 pr-3.5">
+                        <div class="flex items-center justify-between gap-2">
+                            <h4 class="flex-1 min-w-0 text-[15px] font-semibold leading-snug truncate ${isSelected ? 'text-brand-700' : 'text-slate-900'}">${escapeHtml(d.title || '无标题')}</h4>
+                            <span class="flex-shrink-0 text-[11px] text-slate-400 tabular-nums">${dateStr}</span>
+                        </div>
+                        <p class="mt-1 text-[13px] leading-[19px] text-slate-500 line-clamp-2 h-[38px] overflow-hidden">${summaryHtml}</p>
+                        <div class="mt-1.5 h-[18px] flex items-center gap-2 overflow-hidden">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium leading-none ring-1 ring-inset max-w-[120px] truncate ${catChip}">${escapeHtml(catName)}</span>
+                            ${d.code ? `<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[11px] font-mono leading-none tracking-tight">${escapeHtml(d.code)}</span>` : ''}
+                            ${attCount > 0 ? `<span class="inline-flex items-center gap-0.5 text-[11px] text-slate-400 leading-none"><i class="ri-attachment-2 text-[12px]"></i>${attCount}</span>` : ''}
+                        </div>
                     </div>
                 </div>
             `;
-            item.innerHTML = html;
-            item.onclick = () => openDocView(d.id);
-            return item;
+            wrapper.onclick = () => openDocView(d.id);
+            return wrapper;
         }
 
         function renderVirtualItems() {
@@ -587,8 +668,8 @@
             if (items.length === 0) {
                 spacer.innerHTML = '';
                 const empty = document.createElement('div');
-                empty.className = 'p-8 text-center text-xs text-slate-400';
-                empty.textContent = searchQuery ? '没有匹配的条目' : '暂无条目';
+                empty.className = 'flex flex-col items-center justify-center py-20 px-6 text-center';
+                empty.innerHTML = `<i class="ri-inbox-line text-3xl text-slate-300 mb-2.5"></i><p class="text-[13px] text-slate-400">${searchQuery ? '没有匹配的条目' : '暂无条目'}</p>`;
                 spacer.appendChild(empty);
                 return;
             }
@@ -601,10 +682,7 @@
             for (let i = startIndex; i < endIndex; i++) {
                 const d = items[i];
                 const el = createDocListItem(d);
-                el.style.position = 'absolute';
                 el.style.top = (i * itemHeight) + 'px';
-                el.style.left = '0';
-                el.style.right = '0';
                 fragment.appendChild(el);
             }
             spacer.appendChild(fragment);
@@ -957,11 +1035,11 @@
                 if (type === 'danger') {
                     iconWrap.className = 'w-14 h-14 rounded-full bg-red-50 flex items-center justify-center';
                     icon.className = 'ri-delete-bin-line text-2xl text-red-500';
-                    okBtn.className = 'flex-1 py-2.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 active:bg-red-600 rounded-xl shadow-sm transition';
+                    okBtn.className = 'flex-1 py-2.5 text-[13px] font-medium text-white bg-red-500 hover:bg-red-600 active:bg-red-600 rounded-xl shadow-sm transition';
                 } else {
                     iconWrap.className = 'w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center';
                     icon.className = 'ri-error-warning-line text-2xl text-amber-500';
-                    okBtn.className = 'flex-1 py-2.5 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-700 rounded-xl shadow-sm transition';
+                    okBtn.className = 'flex-1 py-2.5 text-[13px] font-medium text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-700 rounded-xl shadow-sm transition';
                 }
                 modal.classList.remove('hidden');
                 setTimeout(() => { try { okBtn.focus(); } catch (e) {} }, 0);
@@ -1052,7 +1130,6 @@
         }
         function hideAuth() { document.getElementById('authOverlay').classList.add('hidden'); }
 
-        /* showApp：显示应用后补一次按钮状态检查 */
         function showApp() {
             document.getElementById('appShell').classList.remove('hidden');
             requestAnimationFrame(() => {
@@ -1123,7 +1200,7 @@
 
         function generateDocCode() { return 'CM-' + Math.floor(1000 + Math.random() * 9000); }
 
-        /* ==================== 渲染 ==================== */
+        /* ==================== 渲染（深色侧边栏，选中项浅蓝白文字） ==================== */
         function renderCategoryList() {
             const categories = {};
             docs.forEach(d => {
@@ -1131,12 +1208,19 @@
                 categories[cat] = (categories[cat] || 0) + 1;
             });
             document.getElementById('allCount').textContent = docs.length;
+
             const allNavBtn = document.getElementById('allDocsNavBtn');
-            if (activeCategory === 'ALL' && !activeTag) {
-                allNavBtn.className = 'nav-filter-btn active w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium bg-brand-50 text-brand-600';
+            const allCountEl = document.getElementById('allCount');
+            const isAllActive = (activeCategory === 'ALL' && !activeTag);
+
+            if (isAllActive) {
+                allNavBtn.className = 'nav-filter-btn active w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[14px] font-medium bg-brand-500/20 text-brand-200 ring-1 ring-inset ring-brand-500/30 transition';
+                if (allCountEl) allCountEl.className = 'text-[11px] font-semibold px-1.5 py-0.5 rounded-md tabular-nums bg-brand-500 text-white';
             } else {
-                allNavBtn.className = 'nav-filter-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition';
+                allNavBtn.className = 'nav-filter-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[14px] font-medium text-slate-300 hover:bg-white/[0.06] hover:text-white transition';
+                if (allCountEl) allCountEl.className = 'text-[11px] font-semibold px-1.5 py-0.5 rounded-md tabular-nums bg-slate-700/70 text-slate-300';
             }
+
             const catListEl = document.getElementById('categoryList');
             catListEl.innerHTML = '';
             allNavBtn.onclick = () => {
@@ -1148,11 +1232,21 @@
                 if (sidebarScroll) sidebarScroll.scrollTop = 0;
                 closeMobileSidebar();
             };
+
             Object.entries(categories).forEach(([cat, count]) => {
                 const btn = document.createElement('button');
                 const isSelected = (activeCategory === cat && !activeTag);
-                btn.className = `w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition ${isSelected ? 'bg-brand-50 text-brand-600' : 'text-slate-600 hover:bg-slate-100'}`;
-                btn.innerHTML = `<span class="truncate">${cat}</span><span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-100">${count}</span>`;
+                btn.className = `w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-[14px] font-medium transition ${
+                    isSelected
+                        ? 'bg-brand-500/20 text-brand-200 ring-1 ring-inset ring-brand-500/30'
+                        : 'text-slate-300 hover:bg-white/[0.06] hover:text-white'
+                }`;
+                btn.innerHTML = `
+                    <span class="truncate min-w-0">${escapeHtml(cat)}</span>
+                    <span class="flex-shrink-0 text-[11px] font-semibold px-1.5 py-0.5 rounded-md tabular-nums ${
+                        isSelected ? 'bg-brand-500 text-white' : 'bg-slate-700/70 text-slate-300'
+                    }">${count}</span>
+                `;
                 btn.onclick = () => {
                     activeCategory = cat; activeTag = null;
                     if (window.innerWidth < 768) { currentDocId = null; document.getElementById('mainPanel').classList.add('hidden'); }
@@ -1174,7 +1268,11 @@
             tags.forEach(t => {
                 const badge = document.createElement('span');
                 const isSelected = (activeTag === t);
-                badge.className = `px-2.5 py-1 text-xs rounded-lg cursor-pointer transition ${isSelected ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`;
+                badge.className = `inline-flex items-center px-2.5 py-1 text-[12px] font-medium rounded-md cursor-pointer transition ${
+                    isSelected
+                        ? 'bg-brand-500 text-white shadow-sm'
+                        : 'bg-slate-800 text-slate-300 ring-1 ring-inset ring-slate-700 hover:bg-slate-700 hover:text-white'
+                }`;
                 badge.textContent = `# ${t}`;
                 badge.onclick = () => {
                     activeTag = activeTag === t ? null : t;
@@ -1190,7 +1288,6 @@
             });
         }
 
-        /* renderDocList 末尾强制同步按钮状态 */
         function renderDocList() {
             const query = (searchQuery || '').toLowerCase();
             const filtered = docs.filter(d => {
@@ -1239,7 +1336,7 @@
             const container = document.getElementById('editAttachmentsList');
             if (!container) return;
             if (!editAttachments.length) {
-                container.innerHTML = '<div class="text-[11px] text-slate-400 py-1 px-1">暂无附件，可点击上方“上传附件”添加</div>';
+                container.innerHTML = '<div class="text-[12px] text-slate-400 py-1 px-1">暂无附件，可点击上方“上传附件”添加</div>';
                 return;
             }
             container.innerHTML = editAttachments.map((att, i) => `
@@ -1249,8 +1346,8 @@
                             <i class="${getAttachIcon(att.type)} text-base"></i>
                         </div>
                         <div class="min-w-0 flex-1">
-                            <div class="text-xs font-medium text-slate-700 truncate" title="${att.name}">${att.name}</div>
-                            <div class="text-[10px] text-slate-400">${formatSize(att.size)}</div>
+                            <div class="text-[13px] font-medium text-slate-700 truncate" title="${att.name}">${att.name}</div>
+                            <div class="text-[11px] text-slate-400">${formatSize(att.size)}</div>
                         </div>
                     </div>
                     <button type="button" data-att-index="${i}" class="delete-att-btn w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition flex-shrink-0 ml-2">
@@ -1273,10 +1370,10 @@
             if (!atts.length) { container.innerHTML = ''; return; }
             container.innerHTML = `
                 <div class="mt-10 pt-6 border-t border-slate-200">
-                    <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center space-x-2">
+                    <h3 class="text-[15px] font-bold text-slate-800 mb-4 flex items-center space-x-2">
                         <i class="ri-attachment-2 text-base text-slate-500"></i>
                         <span>附件</span>
-                        <span class="text-[10px] font-normal text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">${atts.length}</span>
+                        <span class="text-[11px] font-normal text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">${atts.length}</span>
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         ${atts.map((att, i) => `
@@ -1286,8 +1383,8 @@
                                         <i class="${getAttachIcon(att.type)} text-lg"></i>
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <div class="text-xs font-medium text-slate-700 truncate" title="${att.name}">${att.name}</div>
-                                        <div class="text-[10px] text-slate-400 mt-0.5">${formatSize(att.size)}</div>
+                                        <div class="text-[13px] font-medium text-slate-700 truncate" title="${att.name}">${att.name}</div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">${formatSize(att.size)}</div>
                                     </div>
                                 </div>
                                 <i class="ri-download-line text-slate-400 group-hover:text-brand-600 transition flex-shrink-0 ml-2"></i>
@@ -1538,7 +1635,7 @@
             tagsContainer.innerHTML = '';
             (doc.tags || []).forEach(t => {
                 const tagEl = document.createElement('span');
-                tagEl.className = 'px-2.5 py-0.5 rounded-lg text-xs bg-slate-100 text-slate-500';
+                tagEl.className = 'px-2.5 py-1 rounded-lg text-[12px] bg-slate-100 text-slate-500';
                 tagEl.textContent = `# ${t}`;
                 tagsContainer.appendChild(tagEl);
             });
@@ -1550,7 +1647,6 @@
             checkBackToTopBtnVisibility();
         }
 
-        /* 回到顶部按钮：三层防护，确保列表页永不显示 */
         function setupGlobalBackToTop() {
             const btn = document.getElementById('backToTopBtn');
             const viewScroll = document.getElementById('viewScrollContainer');
@@ -1561,13 +1657,11 @@
                 const viewPanel = document.getElementById('viewPanel');
                 const editPanel = document.getElementById('editPanel');
 
-                /* 第一层：mainPanel 整体隐藏（移动端回到列表页）→ 按钮必须隐藏 */
                 if (mainPanel.classList.contains('hidden')) {
                     btn.classList.add('hidden');
                     return;
                 }
 
-                /* 第二层：查看/编辑面板都隐藏（空状态）→ 按钮必须隐藏 */
                 const viewVisible = !viewPanel.classList.contains('hidden');
                 const editVisible = !editPanel.classList.contains('hidden');
                 if (!viewVisible && !editVisible) {
@@ -1575,7 +1669,6 @@
                     return;
                 }
 
-                /* 第三层：检查滚动位置 */
                 let currentScrollTop = 0;
                 if (viewVisible) currentScrollTop = viewScroll.scrollTop;
                 else if (editVisible) currentScrollTop = editScroll.scrollTop;
@@ -2102,6 +2195,8 @@
             setupImageViewerModal();
             setupGlobalBackToTop();
             initVirtualList();
+            updateSearchPlaceholder();
+            window.addEventListener('resize', updateSearchPlaceholder);
 
             if (!githubConfig.token) {
                 hideApp();
