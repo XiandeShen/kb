@@ -187,8 +187,8 @@
                                     <i class="ri-file-text-line text-lg text-brand-400"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-sm font-medium text-white mb-1">Markdown 编辑</h3>
-                                    <p class="text-xs text-slate-500 leading-relaxed">简洁高效的写作体验，支持截图粘贴与独立图片存储</p>
+                                    <h3 class="text-sm font-medium text-white mb-1">索引与正文分离</h3>
+                                    <p class="text-xs text-slate-500 leading-relaxed">主索引轻量加载，正文按需拉取，支撑万条级知识库</p>
                                 </div>
                             </div>
                             <div class="flex items-start space-x-4">
@@ -206,7 +206,7 @@
                                 </div>
                                 <div>
                                     <h3 class="text-sm font-medium text-white mb-1">智能检索</h3>
-                                    <p class="text-xs text-slate-500 leading-relaxed">按标题、内容、编码、标签快速定位知识条目</p>
+                                    <p class="text-xs text-slate-500 leading-relaxed">按标题、摘要、编码、标签快速定位知识条目</p>
                                 </div>
                             </div>
                         </div>
@@ -293,7 +293,7 @@
             <div class="flex-1 max-w-xl mx-2 sm:mx-6">
                 <div class="relative flex items-center">
                     <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                    <input type="text" id="searchInput" placeholder="搜索标题、内容、编码或标签..."
+                    <input type="text" id="searchInput" placeholder="搜索标题、摘要、编码或标签..."
                         class="w-full pl-10 pr-10 py-2 text-xs sm:text-sm rounded-full bg-slate-800/90 border border-slate-700/60 outline-none focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-400 transition shadow-inner">
                     <button id="clearSearchBtn" title="清空搜索" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition text-xs">
                         <i class="ri-close-line"></i>
@@ -522,7 +522,9 @@
     </div>
 
     <script>
-        let docs = [];
+        /* ==================== 全局状态 ==================== */
+        let docs = [];                  // 索引数组（无正文）
+        let docContentCache = {};       // 正文内存缓存 { [id]: content }
         let currentDocId = null;
         let previousDocId = null;
         let activeCategory = 'ALL';
@@ -537,6 +539,7 @@
         const DEFAULT_LOADING_TEXT = '正在加载知识库...';
         const MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
         const DOWNLOAD_REVOKE_DELAY = 60000;
+        const DOCS_FOLDER = 'docs';
         const ATTACHMENT_FOLDERS = {
             table: '表格',
             word: 'Word',
@@ -546,93 +549,29 @@
             other: '其他'
         };
 
-        /* ==================== GitHub 文件读取工具 ==================== */
+        /* ==================== 工具函数 ==================== */
         function encodeRepoPath(path) {
             return path.split('/').map(encodeURIComponent).join('/');
         }
 
-        async function fetchGithubFileRaw(path) {
-            if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
-            const apiPath = encodeRepoPath(path);
-            const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                headers: {
-                    'Authorization': `token ${githubConfig.token}`,
-                    'Accept': 'application/vnd.github.v3.raw'
-                }
-            });
-            if (!res.ok) {
-                let errMsg = `获取文件失败 (${res.status})`;
-                try {
-                    const errJson = await res.json();
-                    if (errJson && errJson.message) errMsg += '：' + errJson.message;
-                } catch (e) {}
-                throw new Error(errMsg);
-            }
-            const blob = await res.blob();
-            if (!blob || blob.size === 0) throw new Error('文件内容为空');
-            return blob;
+        function makeSummary(content, maxLen = 150) {
+            if (!content) return '';
+            let text = content
+                .replace(/!\[.*?\]\(.*?\)/g, '')
+                .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+                .replace(/```[\s\S]*?```/g, '')
+                .replace(/`([^`]*)`/g, '$1')
+                .replace(/^#{1,6}\s+/gm, '')
+                .replace(/[*_~]/g, '')
+                .replace(/^>\s?/gm, '')
+                .replace(/^[-*+]\s+/gm, '')
+                .replace(/^\d+\.\s+/gm, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+            if (text.length > maxLen) text = text.slice(0, maxLen) + '...';
+            return text;
         }
 
-        async function fetchGithubJSONWithMeta(path) {
-            if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
-            const apiPath = encodeRepoPath(path);
-            const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                headers: { 'Authorization': `token ${githubConfig.token}` }
-            });
-            if (!metaRes.ok) {
-                const err = new Error(`获取元数据失败 (${metaRes.status})`);
-                err.status = metaRes.status;
-                throw err;
-            }
-            const meta = await metaRes.json();
-            const sha = meta.sha;
-            let text;
-            if (meta.content && meta.encoding === 'base64') {
-                text = decodeURIComponent(escape(atob(meta.content)));
-            } else {
-                const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    headers: {
-                        'Authorization': `token ${githubConfig.token}`,
-                        'Accept': 'application/vnd.github.v3.raw'
-                    }
-                });
-                if (!rawRes.ok) throw new Error(`获取内容失败 (${rawRes.status})`);
-                text = await rawRes.text();
-            }
-            return { sha, text };
-        }
-
-        async function fetchImageJsonFromGithub(path) {
-            if (!githubConfig.token || !githubConfig.repo) return null;
-            const apiPath = encodeRepoPath(path);
-            try {
-                const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    headers: { 'Authorization': `token ${githubConfig.token}` }
-                });
-                if (!metaRes.ok) return null;
-                const meta = await metaRes.json();
-                let jsonStr = '';
-                if (meta.content && meta.encoding === 'base64') {
-                    jsonStr = decodeURIComponent(escape(atob(meta.content)));
-                } else {
-                    const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                        headers: {
-                            'Authorization': `token ${githubConfig.token}`,
-                            'Accept': 'application/vnd.github.v3.raw'
-                        }
-                    });
-                    if (!rawRes.ok) return null;
-                    jsonStr = await rawRes.text();
-                }
-                if (!jsonStr) return null;
-                const obj = JSON.parse(jsonStr);
-                return obj.data || null;
-            } catch (e) {
-                return null;
-            }
-        }
-
-        /* ==================== 下载工具 ==================== */
         function dataURLtoBlob(dataUrl) {
             const parts = dataUrl.split(',');
             const header = parts[0] || '';
@@ -646,10 +585,6 @@
             return new Blob([bytes], { type: mime });
         }
 
-        /**
-         * 将 data URL 转换成指定 MIME 的 Blob（用 canvas 重绘）。
-         * 用于 webp → png 等格式转换。
-         */
         function convertDataUrlToBlobType(dataUrl, targetMime) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
@@ -659,7 +594,6 @@
                         canvas.width = img.naturalWidth || img.width;
                         canvas.height = img.naturalHeight || img.height;
                         const ctx = canvas.getContext('2d');
-                        // jpg 不支持透明，先填白底
                         if (targetMime === 'image/jpeg') {
                             ctx.fillStyle = '#ffffff';
                             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -733,6 +667,251 @@
                 svg: 'image/svg+xml'
             };
             return map[ext] || 'application/octet-stream';
+        }
+
+        /* ==================== GitHub 文件读取 ==================== */
+        async function fetchGithubFileRaw(path) {
+            if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
+            const apiPath = encodeRepoPath(path);
+            const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                headers: {
+                    'Authorization': `token ${githubConfig.token}`,
+                    'Accept': 'application/vnd.github.v3.raw'
+                }
+            });
+            if (!res.ok) {
+                let errMsg = `获取文件失败 (${res.status})`;
+                try {
+                    const errJson = await res.json();
+                    if (errJson && errJson.message) errMsg += '：' + errJson.message;
+                } catch (e) {}
+                throw new Error(errMsg);
+            }
+            const blob = await res.blob();
+            if (!blob || blob.size === 0) throw new Error('文件内容为空');
+            return blob;
+        }
+
+        async function fetchGithubJSONWithMeta(path) {
+            if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
+            const apiPath = encodeRepoPath(path);
+            const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                headers: { 'Authorization': `token ${githubConfig.token}` }
+            });
+            if (!metaRes.ok) {
+                const err = new Error(`获取元数据失败 (${metaRes.status})`);
+                err.status = metaRes.status;
+                throw err;
+            }
+            const meta = await metaRes.json();
+            const sha = meta.sha;
+            let text;
+            if (meta.content && meta.encoding === 'base64') {
+                text = decodeURIComponent(escape(atob(meta.content)));
+            } else {
+                const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                    headers: {
+                        'Authorization': `token ${githubConfig.token}`,
+                        'Accept': 'application/vnd.github.v3.raw'
+                    }
+                });
+                if (!rawRes.ok) throw new Error(`获取内容失败 (${rawRes.status})`);
+                text = await rawRes.text();
+            }
+            return { sha, text };
+        }
+
+        async function fetchGithubJSONFile(path) {
+            if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
+            const apiPath = encodeRepoPath(path);
+            const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                headers: { 'Authorization': `token ${githubConfig.token}` }
+            });
+            if (!metaRes.ok) throw new Error(`获取文件失败 (${metaRes.status})`);
+            const meta = await metaRes.json();
+            let text;
+            if (meta.content && meta.encoding === 'base64') {
+                text = decodeURIComponent(escape(atob(meta.content)));
+            } else {
+                const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                    headers: {
+                        'Authorization': `token ${githubConfig.token}`,
+                        'Accept': 'application/vnd.github.v3.raw'
+                    }
+                });
+                if (!rawRes.ok) throw new Error(`获取内容失败 (${rawRes.status})`);
+                text = await rawRes.text();
+            }
+            return JSON.parse(text);
+        }
+
+        async function fetchImageJsonFromGithub(path) {
+            if (!githubConfig.token || !githubConfig.repo) return null;
+            const apiPath = encodeRepoPath(path);
+            try {
+                const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                    headers: { 'Authorization': `token ${githubConfig.token}` }
+                });
+                if (!metaRes.ok) return null;
+                const meta = await metaRes.json();
+                let jsonStr = '';
+                if (meta.content && meta.encoding === 'base64') {
+                    jsonStr = decodeURIComponent(escape(atob(meta.content)));
+                } else {
+                    const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                        headers: {
+                            'Authorization': `token ${githubConfig.token}`,
+                            'Accept': 'application/vnd.github.v3.raw'
+                        }
+                    });
+                    if (!rawRes.ok) return null;
+                    jsonStr = await rawRes.text();
+                }
+                if (!jsonStr) return null;
+                const obj = JSON.parse(jsonStr);
+                return obj.data || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        /* ==================== 文档正文上传 / 读取 / 删除 ==================== */
+        async function uploadDocContent(id, content, meta = {}, retryCount = 0) {
+            if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
+            const path = `${DOCS_FOLDER}/${id}.json`;
+            const apiPath = encodeRepoPath(path);
+            const payload = {
+                id,
+                title: meta.title || '',
+                content,
+                updatedAt: meta.updatedAt || new Date().toLocaleString()
+            };
+            const jsonStr = JSON.stringify(payload);
+            const contentEncoded = btoa(unescape(encodeURIComponent(jsonStr)));
+
+            let sha = '';
+            try {
+                const checkRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                    headers: { 'Authorization': `token ${githubConfig.token}` }
+                });
+                if (checkRes.ok) {
+                    const checkData = await checkRes.json();
+                    sha = checkData.sha;
+                }
+            } catch (e) {}
+
+            const body = {
+                message: `kb: update doc content ${id}`,
+                content: contentEncoded
+            };
+            if (sha) body.sha = sha;
+
+            const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${githubConfig.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) return true;
+
+            if (res.status === 409 && retryCount < 1) {
+                await new Promise(r => setTimeout(r, 300));
+                return uploadDocContent(id, content, meta, retryCount + 1);
+            }
+
+            const errJson = await res.json().catch(() => ({}));
+            throw new Error(errJson.message || '上传正文失败');
+        }
+
+        async function fetchDocContent(id) {
+            if (docContentCache[id] !== undefined) return docContentCache[id];
+            const obj = await fetchGithubJSONFile(`${DOCS_FOLDER}/${id}.json`);
+            const content = obj.content || '';
+            docContentCache[id] = content;
+            return content;
+        }
+
+        async function deleteDocContentFile(id) {
+            if (!githubConfig.token || !githubConfig.repo) return;
+            const path = `${DOCS_FOLDER}/${id}.json`;
+            const apiPath = encodeRepoPath(path);
+            try {
+                const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                    headers: { 'Authorization': `token ${githubConfig.token}` }
+                });
+                if (getRes.ok) {
+                    const fileData = await getRes.json();
+                    await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `token ${githubConfig.token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: `kb: delete doc content ${id}`,
+                            sha: fileData.sha
+                        })
+                    });
+                }
+            } catch (e) {}
+        }
+
+        /* ==================== 主索引上传 ==================== */
+        async function uploadMainIndex(indexDocs) {
+            if (!githubConfig.token || !githubConfig.repo) return;
+            updateSyncStatus('loading', '同步中');
+
+            try {
+                if (!githubConfig.sha) {
+                    try {
+                        const apiPath = encodeRepoPath(githubConfig.path);
+                        const checkRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                            headers: { 'Authorization': `token ${githubConfig.token}` }
+                        });
+                        if (checkRes.ok) {
+                            const checkData = await checkRes.json();
+                            githubConfig.sha = checkData.sha;
+                        }
+                    } catch (ex) {}
+                }
+                const jsonStr = JSON.stringify(indexDocs, null, 2);
+                const contentEncoded = btoa(unescape(encodeURIComponent(jsonStr)));
+                const body = {
+                    message: `kb: update index ${new Date().toLocaleString()}`,
+                    content: contentEncoded
+                };
+                if (githubConfig.sha) body.sha = githubConfig.sha;
+                const apiPath = encodeRepoPath(githubConfig.path);
+                const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${githubConfig.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    githubConfig.sha = data.content.sha;
+                    localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
+                    updateSyncStatus('success', '已同步');
+                    return true;
+                } else {
+                    const errJson = await res.json().catch(() => ({}));
+                    if (res.status === 409 && githubConfig.sha) {
+                        githubConfig.sha = '';
+                        return uploadMainIndex(indexDocs);
+                    }
+                    updateSyncStatus('error', errJson.message || '推送失败');
+                    throw new Error(errJson.message || '上传索引失败');
+                }
+            } catch (e) {
+                updateSyncStatus('error', '推送失败');
+                throw e;
+            }
         }
 
         /* ==================== 附件工具 ==================== */
@@ -865,15 +1044,17 @@
         function showLoading(text) {
             setLoadingMode('app');
             const overlay = document.getElementById('loadingOverlay');
+            updateLoadingText(text || DEFAULT_LOADING_TEXT);
+            overlay.classList.remove('hidden');
+        }
+        function updateLoadingText(text) {
             const loadingText = document.getElementById('loadingText');
             if (loadingText) loadingText.textContent = text || DEFAULT_LOADING_TEXT;
-            overlay.classList.remove('hidden');
         }
         function hideLoading() {
             const overlay = document.getElementById('loadingOverlay');
-            const loadingText = document.getElementById('loadingText');
+            updateLoadingText(DEFAULT_LOADING_TEXT);
             overlay.classList.add('hidden');
-            if (loadingText) loadingText.textContent = DEFAULT_LOADING_TEXT;
         }
         function setLoginButtonLoading(loading) {
             const btn = document.getElementById('authSubmitBtn');
@@ -945,90 +1126,25 @@
             }, 2000);
         }
 
-        window.onload = function() {
-            loadGithubConfig();
-            if (!githubConfig.token) {
-                hideApp();
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                fillAdvancedOptions();
-                showAuth();
-            } else {
-                hideAuth();
-                setLoadingMode('auth');
-                document.getElementById('loadingOverlay').classList.remove('hidden');
-                document.getElementById('loadingText').textContent = DEFAULT_LOADING_TEXT;
-                loadLocalDocs();
-                renderCategoryList();
-                renderTagList();
-                renderDocList();
-                pullFromGithub();
-            }
-            setupConfirmModal();
-            setupAdvancedToggle();
-            setupEventListeners();
-            setupImageHandling();
-            setupImageViewerModal();
-            setupGlobalBackToTop();
-        };
-
-        document.getElementById('toggleTokenVisibility').addEventListener('click', () => {
-            const input = document.getElementById('authTokInput');
-            const icon = document.getElementById('toggleTokenIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'ri-eye-off-line text-base';
-            } else {
-                input.type = 'password';
-                icon.className = 'ri-eye-line text-base';
-            }
-        });
-
-        document.getElementById('authForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (isLoggingIn) return;
-            const token = document.getElementById('authTokInput').value.trim();
-            if (!token) { showToast('请输入访问令牌', 'error'); return; }
-            const repoInput = document.getElementById('authRepoInput').value.trim();
-            const pathInput = document.getElementById('authPathInput').value.trim();
-            githubConfig.token = token;
-            githubConfig.repo = repoInput || githubConfig.repo || 'XiandeShen/Xiande-kb';
-            githubConfig.path = pathInput || githubConfig.path || 'kb_docs.json';
-            githubConfig.sha = '';
-            localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
-            isLoggingIn = true;
-            setLoginButtonLoading(true);
-            pullFromGithub();
-        });
-
-        function manualSyncRefresh() {
-            if (isManualSyncing) return;
-            if (!githubConfig.token || !githubConfig.repo) { showToast('请先配置访问令牌', 'error'); return; }
-            isManualSyncing = true;
-            pullFromGithub().finally(() => { isManualSyncing = false; });
-        }
-
-        async function handleResetBinding() {
-            const ok = await showConfirm({
-                title: '解除绑定并重置',
-                desc: '确定要解除 GitHub 绑定并重置吗？本地的知识缓存也会被清空，需要重新输入访问令牌。',
-                okText: '确定重置',
-                cancelText: '再想想',
-                type: 'normal'
+        /* ==================== 本地缓存 ==================== */
+        function loadLocalDocs() {
+            const saved = localStorage.getItem('kb_docs');
+            let rawDocs = [];
+            try { rawDocs = saved ? JSON.parse(saved) : []; } catch (e) { rawDocs = []; }
+            rawDocs.forEach(d => {
+                if (!d.code || !d.code.startsWith('CM-')) d.code = generateDocCode();
+                if (!Array.isArray(d.attachments)) d.attachments = [];
+                if (typeof d.summary !== 'string') d.summary = '';
+                if (d.hasContent === undefined) d.hasContent = true;
             });
-            if (!ok) return;
-            localStorage.removeItem('kb_gh_config');
-            localStorage.removeItem('kb_docs');
-            docs = [];
-            currentDocId = null;
-            previousDocId = null;
-            editAttachments = [];
-            githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
-            document.getElementById('authTokInput').value = '';
-            document.getElementById('githubDropdown').classList.add('hidden');
-            hideLoading();
-            hideApp();
-            fillAdvancedOptions();
-            showAuth();
+            docs = rawDocs;
+        }
+        function saveLocalDocs() {
+            try {
+                localStorage.setItem('kb_docs', JSON.stringify(docs));
+            } catch (e) {
+                console.warn('本地缓存写入失败（可能超出配额）', e);
+            }
             renderCategoryList();
             renderTagList();
             renderDocList();
@@ -1036,21 +1152,7 @@
 
         function generateDocCode() { return 'CM-' + Math.floor(1000 + Math.random() * 9000); }
 
-        function loadLocalDocs() {
-            const saved = localStorage.getItem('kb_docs');
-            docs = saved ? JSON.parse(saved) : [];
-            docs.forEach(d => {
-                if (!d.code || !d.code.startsWith('CM-')) d.code = generateDocCode();
-                if (!Array.isArray(d.attachments)) d.attachments = [];
-            });
-        }
-        function saveLocalDocs() {
-            localStorage.setItem('kb_docs', JSON.stringify(docs));
-            renderCategoryList();
-            renderTagList();
-            renderDocList();
-        }
-
+        /* ==================== 渲染 ==================== */
         function renderCategoryList() {
             const categories = {};
             docs.forEach(d => {
@@ -1124,9 +1226,9 @@
             const query = document.getElementById('searchInput').value.toLowerCase();
             const filtered = docs.filter(d => {
                 const title = (d.title || '').toLowerCase();
-                const content = (d.content || '').toLowerCase();
+                const summary = (d.summary || '').toLowerCase();
                 const code = (d.code || '').toLowerCase();
-                const matchSearch = title.includes(query) || content.includes(query) || code.includes(query) || (d.tags && d.tags.some(t => t.toLowerCase().includes(query)));
+                const matchSearch = title.includes(query) || summary.includes(query) || code.includes(query) || (d.tags && d.tags.some(t => t.toLowerCase().includes(query)));
                 const matchCat = activeCategory === 'ALL' || (d.category || '通用') === activeCategory;
                 const matchTag = !activeTag || (d.tags && d.tags.includes(activeTag));
                 return matchSearch && matchCat && matchTag;
@@ -1148,7 +1250,7 @@
                 const attCount = (d.attachments || []).length;
                 html += `
                     <h4 class="font-bold text-xs text-slate-800 truncate pr-16">${d.title || '无标题'}</h4>
-                    <p class="text-[11px] text-slate-500 line-clamp-2 mt-1">${(d.content || '').replace(/[#*`!]/g, '')}</p>
+                    <p class="text-[11px] text-slate-500 line-clamp-2 mt-1">${(d.summary || '').replace(/[#*`!]/g, '')}</p>
                     <div class="flex items-center justify-between text-[10px] text-slate-400 mt-2">
                         <span class="px-1.5 py-0.5 rounded bg-slate-100 truncate max-w-[110px]">${d.category || '通用'}</span>
                         <div class="flex items-center space-x-1.5">
@@ -1442,7 +1544,7 @@
             }));
         }
 
-        /* ==================== 查看文档 ==================== */
+        /* ==================== 查看文档（按需加载正文） ==================== */
         async function openDocView(id, options = {}) {
             const skipOverlay = !!options.skipOverlay;
             currentDocId = id;
@@ -1453,7 +1555,18 @@
             const viewScrollEl = document.getElementById('viewScrollContainer');
             if (viewScrollEl) viewScrollEl.scrollTop = 0;
             if (!skipOverlay) showLoading('正在加载文章...');
-            const parsedHtml = marked.parse(doc.content || '');
+
+            let content = docContentCache[id];
+            if (content === undefined) {
+                try {
+                    content = await fetchDocContent(id);
+                } catch (e) {
+                    content = '';
+                    showToast('正文加载失败：' + (e.message || '未知错误'), 'error');
+                }
+            }
+
+            const parsedHtml = marked.parse(content || '');
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = parsedHtml;
             const imgTags = tempDiv.querySelectorAll('img');
@@ -1558,6 +1671,7 @@
             };
         }
 
+        /* ==================== 图片查看器 ==================== */
         let currentModalImgSrc = '';
         let currentScale = 1;
         let minScale = 1;
@@ -1581,15 +1695,12 @@
                 if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
             });
 
-            /* 图片下载：webp 自动转 png，其它格式保持原样 */
             downloadBtn.onclick = () => {
                 if (!currentModalImgSrc) {
                     showToast('图片未加载', 'error');
                     return;
                 }
                 const src = currentModalImgSrc;
-
-                /* 检测原图格式 */
                 let srcExt = 'jpg';
                 if (src.startsWith('data:image/png')) srcExt = 'png';
                 else if (src.startsWith('data:image/webp')) srcExt = 'webp';
@@ -1602,13 +1713,10 @@
                         if (srcExt === 'jpeg') srcExt = 'jpg';
                     }
                 }
-
-                /* webp 转 png（兼容性最好、保留透明），其它格式保持原样 */
                 const targetExt = srcExt === 'webp' ? 'png' : srcExt;
                 const filename = `knowledge_image_${Date.now()}.${targetExt}`;
 
                 prepareAndDownload(filename, async () => {
-                    /* 先确保拿到 data URL（data: 直接用，非 data 先下载再转 data URL） */
                     let sourceUrl = src;
                     if (!src.startsWith('data:')) {
                         const resp = await fetch(src);
@@ -1622,18 +1730,12 @@
                             r.readAsDataURL(blob);
                         });
                     }
-
-                    /* webp 通过 canvas 转 png */
                     if (srcExt === 'webp') {
                         return await convertDataUrlToBlobType(sourceUrl, 'image/png');
                     }
-
-                    /* gif 保留动画，直接用原 blob */
                     if (srcExt === 'gif') {
                         return dataURLtoBlob(sourceUrl);
                     }
-
-                    /* png/jpg 原样下载 */
                     return dataURLtoBlob(sourceUrl);
                 });
             };
@@ -1804,6 +1906,7 @@
             }
         }
 
+        /* ==================== 事件绑定 ==================== */
         function setupEventListeners() {
             const searchInput = document.getElementById('searchInput');
             const clearSearchBtn = document.getElementById('clearSearchBtn');
@@ -1851,18 +1954,28 @@
                 checkBackToTopBtnVisibility();
             };
 
-            document.getElementById('editDocBtn').onclick = () => {
+            document.getElementById('editDocBtn').onclick = async () => {
                 const doc = docs.find(d => d.id === currentDocId);
                 if (!doc) return;
                 isEditing = true;
                 editAttachments = (doc.attachments || []).map(a => ({...a}));
+
+                let content = docContentCache[currentDocId];
+                if (content === undefined) {
+                    try {
+                        content = await fetchDocContent(currentDocId);
+                    } catch (e) {
+                        content = '';
+                    }
+                }
+
                 document.getElementById('viewPanel').classList.add('hidden');
                 document.getElementById('editPanel').classList.remove('hidden');
                 document.getElementById('editorModeTitle').textContent = '编辑文章';
                 document.getElementById('editTitleInput').value = doc.title || '';
                 document.getElementById('editCategoryInput').value = doc.category || '通用';
                 document.getElementById('editTagsInput').value = (doc.tags || []).join(' ');
-                document.getElementById('editContentInput').value = doc.content || '';
+                document.getElementById('editContentInput').value = content;
                 renderEditAttachments();
                 checkBackToTopBtnVisibility();
             };
@@ -1892,6 +2005,7 @@
                 checkBackToTopBtnVisibility();
             };
 
+            /* 保存：正文 + 索引 增量上传 */
             document.getElementById('saveDocBtn').onclick = async () => {
                 const title = document.getElementById('editTitleInput').value.trim() || '未命名文章';
                 const category = document.getElementById('editCategoryInput').value.trim() || '通用';
@@ -1899,34 +2013,44 @@
                 const tags = tagsStr ? tagsStr.split(/[,，\s]+/).filter(Boolean) : [];
                 const content = document.getElementById('editContentInput').value;
                 const now = new Date().toLocaleString();
+
                 showLoading('正在保存并同步...');
                 try {
-                    if (currentDocId) {
-                        const doc = docs.find(d => d.id === currentDocId);
-                        if (doc) {
-                            doc.title = title;
-                            doc.category = category;
-                            doc.tags = tags;
-                            doc.content = content;
-                            doc.updatedAt = now;
-                            doc.attachments = editAttachments.slice();
-                            if (!doc.code || !doc.code.startsWith('CM-')) doc.code = generateDocCode();
-                        }
-                    } else {
-                        const newDoc = {
-                            id: 'doc-' + Date.now(),
-                            code: generateDocCode(),
-                            title, category, tags, content, updatedAt: now,
-                            attachments: editAttachments.slice()
-                        };
-                        docs.unshift(newDoc);
-                        currentDocId = newDoc.id;
-                        previousDocId = newDoc.id;
+                    let docId = currentDocId;
+                    const existingDoc = docId ? docs.find(d => d.id === docId) : null;
+
+                    if (!docId) {
+                        docId = 'doc-' + Date.now();
+                        currentDocId = docId;
+                        previousDocId = docId;
                     }
+
+                    updateLoadingText('正在保存正文...');
+                    await uploadDocContent(docId, content, { title, updatedAt: now });
+                    docContentCache[docId] = content;
+
+                    const indexEntry = {
+                        id: docId,
+                        code: (existingDoc && existingDoc.code) || generateDocCode(),
+                        title,
+                        category,
+                        tags,
+                        updatedAt: now,
+                        summary: makeSummary(content),
+                        attachments: editAttachments.slice(),
+                        hasContent: true
+                    };
+
+                    const idx = docs.findIndex(d => d.id === docId);
+                    if (idx >= 0) docs[idx] = indexEntry;
+                    else docs.unshift(indexEntry);
                     saveLocalDocs();
-                    await syncToGithub();
+
+                    updateLoadingText('正在同步索引...');
+                    await uploadMainIndex(docs);
+
                     editAttachments = [];
-                    await openDocView(currentDocId, { skipOverlay: true });
+                    await openDocView(docId, { skipOverlay: true });
                     showToast('保存成功并已同步', 'success');
                 } catch (err) {
                     showToast('保存失败，请重试', 'error');
@@ -1935,10 +2059,11 @@
                 }
             };
 
+            /* 删除：清理图片 + 附件 + 正文 + 索引 */
             document.getElementById('deleteDocBtn').onclick = async () => {
                 const ok = await showConfirm({
                     title: '删除知识条目',
-                    desc: '确定要删除这篇知识条目吗？关联的独立图片 JSON 和附件会同步从 GitHub 中清理，此操作不可撤销。',
+                    desc: '确定要删除这篇知识条目吗？关联的正文、独立图片 JSON 和附件会同步从 GitHub 中清理，此操作不可撤销。',
                     okText: '确定删除',
                     cancelText: '取消',
                     type: 'danger'
@@ -1948,18 +2073,31 @@
                 const docIdToDelete = currentDocId;
                 showLoading('正在删除并同步...');
                 try {
-                    if (docToDelete && docToDelete.content) {
-                        await deleteGithubImageJsonsInContent(docToDelete.content);
+                    updateLoadingText('正在清理关联图片...');
+                    let content = docContentCache[docIdToDelete];
+                    if (content === undefined) {
+                        try { content = await fetchDocContent(docIdToDelete); } catch (e) { content = ''; }
                     }
+                    if (content) await deleteGithubImageJsonsInContent(content);
+
                     if (docToDelete && docToDelete.attachments && docToDelete.attachments.length) {
+                        updateLoadingText('正在清理附件...');
                         await deleteGithubAttachments(docToDelete.attachments);
                     }
+
+                    updateLoadingText('正在删除正文...');
+                    await deleteDocContentFile(docIdToDelete);
+                    delete docContentCache[docIdToDelete];
+
                     docs = docs.filter(d => d.id !== docIdToDelete);
                     currentDocId = null;
                     previousDocId = null;
                     editAttachments = [];
                     saveLocalDocs();
-                    await syncToGithub();
+
+                    updateLoadingText('正在同步索引...');
+                    await uploadMainIndex(docs);
+
                     document.getElementById('viewPanel').classList.add('hidden');
                     document.getElementById('editPanel').classList.add('hidden');
                     if (window.innerWidth < 768) {
@@ -2021,6 +2159,7 @@
             overlay.onclick = () => closeMobileSidebar();
         }
 
+        /* ==================== 登录 & 同步 ==================== */
         function loadGithubConfig() {
             const saved = localStorage.getItem('kb_gh_config');
             if (saved) {
@@ -2051,6 +2190,97 @@
             }
         }
 
+        function manualSyncRefresh() {
+            if (isManualSyncing) return;
+            if (!githubConfig.token || !githubConfig.repo) { showToast('请先配置访问令牌', 'error'); return; }
+            isManualSyncing = true;
+            pullFromGithub().finally(() => { isManualSyncing = false; });
+        }
+
+        async function handleResetBinding() {
+            const ok = await showConfirm({
+                title: '解除绑定并重置',
+                desc: '确定要解除 GitHub 绑定并重置吗？本地的知识缓存也会被清空，需要重新输入访问令牌。',
+                okText: '确定重置',
+                cancelText: '再想想',
+                type: 'normal'
+            });
+            if (!ok) return;
+            localStorage.removeItem('kb_gh_config');
+            localStorage.removeItem('kb_docs');
+            docs = [];
+            docContentCache = {};
+            currentDocId = null;
+            previousDocId = null;
+            editAttachments = [];
+            githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
+            document.getElementById('authTokInput').value = '';
+            document.getElementById('githubDropdown').classList.add('hidden');
+            hideLoading();
+            hideApp();
+            fillAdvancedOptions();
+            showAuth();
+            renderCategoryList();
+            renderTagList();
+            renderDocList();
+        }
+
+        window.onload = function() {
+            loadGithubConfig();
+            if (!githubConfig.token) {
+                hideApp();
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                fillAdvancedOptions();
+                showAuth();
+            } else {
+                hideAuth();
+                setLoadingMode('auth');
+                document.getElementById('loadingOverlay').classList.remove('hidden');
+                updateLoadingText(DEFAULT_LOADING_TEXT);
+                loadLocalDocs();
+                renderCategoryList();
+                renderTagList();
+                renderDocList();
+                pullFromGithub();
+            }
+            setupConfirmModal();
+            setupAdvancedToggle();
+            setupEventListeners();
+            setupImageHandling();
+            setupImageViewerModal();
+            setupGlobalBackToTop();
+        };
+
+        document.getElementById('toggleTokenVisibility').addEventListener('click', () => {
+            const input = document.getElementById('authTokInput');
+            const icon = document.getElementById('toggleTokenIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'ri-eye-off-line text-base';
+            } else {
+                input.type = 'password';
+                icon.className = 'ri-eye-line text-base';
+            }
+        });
+
+        document.getElementById('authForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (isLoggingIn) return;
+            const token = document.getElementById('authTokInput').value.trim();
+            if (!token) { showToast('请输入访问令牌', 'error'); return; }
+            const repoInput = document.getElementById('authRepoInput').value.trim();
+            const pathInput = document.getElementById('authPathInput').value.trim();
+            githubConfig.token = token;
+            githubConfig.repo = repoInput || githubConfig.repo || 'XiandeShen/Xiande-kb';
+            githubConfig.path = pathInput || githubConfig.path || 'kb_docs.json';
+            githubConfig.sha = '';
+            localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
+            isLoggingIn = true;
+            setLoginButtonLoading(true);
+            pullFromGithub();
+        });
+
+        /* ==================== 拉取主索引 ==================== */
         async function pullFromGithub() {
             if (!githubConfig.token || !githubConfig.repo) {
                 if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
@@ -2058,6 +2288,7 @@
                 return;
             }
             updateSyncStatus('loading', '同步中');
+
             try {
                 let sha, text;
                 try {
@@ -2066,7 +2297,17 @@
                     text = result.text;
                 } catch (metaErr) {
                     if (metaErr.status === 404) {
-                        await syncToGithub();
+                        // 全新知识库：初始化空索引
+                        setLoadingMode('auth');
+                        showLoading('正在初始化知识库...');
+                        docs = [];
+                        docContentCache = {};
+                        saveLocalDocs();
+                        try {
+                            await uploadMainIndex([]);
+                        } catch (e) {
+                            console.warn('初始化空索引失败', e);
+                        }
                         hideLoading();
                         hideAuth();
                         showApp();
@@ -2075,12 +2316,16 @@
                     }
                     throw metaErr;
                 }
+
                 githubConfig.sha = sha;
-                docs = JSON.parse(text) || [];
-                docs.forEach(d => {
+                let rawDocs = JSON.parse(text) || [];
+                rawDocs.forEach(d => {
                     if (!d.code || !d.code.startsWith('CM-')) d.code = generateDocCode();
                     if (!Array.isArray(d.attachments)) d.attachments = [];
+                    if (typeof d.summary !== 'string') d.summary = '';
+                    if (d.hasContent === undefined) d.hasContent = true;
                 });
+                docs = rawDocs;
                 saveLocalDocs();
                 updateSyncStatus('success', '已同步');
                 hideLoading();
@@ -2106,56 +2351,6 @@
                     if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
                     else { hideApp(); fillAdvancedOptions(); showAuth(); }
                 }
-            }
-        }
-
-        async function syncToGithub() {
-            if (!githubConfig.token || !githubConfig.repo) return;
-            updateSyncStatus('loading', '同步中');
-            try {
-                if (!githubConfig.sha) {
-                    try {
-                        const apiPath = encodeRepoPath(githubConfig.path);
-                        const checkRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                            headers: { 'Authorization': `token ${githubConfig.token}` }
-                        });
-                        if (checkRes.ok) {
-                            const checkData = await checkRes.json();
-                            githubConfig.sha = checkData.sha;
-                        }
-                    } catch (ex) {}
-                }
-                const jsonStr = JSON.stringify(docs, null, 2);
-                const contentEncoded = btoa(unescape(encodeURIComponent(jsonStr)));
-                const body = {
-                    message: `kb: update docs ${new Date().toLocaleString()}`,
-                    content: contentEncoded
-                };
-                if (githubConfig.sha) body.sha = githubConfig.sha;
-                const apiPath = encodeRepoPath(githubConfig.path);
-                const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${githubConfig.token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body)
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    githubConfig.sha = data.content.sha;
-                    localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
-                    updateSyncStatus('success', '已同步');
-                } else {
-                    const errJson = await res.json().catch(() => ({}));
-                    if (res.status === 409 && githubConfig.sha) {
-                        githubConfig.sha = '';
-                        return syncToGithub();
-                    }
-                    updateSyncStatus('error', errJson.message || '推送失败');
-                }
-            } catch (e) {
-                updateSyncStatus('error', '推送失败');
             }
         }
     </script>
