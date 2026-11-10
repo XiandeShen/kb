@@ -290,16 +290,23 @@
                     <span class="font-extrabold text-base tracking-tight text-white whitespace-nowrap">椿沐智库</span>
                 </div>
             </div>
+
+            <!-- 一体式搜索框（Bing 风格） -->
             <div class="flex-1 max-w-xl mx-2 sm:mx-6">
-                <div class="relative flex items-center">
-                    <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <div class="flex items-center w-full rounded-full bg-slate-800/90 border border-slate-700/60 focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-transparent transition shadow-inner pl-3 sm:pl-3.5 pr-1 py-1">
+                    <i class="ri-search-line text-slate-400 text-sm flex-shrink-0"></i>
                     <input type="text" id="searchInput" placeholder="搜索标题、摘要、编码或标签..."
-                        class="w-full pl-10 pr-10 py-2 text-xs sm:text-sm rounded-full bg-slate-800/90 border border-slate-700/60 outline-none focus:outline-none focus:ring-2 focus:ring-brand-500 text-white placeholder-slate-400 transition shadow-inner">
-                    <button id="clearSearchBtn" title="清空搜索" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition text-xs">
+                        class="flex-1 min-w-0 bg-transparent border-0 outline-none px-2 sm:px-2.5 py-1 text-xs sm:text-sm text-white placeholder-slate-400">
+                    <button id="clearSearchBtn" title="清空搜索" class="hidden w-5 h-5 flex items-center justify-center rounded-full bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white transition text-xs flex-shrink-0 mr-1">
                         <i class="ri-close-line"></i>
+                    </button>
+                    <button id="searchSubmitBtn" type="button" title="搜索"
+                        class="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-700 text-white transition shadow-sm">
+                        <i class="ri-arrow-right-line text-sm sm:text-base"></i>
                     </button>
                 </div>
             </div>
+
             <div class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
                 <div class="hidden sm:block relative w-[120px] h-7">
                     <div id="syncStatus" class="absolute right-0 top-0 flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 transition-colors">
@@ -371,7 +378,7 @@
                     <span id="listTitle" class="font-bold text-slate-700 truncate max-w-[200px]">所有条目</span>
                     <span id="docCountText" class="text-slate-400 flex-shrink-0">0 个文档</span>
                 </div>
-                <div id="docList" class="flex-1 overflow-y-auto divide-y divide-slate-100 pb-4"></div>
+                <div id="docList" class="flex-1 overflow-y-auto relative"></div>
             </div>
 
             <main id="mainPanel" class="hidden md:flex flex-1 bg-slate-50 flex-col overflow-hidden absolute md:relative inset-0 z-30 md:z-auto h-full w-full">
@@ -523,12 +530,13 @@
 
     <script>
         /* ==================== 全局状态 ==================== */
-        let docs = [];                  // 索引数组（无正文）
-        let docContentCache = {};       // 正文内存缓存 { [id]: content }
+        let docs = [];
+        let docContentCache = {};
         let currentDocId = null;
         let previousDocId = null;
         let activeCategory = 'ALL';
         let activeTag = null;
+        let searchQuery = '';
         let isEditing = false;
         let isLoggingIn = false;
         let isManualSyncing = false;
@@ -548,6 +556,189 @@
             archive: '压缩包',
             other: '其他'
         };
+
+        /* ==================== IndexedDB 封装 ==================== */
+        const IDB_NAME = 'chunmu_kb';
+        const IDB_VERSION = 1;
+        const IDB_STORE = 'cache';
+        let _idbPromise = null;
+
+        function openIDB() {
+            if (_idbPromise) return _idbPromise;
+            _idbPromise = new Promise((resolve, reject) => {
+                if (!('indexedDB' in window)) {
+                    reject(new Error('当前浏览器不支持 IndexedDB'));
+                    return;
+                }
+                const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+                req.onupgradeneeded = () => {
+                    const db = req.result;
+                    if (!db.objectStoreNames.contains(IDB_STORE)) {
+                        db.createObjectStore(IDB_STORE);
+                    }
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+            return _idbPromise;
+        }
+
+        async function idbGet(key) {
+            try {
+                const db = await openIDB();
+                return await new Promise((resolve, reject) => {
+                    const tx = db.transaction(IDB_STORE, 'readonly');
+                    const store = tx.objectStore(IDB_STORE);
+                    const req = store.get(key);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+            } catch (e) {
+                console.warn('IndexedDB 读取失败', e);
+                return undefined;
+            }
+        }
+
+        async function idbSet(key, value) {
+            const db = await openIDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(IDB_STORE, 'readwrite');
+                const store = tx.objectStore(IDB_STORE);
+                const req = store.put(value, key);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function idbDel(key) {
+            try {
+                const db = await openIDB();
+                return await new Promise((resolve, reject) => {
+                    const tx = db.transaction(IDB_STORE, 'readwrite');
+                    const store = tx.objectStore(IDB_STORE);
+                    const req = store.delete(key);
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => reject(req.error);
+                });
+            } catch (e) {
+                console.warn('IndexedDB 删除失败', e);
+            }
+        }
+
+        /* ==================== 虚拟列表 ==================== */
+        const virtualList = {
+            container: null,
+            spacer: null,
+            items: [],
+            itemHeight: 96,
+            buffer: 6,
+            rafPending: false
+        };
+
+        function initVirtualList() {
+            const container = document.getElementById('docList');
+            if (!container) return;
+
+            container.innerHTML = '';
+            container.style.position = 'relative';
+            container.style.overflowY = 'auto';
+            container.style.overflowX = 'hidden';
+
+            const spacer = document.createElement('div');
+            spacer.style.position = 'relative';
+            spacer.style.width = '100%';
+            spacer.style.height = '0px';
+            container.appendChild(spacer);
+
+            virtualList.container = container;
+            virtualList.spacer = spacer;
+
+            container.addEventListener('scroll', () => {
+                if (virtualList.rafPending) return;
+                virtualList.rafPending = true;
+                requestAnimationFrame(() => {
+                    virtualList.rafPending = false;
+                    renderVirtualItems();
+                });
+            });
+
+            window.addEventListener('resize', () => {
+                renderVirtualItems();
+            });
+        }
+
+        function createDocListItem(d) {
+            const item = document.createElement('div');
+            const isSelected = currentDocId === d.id;
+            item.className = `relative px-4 py-3 cursor-pointer hover:bg-slate-100 transition border-b border-slate-100 ${isSelected ? 'bg-brand-50/70' : ''}`;
+            item.style.boxSizing = 'border-box';
+            item.style.overflow = 'hidden';
+            item.style.height = virtualList.itemHeight + 'px';
+
+            let html = '';
+            if (isSelected) {
+                html += `<div class="absolute left-0 inset-y-0 w-1 bg-brand-600 rounded-r"></div>`;
+            }
+            const attCount = (d.attachments || []).length;
+            html += `
+                <h4 class="font-bold text-xs text-slate-800 truncate pr-16 leading-tight">${d.title || '无标题'}</h4>
+                <p class="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-snug">${(d.summary || '').replace(/[#*`!]/g, '')}</p>
+                <div class="flex items-center justify-between text-[10px] text-slate-400 mt-1.5">
+                    <span class="px-1.5 py-0.5 rounded bg-slate-100 truncate max-w-[110px]">${d.category || '通用'}</span>
+                    <div class="flex items-center space-x-1.5">
+                        ${attCount > 0 ? `<span class="text-slate-400"><i class="ri-attachment-2 mr-0.5"></i>${attCount}</span>` : ''}
+                        <span class="font-mono text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded font-semibold">${d.code || ''}</span>
+                        <span>${d.updatedAt ? d.updatedAt.split(' ')[0] : ''}</span>
+                    </div>
+                </div>
+            `;
+            item.innerHTML = html;
+            item.onclick = () => openDocView(d.id);
+            return item;
+        }
+
+        function renderVirtualItems() {
+            const { container, spacer, items, itemHeight, buffer } = virtualList;
+            if (!container || !spacer) return;
+
+            const totalHeight = items.length * itemHeight;
+            spacer.style.height = totalHeight + 'px';
+
+            if (items.length === 0) {
+                spacer.innerHTML = '';
+                const empty = document.createElement('div');
+                empty.className = 'p-8 text-center text-xs text-slate-400';
+                empty.textContent = searchQuery ? '没有匹配的条目' : '暂无条目';
+                spacer.appendChild(empty);
+                return;
+            }
+
+            const scrollTop = container.scrollTop;
+            const viewportHeight = container.clientHeight || Math.max(600, window.innerHeight);
+
+            const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - buffer);
+            const endIndex = Math.min(items.length, Math.ceil((scrollTop + viewportHeight) / itemHeight) + buffer);
+
+            spacer.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+
+            for (let i = startIndex; i < endIndex; i++) {
+                const d = items[i];
+                const el = createDocListItem(d);
+                el.style.position = 'absolute';
+                el.style.top = (i * itemHeight) + 'px';
+                el.style.left = '0';
+                el.style.right = '0';
+                fragment.appendChild(el);
+            }
+
+            spacer.appendChild(fragment);
+        }
+
+        function renderVirtualList(list) {
+            virtualList.items = list || [];
+            renderVirtualItems();
+        }
 
         /* ==================== 工具函数 ==================== */
         function encodeRepoPath(path) {
@@ -1085,7 +1276,12 @@
             setLoginButtonLoading(false);
         }
         function hideAuth() { document.getElementById('authOverlay').classList.add('hidden'); }
-        function showApp() { document.getElementById('appShell').classList.remove('hidden'); }
+        function showApp() {
+            document.getElementById('appShell').classList.remove('hidden');
+            requestAnimationFrame(() => {
+                if (virtualList.container) renderVirtualItems();
+            });
+        }
         function hideApp() { document.getElementById('appShell').classList.add('hidden'); }
 
         function collapseAdvancedOptions() {
@@ -1126,11 +1322,15 @@
             }, 2000);
         }
 
-        /* ==================== 本地缓存 ==================== */
-        function loadLocalDocs() {
-            const saved = localStorage.getItem('kb_docs');
+        /* ==================== 本地缓存（IndexedDB） ==================== */
+        async function loadLocalDocs() {
             let rawDocs = [];
-            try { rawDocs = saved ? JSON.parse(saved) : []; } catch (e) { rawDocs = []; }
+            try {
+                const cached = await idbGet('kb_docs_index');
+                if (Array.isArray(cached)) rawDocs = cached;
+            } catch (e) {
+                console.warn('IndexedDB 读取失败', e);
+            }
             rawDocs.forEach(d => {
                 if (!d.code || !d.code.startsWith('CM-')) d.code = generateDocCode();
                 if (!Array.isArray(d.attachments)) d.attachments = [];
@@ -1139,15 +1339,12 @@
             });
             docs = rawDocs;
         }
+
         function saveLocalDocs() {
-            try {
-                localStorage.setItem('kb_docs', JSON.stringify(docs));
-            } catch (e) {
-                console.warn('本地缓存写入失败（可能超出配额）', e);
-            }
             renderCategoryList();
             renderTagList();
             renderDocList();
+            idbSet('kb_docs_index', docs).catch(e => console.warn('IndexedDB 写入失败', e));
         }
 
         function generateDocCode() { return 'CM-' + Math.floor(1000 + Math.random() * 9000); }
@@ -1172,10 +1369,9 @@
                 activeCategory = 'ALL'; activeTag = null;
                 if (window.innerWidth < 768) { currentDocId = null; document.getElementById('mainPanel').classList.add('hidden'); }
                 renderCategoryList(); renderTagList(); renderDocList();
+                if (virtualList.container) virtualList.container.scrollTop = 0;
                 const sidebarScroll = document.getElementById('sidebarScrollContainer');
                 if (sidebarScroll) sidebarScroll.scrollTop = 0;
-                const docListEl = document.getElementById('docList');
-                if (docListEl) docListEl.scrollTop = 0;
                 closeMobileSidebar();
             };
             Object.entries(categories).forEach(([cat, count]) => {
@@ -1187,10 +1383,9 @@
                     activeCategory = cat; activeTag = null;
                     if (window.innerWidth < 768) { currentDocId = null; document.getElementById('mainPanel').classList.add('hidden'); }
                     renderCategoryList(); renderTagList(); renderDocList();
+                    if (virtualList.container) virtualList.container.scrollTop = 0;
                     const sidebarScroll = document.getElementById('sidebarScrollContainer');
                     if (sidebarScroll) sidebarScroll.scrollTop = 0;
-                    const docListEl = document.getElementById('docList');
-                    if (docListEl) docListEl.scrollTop = 0;
                     closeMobileSidebar();
                 };
                 catListEl.appendChild(btn);
@@ -1212,10 +1407,9 @@
                     if (activeTag) activeCategory = 'ALL';
                     if (window.innerWidth < 768) { currentDocId = null; document.getElementById('mainPanel').classList.add('hidden'); }
                     renderCategoryList(); renderTagList(); renderDocList();
+                    if (virtualList.container) virtualList.container.scrollTop = 0;
                     const sidebarScroll = document.getElementById('sidebarScrollContainer');
                     if (sidebarScroll) sidebarScroll.scrollTop = 0;
-                    const docListEl = document.getElementById('docList');
-                    if (docListEl) docListEl.scrollTop = 0;
                     closeMobileSidebar();
                 };
                 tagListEl.appendChild(badge);
@@ -1223,47 +1417,39 @@
         }
 
         function renderDocList() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
+            const query = (searchQuery || '').toLowerCase();
             const filtered = docs.filter(d => {
                 const title = (d.title || '').toLowerCase();
                 const summary = (d.summary || '').toLowerCase();
                 const code = (d.code || '').toLowerCase();
-                const matchSearch = title.includes(query) || summary.includes(query) || code.includes(query) || (d.tags && d.tags.some(t => t.toLowerCase().includes(query)));
+                const matchSearch = !query || title.includes(query) || summary.includes(query) || code.includes(query) || (d.tags && d.tags.some(t => t.toLowerCase().includes(query)));
                 const matchCat = activeCategory === 'ALL' || (d.category || '通用') === activeCategory;
                 const matchTag = !activeTag || (d.tags && d.tags.includes(activeTag));
                 return matchSearch && matchCat && matchTag;
             });
             const listTitleEl = document.getElementById('listTitle');
-            if (query) listTitleEl.textContent = `搜索: "${query}"`;
+            if (searchQuery) listTitleEl.textContent = `搜索: "${searchQuery}"`;
             else if (activeTag) listTitleEl.textContent = `# ${activeTag}`;
             else if (activeCategory !== 'ALL') listTitleEl.textContent = activeCategory;
             else listTitleEl.textContent = '所有条目';
             document.getElementById('docCountText').textContent = `${filtered.length} 个文档`;
-            const docListEl = document.getElementById('docList');
-            docListEl.innerHTML = '';
-            filtered.forEach(d => {
-                const item = document.createElement('div');
-                const isSelected = currentDocId === d.id;
-                item.className = `relative p-4 cursor-pointer hover:bg-slate-100 transition ${isSelected ? 'bg-brand-50/70' : ''}`;
-                let html = '';
-                if (isSelected) html += `<div class="absolute left-0 inset-y-0 w-1 bg-brand-600 rounded-r"></div>`;
-                const attCount = (d.attachments || []).length;
-                html += `
-                    <h4 class="font-bold text-xs text-slate-800 truncate pr-16">${d.title || '无标题'}</h4>
-                    <p class="text-[11px] text-slate-500 line-clamp-2 mt-1">${(d.summary || '').replace(/[#*`!]/g, '')}</p>
-                    <div class="flex items-center justify-between text-[10px] text-slate-400 mt-2">
-                        <span class="px-1.5 py-0.5 rounded bg-slate-100 truncate max-w-[110px]">${d.category || '通用'}</span>
-                        <div class="flex items-center space-x-1.5">
-                            ${attCount > 0 ? `<span class="text-slate-400"><i class="ri-attachment-2 mr-0.5"></i>${attCount}</span>` : ''}
-                            <span class="font-mono text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded font-semibold">${d.code || ''}</span>
-                            <span>${d.updatedAt ? d.updatedAt.split(' ')[0] : ''}</span>
-                        </div>
-                    </div>
-                `;
-                item.innerHTML = html;
-                item.onclick = () => openDocView(d.id);
-                docListEl.appendChild(item);
-            });
+            renderVirtualList(filtered);
+        }
+
+        function performSearch() {
+            searchQuery = (document.getElementById('searchInput').value || '').trim();
+            showLoading(searchQuery ? '正在搜索...' : '正在加载列表...');
+            setTimeout(() => {
+                // 移动端：搜索后自动回到列表页，确保结果可见
+                if (window.innerWidth < 768) {
+                    currentDocId = null;
+                    previousDocId = null;
+                    document.getElementById('mainPanel').classList.add('hidden');
+                }
+                renderDocList();
+                if (virtualList.container) virtualList.container.scrollTop = 0;
+                hideLoading();
+            }, 60);
         }
 
         function renderEditAttachments() {
@@ -1910,17 +2096,28 @@
         function setupEventListeners() {
             const searchInput = document.getElementById('searchInput');
             const clearSearchBtn = document.getElementById('clearSearchBtn');
-            function handleSearchInput() {
-                const val = searchInput.value;
-                if (val.length > 0) clearSearchBtn.classList.remove('hidden');
+            const searchSubmitBtn = document.getElementById('searchSubmitBtn');
+
+            searchInput.oninput = () => {
+                if (searchInput.value.length > 0) clearSearchBtn.classList.remove('hidden');
                 else clearSearchBtn.classList.add('hidden');
-                renderDocList();
-            }
-            searchInput.oninput = handleSearchInput;
+            };
+
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performSearch();
+                }
+            });
+
+            searchSubmitBtn.onclick = () => performSearch();
+
             clearSearchBtn.onclick = () => {
                 searchInput.value = '';
                 clearSearchBtn.classList.add('hidden');
+                searchQuery = '';
                 renderDocList();
+                if (virtualList.container) virtualList.container.scrollTop = 0;
                 searchInput.focus();
             };
 
@@ -1939,6 +2136,7 @@
                 isEditing = true;
                 editAttachments = [];
                 renderDocList();
+                if (virtualList.container) virtualList.container.scrollTop = 0;
                 const mainPanel = document.getElementById('mainPanel');
                 mainPanel.classList.remove('hidden');
                 document.getElementById('emptyState').classList.add('hidden');
@@ -1991,6 +2189,7 @@
                     if (window.innerWidth < 768) document.getElementById('mainPanel').classList.add('hidden');
                     else document.getElementById('emptyState').classList.remove('hidden');
                     renderDocList();
+                    if (virtualList.container) virtualList.container.scrollTop = 0;
                 }
                 checkBackToTopBtnVisibility();
             };
@@ -2002,6 +2201,7 @@
                 previousDocId = null;
                 document.getElementById('mainPanel').classList.add('hidden');
                 renderDocList();
+                if (virtualList.container) virtualList.container.scrollTop = 0;
                 checkBackToTopBtnVisibility();
             };
 
@@ -2105,6 +2305,7 @@
                     } else {
                         document.getElementById('emptyState').classList.remove('hidden');
                     }
+                    if (virtualList.container) virtualList.container.scrollTop = 0;
                     showToast('删除成功', 'success');
                     checkBackToTopBtnVisibility();
                 } catch (err) {
@@ -2207,14 +2408,16 @@
             });
             if (!ok) return;
             localStorage.removeItem('kb_gh_config');
-            localStorage.removeItem('kb_docs');
+            await idbDel('kb_docs_index');
             docs = [];
             docContentCache = {};
             currentDocId = null;
             previousDocId = null;
             editAttachments = [];
+            searchQuery = '';
             githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
             document.getElementById('authTokInput').value = '';
+            document.getElementById('searchInput').value = '';
             document.getElementById('githubDropdown').classList.add('hidden');
             hideLoading();
             hideApp();
@@ -2225,30 +2428,36 @@
             renderDocList();
         }
 
-        window.onload = function() {
+        window.onload = async function() {
             loadGithubConfig();
-            if (!githubConfig.token) {
-                hideApp();
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                fillAdvancedOptions();
-                showAuth();
-            } else {
-                hideAuth();
-                setLoadingMode('auth');
-                document.getElementById('loadingOverlay').classList.remove('hidden');
-                updateLoadingText(DEFAULT_LOADING_TEXT);
-                loadLocalDocs();
-                renderCategoryList();
-                renderTagList();
-                renderDocList();
-                pullFromGithub();
-            }
+
             setupConfirmModal();
             setupAdvancedToggle();
             setupEventListeners();
             setupImageHandling();
             setupImageViewerModal();
             setupGlobalBackToTop();
+            initVirtualList();
+
+            if (!githubConfig.token) {
+                hideApp();
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                fillAdvancedOptions();
+                showAuth();
+                return;
+            }
+
+            hideAuth();
+            setLoadingMode('auth');
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            updateLoadingText(DEFAULT_LOADING_TEXT);
+
+            await loadLocalDocs();
+            renderCategoryList();
+            renderTagList();
+            renderDocList();
+
+            pullFromGithub();
         };
 
         document.getElementById('toggleTokenVisibility').addEventListener('click', () => {
@@ -2297,12 +2506,10 @@
                     text = result.text;
                 } catch (metaErr) {
                     if (metaErr.status === 404) {
-                        // 全新知识库：初始化空索引
                         setLoadingMode('auth');
                         showLoading('正在初始化知识库...');
                         docs = [];
                         docContentCache = {};
-                        saveLocalDocs();
                         try {
                             await uploadMainIndex([]);
                         } catch (e) {
@@ -2311,6 +2518,7 @@
                         hideLoading();
                         hideAuth();
                         showApp();
+                        saveLocalDocs();
                         if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
                         return;
                     }
@@ -2326,17 +2534,17 @@
                     if (d.hasContent === undefined) d.hasContent = true;
                 });
                 docs = rawDocs;
-                saveLocalDocs();
-                updateSyncStatus('success', '已同步');
                 hideLoading();
                 hideAuth();
                 showApp();
+                saveLocalDocs();
+                updateSyncStatus('success', '已同步');
                 if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
             } catch (e) {
                 const status = e.status;
                 if (status === 401 || status === 403) {
                     docs = [];
-                    localStorage.removeItem('kb_docs');
+                    await idbDel('kb_docs_index');
                     renderCategoryList();
                     renderTagList();
                     renderDocList();
