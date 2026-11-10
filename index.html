@@ -62,6 +62,14 @@
             #docList {
                 padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
             }
+            /* 文档详情页：附件区域右侧避让回到顶部按钮 */
+            #viewAttachments {
+                padding-right: 4.5rem;
+            }
+            /* 文档详情页滚动内容底部留白，确保最后内容能滚出按钮区域 */
+            #viewScrollContainer > div {
+                padding-bottom: 5rem;
+            }
         }
 
         #backToTopBtn {
@@ -301,7 +309,7 @@
                 </div>
             </div>
 
-            <!-- 纤细一体式搜索框：外层 min-w-0 保证移动端可收缩 -->
+            <!-- 纤细一体式搜索框 -->
             <div class="flex-1 min-w-0 max-w-lg mx-2 sm:mx-5">
                 <div class="flex items-center w-full h-9 rounded-full bg-slate-800/60 border border-slate-700/50 focus-within:ring-1 focus-within:ring-brand-500/60 focus-within:border-brand-500/40 focus-within:bg-slate-800/90 transition-all duration-200 pl-3 sm:pl-3.5 pr-1">
                     <i class="ri-search-line text-slate-500 text-[13px] flex-shrink-0"></i>
