@@ -237,7 +237,7 @@
     <div id="appShell" class="hidden flex flex-col flex-1 min-h-0 w-full">
         <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/50 backdrop-blur-md z-[100] hidden lg:hidden transition-opacity"></div>
 
-        <header class="h-14 w-full bg-slate-900 border-b border-slate-800 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 z-50 shadow-md relative">
+        <header class="h-14 w-full bg-slate-900 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 z-50 shadow-md relative">
             <div class="flex items-center space-x-2 flex-shrink-0">
                 <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
                     <i class="ri-menu-line text-xl"></i>
@@ -303,10 +303,10 @@
         </header>
 
         <div class="flex-1 flex overflow-hidden relative w-full min-h-0">
-            <!-- 侧边栏：PC 实色深底 / 移动端半透明毛玻璃 -->
-            <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-slate-900/80 backdrop-blur-2xl lg:bg-slate-900 lg:backdrop-blur-none border-r border-slate-800 z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
-                <!-- 移动端 logo 区：透明，继承毛玻璃背景 -->
-                <div class="lg:hidden flex items-center space-x-2.5 px-4 h-14 border-b border-slate-800/80 bg-transparent flex-shrink-0">
+            <!-- 侧边栏：PC 实色深底 / 移动端近乎实色深底（轻微模糊） -->
+            <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-slate-900/95 backdrop-blur-xl lg:bg-slate-900 lg:backdrop-blur-none z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
+                <!-- 移动端 logo 区：透明，继承背景 -->
+                <div class="lg:hidden flex items-center space-x-2.5 px-4 h-14 bg-transparent flex-shrink-0">
                     <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="sidebar-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
@@ -593,8 +593,8 @@
             } catch (e) { console.warn('IndexedDB 删除失败', e); }
         }
 
-        /* ==================== 虚拟列表 ==================== */
-        const virtualList = { container: null, spacer: null, items: [], itemHeight: 122, buffer: 8, rafPending: false };
+        /* ==================== 虚拟列表（节点池复用） ==================== */
+        const virtualList = { container: null, spacer: null, items: [], itemHeight: 122, buffer: 10, rafPending: false, nodes: new Map() };
 
         function initVirtualList() {
             const container = document.getElementById('docList');
@@ -611,6 +611,7 @@
             container.appendChild(spacer);
             virtualList.container = container;
             virtualList.spacer = spacer;
+            virtualList.nodes.clear();
             container.addEventListener('scroll', () => {
                 if (virtualList.rafPending) return;
                 virtualList.rafPending = true;
@@ -618,7 +619,15 @@
                     virtualList.rafPending = false;
                     renderVirtualItems();
                 });
-            });
+            }, { passive: true });
+            container.addEventListener('touchend', () => {
+                if (virtualList.rafPending) return;
+                virtualList.rafPending = true;
+                requestAnimationFrame(() => {
+                    virtualList.rafPending = false;
+                    renderVirtualItems();
+                });
+            }, { passive: true });
             window.addEventListener('resize', () => renderVirtualItems());
         }
 
@@ -626,6 +635,7 @@
             const wrapper = document.createElement('div');
             const isSelected = currentDocId === d.id;
             wrapper.style.cssText = `position:absolute; left:0; right:0; height:${virtualList.itemHeight}px; padding:6px 10px; box-sizing:border-box;`;
+            wrapper.dataset.docId = d.id;
 
             const catName = d.category || '通用';
             const catChip = getCategoryChipClass();
@@ -661,35 +671,61 @@
         }
 
         function renderVirtualItems() {
-            const { container, spacer, items, itemHeight, buffer } = virtualList;
+            const { container, spacer, items, itemHeight, buffer, nodes } = virtualList;
             if (!container || !spacer) return;
             const totalHeight = items.length * itemHeight;
             spacer.style.height = totalHeight + 'px';
+
             if (items.length === 0) {
-                spacer.innerHTML = '';
-                const empty = document.createElement('div');
-                empty.className = 'flex flex-col items-center justify-center py-20 px-6 text-center';
-                empty.innerHTML = `<i class="ri-inbox-line text-3xl text-slate-300 mb-2.5"></i><p class="text-[13px] text-slate-400">${searchQuery ? '没有匹配的条目' : '暂无条目'}</p>`;
-                spacer.appendChild(empty);
+                nodes.forEach(node => { try { if (node.parentNode) node.parentNode.removeChild(node); } catch (e) {} });
+                nodes.clear();
+                if (!spacer.querySelector('[data-virtual-empty]')) {
+                    const empty = document.createElement('div');
+                    empty.setAttribute('data-virtual-empty', '1');
+                    empty.className = 'flex flex-col items-center justify-center py-20 px-6 text-center';
+                    empty.innerHTML = `<i class="ri-inbox-line text-3xl text-slate-300 mb-2.5"></i><p class="text-[13px] text-slate-400">${searchQuery ? '没有匹配的条目' : '暂无条目'}</p>`;
+                    spacer.appendChild(empty);
+                }
                 return;
             }
+
+            const emptyEl = spacer.querySelector('[data-virtual-empty]');
+            if (emptyEl) emptyEl.remove();
+
             const scrollTop = container.scrollTop;
             const viewportHeight = container.clientHeight || Math.max(600, window.innerHeight);
             const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - buffer);
             const endIndex = Math.min(items.length, Math.ceil((scrollTop + viewportHeight) / itemHeight) + buffer);
-            spacer.innerHTML = '';
-            const fragment = document.createDocumentFragment();
+
+            // 删除范围外的节点（回收），保留视口内节点，避免触摸中断
+            nodes.forEach((node, index) => {
+                if (index < startIndex || index >= endIndex) {
+                    try { if (node.parentNode) node.parentNode.removeChild(node); } catch (e) {}
+                    nodes.delete(index);
+                }
+            });
+
+            // 添加缺失节点
+            let fragment = null;
             for (let i = startIndex; i < endIndex; i++) {
+                if (nodes.has(i)) continue;
                 const d = items[i];
                 const el = createDocListItem(d);
+                el.style.position = 'absolute';
                 el.style.top = (i * itemHeight) + 'px';
+                el.style.left = '0';
+                el.style.right = '0';
+                nodes.set(i, el);
+                if (!fragment) fragment = document.createDocumentFragment();
                 fragment.appendChild(el);
             }
-            spacer.appendChild(fragment);
+            if (fragment) spacer.appendChild(fragment);
         }
 
         function renderVirtualList(list) {
             virtualList.items = list || [];
+            if (virtualList.spacer) virtualList.spacer.innerHTML = '';
+            virtualList.nodes.clear();
             renderVirtualItems();
         }
 
