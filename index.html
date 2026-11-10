@@ -7,40 +7,17 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='g1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='100%' stop-color='%230072ff'/></linearGradient><linearGradient id='g2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%230052d4'/><stop offset='100%' stop-color='%234364f7'/></linearGradient><linearGradient id='g3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='50%' stop-color='%230072ff'/><stop offset='100%' stop-color='%230052d4'/></linearGradient></defs><g><path d='M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z' fill='url(%23g2)'/><path d='M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z' fill='url(%23g1)' opacity='0.9'/><path d='M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z' fill='url(%23g3)'/><path d='M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z' fill='%23ffffff'/></g></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                        }
-                    }
-                }
-            }
-        }
+        tailwind.config = { theme: { extend: { colors: { brand: { 50:'#eff6ff',100:'#dbeafe',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8' } } } } };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; background: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
-
         button, a, input { -webkit-tap-highlight-color: transparent; }
-        @media (hover: hover) {
-            .no-sticky-hover:hover { background-color: rgb(30 41 59); }
-        }
+        @media (hover: hover) { .no-sticky-hover:hover { background-color: rgb(30 41 59); } }
         .no-sticky-hover:active { background-color: rgb(30 41 59) !important; }
-
-        .markdown-body {
-            word-break: break-word;
-            overflow-wrap: break-word;
-        }
-
+        .markdown-body { word-break: break-word; overflow-wrap: break-word; }
         .markdown-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); background: #f1f5f9; cursor: zoom-in; }
         .markdown-body p { margin-bottom: 0.75rem; line-height: 1.625; color: inherit; }
         .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 700; margin-top: 1.25rem; margin-bottom: 0.5rem; color: inherit; }
@@ -53,79 +30,26 @@
         .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
-
-        /* 文档列表：默认无额外底边距，仅在移动端增加底部安全区 */
-        #docList {
-            -webkit-overflow-scrolling: touch;
-        }
+        #docList { -webkit-overflow-scrolling: touch; }
         @media (max-width: 767px) {
-            #docList {
-                padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
-            }
-            /* 文档详情页：附件区域右侧避让回到顶部按钮 */
-            #viewAttachments {
-                padding-right: 4.5rem;
-            }
-            /* 文档详情页滚动内容底部留白，确保最后内容能滚出按钮区域 */
-            #viewScrollContainer > div {
-                padding-bottom: 5rem;
-            }
+            #docList { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); }
+            #viewAttachments { padding-right: 4.5rem; }
+            #viewScrollContainer > div { padding-bottom: 5rem; }
         }
-
-        #backToTopBtn {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            outline: none;
+        #backToTopBtn { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; outline: none; }
+        #backToTopBtn:active, #backToTopBtn:focus, #backToTopBtn:focus-visible, #backToTopBtn:hover {
+            background-color: rgb(30 41 59) !important; outline: none !important; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25) !important;
         }
-        #backToTopBtn:active,
-        #backToTopBtn:focus,
-        #backToTopBtn:focus-visible,
-        #backToTopBtn:hover {
-            background-color: rgb(30 41 59) !important;
-            outline: none !important;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25) !important;
-        }
-
-        #advancedOptions {
-            transition: max-height 0.3s ease, opacity 0.2s ease;
-            overflow: hidden;
-            max-height: 0;
-            opacity: 0;
-        }
-        #advancedOptions.is-open {
-            max-height: 320px;
-            opacity: 1;
-        }
-        #advancedChevron {
-            transition: transform 0.25s ease;
-        }
-        #advancedChevron.is-open {
-            transform: rotate(180deg);
-        }
-
-        .login-progress-fill {
-            width: 40%;
-            animation: loginProgressMove 1.3s ease-in-out infinite;
-        }
-        @keyframes loginProgressMove {
-            0% { left: -40%; }
-            100% { left: 100%; }
-        }
-
-        #syncRefreshBtn {
-            -webkit-tap-highlight-color: transparent;
-        }
-        #syncRefreshBtn:active {
-            transform: scale(0.9);
-        }
-
-        #confirmModal .confirm-card {
-            animation: confirmPop 0.18s ease-out;
-        }
-        @keyframes confirmPop {
-            0% { opacity: 0; transform: scale(0.96) translateY(6px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
+        #advancedOptions { transition: max-height 0.3s ease, opacity 0.2s ease; overflow: hidden; max-height: 0; opacity: 0; }
+        #advancedOptions.is-open { max-height: 320px; opacity: 1; }
+        #advancedChevron { transition: transform 0.25s ease; }
+        #advancedChevron.is-open { transform: rotate(180deg); }
+        .login-progress-fill { width: 40%; animation: loginProgressMove 1.3s ease-in-out infinite; }
+        @keyframes loginProgressMove { 0% { left: -40%; } 100% { left: 100%; } }
+        #syncRefreshBtn { -webkit-tap-highlight-color: transparent; }
+        #syncRefreshBtn:active { transform: scale(0.9); }
+        #confirmModal .confirm-card { animation: confirmPop 0.18s ease-out; }
+        @keyframes confirmPop { 0% { opacity: 0; transform: scale(0.96) translateY(6px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
     </style>
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
@@ -189,43 +113,22 @@
                         </svg>
                         <span class="mt-4 text-xl sm:mt-0 sm:text-2xl font-extrabold tracking-tight text-white whitespace-nowrap">椿沐智库</span>
                     </div>
-                    <p class="sm:hidden text-center text-xs text-slate-400 leading-relaxed mt-4">
-                        云端知识库 · 安全可控 · 随时访问
-                    </p>
+                    <p class="sm:hidden text-center text-xs text-slate-400 leading-relaxed mt-4">云端知识库 · 安全可控 · 随时访问</p>
                     <div class="hidden sm:block">
-                        <h2 class="text-3xl lg:text-4xl font-light text-white leading-snug mt-14">
-                            让知识沉淀，<br class="hidden lg:block">让经验传承
-                        </h2>
-                        <p class="text-sm text-slate-400 leading-relaxed mt-5 max-w-md">
-                            安全连接你的 GitHub 知识库，支持 Markdown 编辑、多格式附件上传、分类与标签检索，随时随地访问你的知识资产。
-                        </p>
+                        <h2 class="text-3xl lg:text-4xl font-light text-white leading-snug mt-14">让知识沉淀，<br class="hidden lg:block">让经验传承</h2>
+                        <p class="text-sm text-slate-400 leading-relaxed mt-5 max-w-md">安全连接你的 GitHub 知识库，支持 Markdown 编辑、多格式附件上传、分类与标签检索，随时随地访问你的知识资产。</p>
                         <div class="space-y-6 mt-14">
                             <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0">
-                                    <i class="ri-file-text-line text-lg text-brand-400"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-white mb-1">索引与正文分离</h3>
-                                    <p class="text-xs text-slate-500 leading-relaxed">主索引轻量加载，正文按需拉取，支撑万条级知识库</p>
-                                </div>
+                                <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0"><i class="ri-file-text-line text-lg text-brand-400"></i></div>
+                                <div><h3 class="text-sm font-medium text-white mb-1">索引与正文分离</h3><p class="text-xs text-slate-500 leading-relaxed">主索引轻量加载，正文按需拉取，支撑万条级知识库</p></div>
                             </div>
                             <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0">
-                                    <i class="ri-attachment-2 text-lg text-brand-400"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-white mb-1">多格式附件</h3>
-                                    <p class="text-xs text-slate-500 leading-relaxed">支持表格、Word、PPT、PDF、压缩包等格式，按类型分类存放</p>
-                                </div>
+                                <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0"><i class="ri-attachment-2 text-lg text-brand-400"></i></div>
+                                <div><h3 class="text-sm font-medium text-white mb-1">多格式附件</h3><p class="text-xs text-slate-500 leading-relaxed">支持表格、Word、PPT、PDF、压缩包等格式，按类型分类存放</p></div>
                             </div>
                             <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0">
-                                    <i class="ri-search-eye-line text-lg text-brand-400"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-white mb-1">智能检索</h3>
-                                    <p class="text-xs text-slate-500 leading-relaxed">按标题、摘要、编码、标签快速定位知识条目</p>
-                                </div>
+                                <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0"><i class="ri-search-eye-line text-lg text-brand-400"></i></div>
+                                <div><h3 class="text-sm font-medium text-white mb-1">智能检索</h3><p class="text-xs text-slate-500 leading-relaxed">按标题、摘要、编码、标签快速定位知识条目</p></div>
                             </div>
                         </div>
                     </div>
@@ -256,8 +159,7 @@
                             </div>
                         </button>
                         <div>
-                            <button type="button" id="toggleAdvancedBtn"
-                                class="group flex items-center space-x-1.5 text-[11px] text-slate-500 hover:text-slate-300 transition-colors">
+                            <button type="button" id="toggleAdvancedBtn" class="group flex items-center space-x-1.5 text-[11px] text-slate-500 hover:text-slate-300 transition-colors">
                                 <i id="advancedChevron" class="ri-arrow-down-s-line text-sm"></i>
                                 <span class="tracking-widest uppercase">高级选项</span>
                             </button>
@@ -308,8 +210,6 @@
                     <span class="font-extrabold text-base tracking-tight text-white whitespace-nowrap">椿沐智库</span>
                 </div>
             </div>
-
-            <!-- 纤细一体式搜索框 -->
             <div class="flex-1 min-w-0 max-w-lg mx-2 sm:mx-5">
                 <div class="flex items-center w-full h-9 rounded-full bg-slate-800/60 border border-slate-700/50 focus-within:ring-1 focus-within:ring-brand-500/60 focus-within:border-brand-500/40 focus-within:bg-slate-800/90 transition-all duration-200 pl-3 sm:pl-3.5 pr-1">
                     <i class="ri-search-line text-slate-500 text-[13px] flex-shrink-0"></i>
@@ -324,7 +224,6 @@
                     </button>
                 </div>
             </div>
-
             <div class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
                 <div class="hidden sm:block relative w-[120px] h-7">
                     <div id="syncStatus" class="absolute right-0 top-0 flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 transition-colors">
@@ -547,7 +446,6 @@
     </div>
 
     <script>
-        /* ==================== 全局状态 ==================== */
         let docs = [];
         let docContentCache = {};
         let currentDocId = null;
@@ -566,16 +464,9 @@
         const MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
         const DOWNLOAD_REVOKE_DELAY = 60000;
         const DOCS_FOLDER = 'docs';
-        const ATTACHMENT_FOLDERS = {
-            table: '表格',
-            word: 'Word',
-            ppt: 'PPT',
-            pdf: 'PDF',
-            archive: '压缩包',
-            other: '其他'
-        };
+        const ATTACHMENT_FOLDERS = { table: '表格', word: 'Word', ppt: 'PPT', pdf: 'PDF', archive: '压缩包', other: '其他' };
 
-        /* ==================== IndexedDB 封装 ==================== */
+        /* ==================== IndexedDB ==================== */
         const IDB_NAME = 'chunmu_kb';
         const IDB_VERSION = 1;
         const IDB_STORE = 'cache';
@@ -584,16 +475,11 @@
         function openIDB() {
             if (_idbPromise) return _idbPromise;
             _idbPromise = new Promise((resolve, reject) => {
-                if (!('indexedDB' in window)) {
-                    reject(new Error('当前浏览器不支持 IndexedDB'));
-                    return;
-                }
+                if (!('indexedDB' in window)) { reject(new Error('当前浏览器不支持 IndexedDB')); return; }
                 const req = indexedDB.open(IDB_NAME, IDB_VERSION);
                 req.onupgradeneeded = () => {
                     const db = req.result;
-                    if (!db.objectStoreNames.contains(IDB_STORE)) {
-                        db.createObjectStore(IDB_STORE);
-                    }
+                    if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
                 };
                 req.onsuccess = () => resolve(req.result);
                 req.onerror = () => reject(req.error);
@@ -611,10 +497,7 @@
                     req.onsuccess = () => resolve(req.result);
                     req.onerror = () => reject(req.error);
                 });
-            } catch (e) {
-                console.warn('IndexedDB 读取失败', e);
-                return undefined;
-            }
+            } catch (e) { console.warn('IndexedDB 读取失败', e); return undefined; }
         }
 
         async function idbSet(key, value) {
@@ -638,39 +521,26 @@
                     req.onsuccess = () => resolve();
                     req.onerror = () => reject(req.error);
                 });
-            } catch (e) {
-                console.warn('IndexedDB 删除失败', e);
-            }
+            } catch (e) { console.warn('IndexedDB 删除失败', e); }
         }
 
         /* ==================== 虚拟列表 ==================== */
-        const virtualList = {
-            container: null,
-            spacer: null,
-            items: [],
-            itemHeight: 96,
-            buffer: 8,
-            rafPending: false
-        };
+        const virtualList = { container: null, spacer: null, items: [], itemHeight: 96, buffer: 8, rafPending: false };
 
         function initVirtualList() {
             const container = document.getElementById('docList');
             if (!container) return;
-
             container.innerHTML = '';
             container.style.position = 'relative';
             container.style.overflowY = 'auto';
             container.style.overflowX = 'hidden';
-
             const spacer = document.createElement('div');
             spacer.style.position = 'relative';
             spacer.style.width = '100%';
             spacer.style.height = '0px';
             container.appendChild(spacer);
-
             virtualList.container = container;
             virtualList.spacer = spacer;
-
             container.addEventListener('scroll', () => {
                 if (virtualList.rafPending) return;
                 virtualList.rafPending = true;
@@ -679,10 +549,7 @@
                     renderVirtualItems();
                 });
             });
-
-            window.addEventListener('resize', () => {
-                renderVirtualItems();
-            });
+            window.addEventListener('resize', () => renderVirtualItems());
         }
 
         function createDocListItem(d) {
@@ -692,11 +559,8 @@
             item.style.boxSizing = 'border-box';
             item.style.overflow = 'hidden';
             item.style.height = virtualList.itemHeight + 'px';
-
             let html = '';
-            if (isSelected) {
-                html += `<div class="absolute left-0 inset-y-0 w-1 bg-brand-600 rounded-r"></div>`;
-            }
+            if (isSelected) html += `<div class="absolute left-0 inset-y-0 w-1 bg-brand-600 rounded-r"></div>`;
             const attCount = (d.attachments || []).length;
             html += `
                 <h4 class="font-bold text-xs text-slate-800 truncate pr-16 leading-tight">${d.title || '无标题'}</h4>
@@ -718,10 +582,8 @@
         function renderVirtualItems() {
             const { container, spacer, items, itemHeight, buffer } = virtualList;
             if (!container || !spacer) return;
-
             const totalHeight = items.length * itemHeight;
             spacer.style.height = totalHeight + 'px';
-
             if (items.length === 0) {
                 spacer.innerHTML = '';
                 const empty = document.createElement('div');
@@ -730,16 +592,12 @@
                 spacer.appendChild(empty);
                 return;
             }
-
             const scrollTop = container.scrollTop;
             const viewportHeight = container.clientHeight || Math.max(600, window.innerHeight);
-
             const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - buffer);
             const endIndex = Math.min(items.length, Math.ceil((scrollTop + viewportHeight) / itemHeight) + buffer);
-
             spacer.innerHTML = '';
             const fragment = document.createDocumentFragment();
-
             for (let i = startIndex; i < endIndex; i++) {
                 const d = items[i];
                 const el = createDocListItem(d);
@@ -749,7 +607,6 @@
                 el.style.right = '0';
                 fragment.appendChild(el);
             }
-
             spacer.appendChild(fragment);
         }
 
@@ -758,10 +615,8 @@
             renderVirtualItems();
         }
 
-        /* ==================== 工具函数 ==================== */
-        function encodeRepoPath(path) {
-            return path.split('/').map(encodeURIComponent).join('/');
-        }
+        /* ==================== 工具 ==================== */
+        function encodeRepoPath(path) { return path.split('/').map(encodeURIComponent).join('/'); }
 
         function makeSummary(content, maxLen = 150) {
             if (!content) return '';
@@ -803,18 +658,13 @@
                         canvas.width = img.naturalWidth || img.width;
                         canvas.height = img.naturalHeight || img.height;
                         const ctx = canvas.getContext('2d');
-                        if (targetMime === 'image/jpeg') {
-                            ctx.fillStyle = '#ffffff';
-                            ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        }
+                        if (targetMime === 'image/jpeg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
                         ctx.drawImage(img, 0, 0);
                         canvas.toBlob((blob) => {
                             if (blob && blob.size > 0) resolve(blob);
                             else reject(new Error('图片转换失败'));
                         }, targetMime, targetMime === 'image/jpeg' ? 0.92 : undefined);
-                    } catch (e) {
-                        reject(new Error('图片转换失败'));
-                    }
+                    } catch (e) { reject(new Error('图片转换失败')); }
                 };
                 img.onerror = () => reject(new Error('图片加载失败'));
                 img.src = dataUrl;
@@ -853,47 +703,20 @@
 
         function guessMimeByName(name) {
             const ext = (name.split('.').pop() || '').toLowerCase();
-            const map = {
-                pdf: 'application/pdf',
-                doc: 'application/msword',
-                docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                xls: 'application/vnd.ms-excel',
-                xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                ppt: 'application/vnd.ms-powerpoint',
-                pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                csv: 'text/csv',
-                txt: 'text/plain',
-                md: 'text/markdown',
-                json: 'application/json',
-                zip: 'application/zip',
-                rar: 'application/vnd.rar',
-                '7z': 'application/x-7z-compressed',
-                png: 'image/png',
-                jpg: 'image/jpeg',
-                jpeg: 'image/jpeg',
-                gif: 'image/gif',
-                webp: 'image/webp',
-                svg: 'image/svg+xml'
-            };
+            const map = { pdf:'application/pdf',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',xls:'application/vnd.ms-excel',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',ppt:'application/vnd.ms-powerpoint',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',csv:'text/csv',txt:'text/plain',md:'text/markdown',json:'application/json',zip:'application/zip',rar:'application/vnd.rar','7z':'application/x-7z-compressed',png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp',svg:'image/svg+xml' };
             return map[ext] || 'application/octet-stream';
         }
 
-        /* ==================== GitHub 文件读取 ==================== */
+        /* ==================== GitHub 文件读写 ==================== */
         async function fetchGithubFileRaw(path) {
             if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
             const apiPath = encodeRepoPath(path);
             const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                headers: {
-                    'Authorization': `token ${githubConfig.token}`,
-                    'Accept': 'application/vnd.github.v3.raw'
-                }
+                headers: { 'Authorization': `token ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
             });
             if (!res.ok) {
                 let errMsg = `获取文件失败 (${res.status})`;
-                try {
-                    const errJson = await res.json();
-                    if (errJson && errJson.message) errMsg += '：' + errJson.message;
-                } catch (e) {}
+                try { const errJson = await res.json(); if (errJson && errJson.message) errMsg += '：' + errJson.message; } catch (e) {}
                 throw new Error(errMsg);
             }
             const blob = await res.blob();
@@ -919,10 +742,7 @@
                 text = decodeURIComponent(escape(atob(meta.content)));
             } else {
                 const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    headers: {
-                        'Authorization': `token ${githubConfig.token}`,
-                        'Accept': 'application/vnd.github.v3.raw'
-                    }
+                    headers: { 'Authorization': `token ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
                 });
                 if (!rawRes.ok) throw new Error(`获取内容失败 (${rawRes.status})`);
                 text = await rawRes.text();
@@ -943,10 +763,7 @@
                 text = decodeURIComponent(escape(atob(meta.content)));
             } else {
                 const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    headers: {
-                        'Authorization': `token ${githubConfig.token}`,
-                        'Accept': 'application/vnd.github.v3.raw'
-                    }
+                    headers: { 'Authorization': `token ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
                 });
                 if (!rawRes.ok) throw new Error(`获取内容失败 (${rawRes.status})`);
                 text = await rawRes.text();
@@ -968,10 +785,7 @@
                     jsonStr = decodeURIComponent(escape(atob(meta.content)));
                 } else {
                     const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                        headers: {
-                            'Authorization': `token ${githubConfig.token}`,
-                            'Accept': 'application/vnd.github.v3.raw'
-                        }
+                        headers: { 'Authorization': `token ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
                     });
                     if (!rawRes.ok) return null;
                     jsonStr = await rawRes.text();
@@ -979,58 +793,35 @@
                 if (!jsonStr) return null;
                 const obj = JSON.parse(jsonStr);
                 return obj.data || null;
-            } catch (e) {
-                return null;
-            }
+            } catch (e) { return null; }
         }
 
-        /* ==================== 文档正文上传 / 读取 / 删除 ==================== */
+        /* ==================== 文档正文 ==================== */
         async function uploadDocContent(id, content, meta = {}, retryCount = 0) {
             if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
             const path = `${DOCS_FOLDER}/${id}.json`;
             const apiPath = encodeRepoPath(path);
-            const payload = {
-                id,
-                title: meta.title || '',
-                content,
-                updatedAt: meta.updatedAt || new Date().toLocaleString()
-            };
-            const jsonStr = JSON.stringify(payload);
-            const contentEncoded = btoa(unescape(encodeURIComponent(jsonStr)));
-
+            const payload = { id, title: meta.title || '', content, updatedAt: meta.updatedAt || new Date().toLocaleString() };
+            const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
             let sha = '';
             try {
                 const checkRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                     headers: { 'Authorization': `token ${githubConfig.token}` }
                 });
-                if (checkRes.ok) {
-                    const checkData = await checkRes.json();
-                    sha = checkData.sha;
-                }
+                if (checkRes.ok) { const checkData = await checkRes.json(); sha = checkData.sha; }
             } catch (e) {}
-
-            const body = {
-                message: `kb: update doc content ${id}`,
-                content: contentEncoded
-            };
+            const body = { message: `kb: update doc content ${id}`, content: contentEncoded };
             if (sha) body.sha = sha;
-
             const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                 method: 'PUT',
-                headers: {
-                    'Authorization': `token ${githubConfig.token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
-
             if (res.ok) return true;
-
             if (res.status === 409 && retryCount < 1) {
                 await new Promise(r => setTimeout(r, 300));
                 return uploadDocContent(id, content, meta, retryCount + 1);
             }
-
             const errJson = await res.json().catch(() => ({}));
             throw new Error(errJson.message || '上传正文失败');
         }
@@ -1045,8 +836,7 @@
 
         async function deleteDocContentFile(id) {
             if (!githubConfig.token || !githubConfig.repo) return;
-            const path = `${DOCS_FOLDER}/${id}.json`;
-            const apiPath = encodeRepoPath(path);
+            const apiPath = encodeRepoPath(`${DOCS_FOLDER}/${id}.json`);
             try {
                 const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                     headers: { 'Authorization': `token ${githubConfig.token}` }
@@ -1055,24 +845,17 @@
                     const fileData = await getRes.json();
                     await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                         method: 'DELETE',
-                        headers: {
-                            'Authorization': `token ${githubConfig.token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            message: `kb: delete doc content ${id}`,
-                            sha: fileData.sha
-                        })
+                        headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: `kb: delete doc content ${id}`, sha: fileData.sha })
                     });
                 }
             } catch (e) {}
         }
 
-        /* ==================== 主索引上传 ==================== */
+        /* ==================== 主索引 ==================== */
         async function uploadMainIndex(indexDocs) {
             if (!githubConfig.token || !githubConfig.repo) return;
             updateSyncStatus('loading', '同步中');
-
             try {
                 if (!githubConfig.sha) {
                     try {
@@ -1080,26 +863,16 @@
                         const checkRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                             headers: { 'Authorization': `token ${githubConfig.token}` }
                         });
-                        if (checkRes.ok) {
-                            const checkData = await checkRes.json();
-                            githubConfig.sha = checkData.sha;
-                        }
+                        if (checkRes.ok) { const checkData = await checkRes.json(); githubConfig.sha = checkData.sha; }
                     } catch (ex) {}
                 }
-                const jsonStr = JSON.stringify(indexDocs, null, 2);
-                const contentEncoded = btoa(unescape(encodeURIComponent(jsonStr)));
-                const body = {
-                    message: `kb: update index ${new Date().toLocaleString()}`,
-                    content: contentEncoded
-                };
+                const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(indexDocs, null, 2))));
+                const body = { message: `kb: update index ${new Date().toLocaleString()}`, content: contentEncoded };
                 if (githubConfig.sha) body.sha = githubConfig.sha;
                 const apiPath = encodeRepoPath(githubConfig.path);
                 const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                     method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${githubConfig.token}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
                 if (res.ok) {
@@ -1136,27 +909,11 @@
             return 'other';
         }
         function getAttachIcon(type) {
-            const map = {
-                table: 'ri-file-excel-2-line text-emerald-600',
-                word: 'ri-file-word-line text-blue-600',
-                ppt: 'ri-file-ppt-line text-orange-600',
-                pdf: 'ri-file-pdf-line text-red-600',
-                archive: 'ri-file-zip-line text-purple-600',
-                image: 'ri-image-line text-pink-600',
-                other: 'ri-file-line text-slate-600'
-            };
+            const map = { table:'ri-file-excel-2-line text-emerald-600',word:'ri-file-word-line text-blue-600',ppt:'ri-file-ppt-line text-orange-600',pdf:'ri-file-pdf-line text-red-600',archive:'ri-file-zip-line text-purple-600',image:'ri-image-line text-pink-600',other:'ri-file-line text-slate-600' };
             return map[type] || map.other;
         }
         function getAttachIconBg(type) {
-            const map = {
-                table: 'bg-emerald-50',
-                word: 'bg-blue-50',
-                ppt: 'bg-orange-50',
-                pdf: 'bg-red-50',
-                archive: 'bg-purple-50',
-                image: 'bg-pink-50',
-                other: 'bg-slate-100'
-            };
+            const map = { table:'bg-emerald-50',word:'bg-blue-50',ppt:'bg-orange-50',pdf:'bg-red-50',archive:'bg-purple-50',image:'bg-pink-50',other:'bg-slate-100' };
             return map[type] || map.other;
         }
         function formatSize(bytes) {
@@ -1182,7 +939,7 @@
             });
         }
 
-        /* ==================== 内部确认弹窗 ==================== */
+        /* ==================== 确认弹窗 ==================== */
         let confirmResolve = null;
         function showConfirm(options = {}) {
             const { title = '确认操作', desc = '', okText = '确定', cancelText = '取消', type = 'danger' } = options;
@@ -1236,7 +993,7 @@
             });
         }
 
-        /* ==================== 加载与界面显隐 ==================== */
+        /* ==================== 加载显隐 ==================== */
         function setLoadingMode(mode) {
             const overlay = document.getElementById('loadingOverlay');
             const decor = document.getElementById('loadingDecor');
@@ -1327,11 +1084,7 @@
             const toastText = document.getElementById('toastText');
             const toastIcon = document.getElementById('toastIcon');
             toastText.textContent = msg;
-            if (type === 'error') {
-                toastIcon.className = 'ri-error-warning-line text-rose-400 text-sm';
-            } else {
-                toastIcon.className = 'ri-checkbox-circle-line text-emerald-400 text-sm';
-            }
+            toastIcon.className = type === 'error' ? 'ri-error-warning-line text-rose-400 text-sm' : 'ri-checkbox-circle-line text-emerald-400 text-sm';
             toast.classList.remove('translate-y-12', 'opacity-0', 'pointer-events-none');
             toast.classList.add('translate-y-0', 'opacity-100');
             setTimeout(() => {
@@ -1340,15 +1093,13 @@
             }, 2000);
         }
 
-        /* ==================== 本地缓存（IndexedDB） ==================== */
+        /* ==================== 本地缓存 ==================== */
         async function loadLocalDocs() {
             let rawDocs = [];
             try {
                 const cached = await idbGet('kb_docs_index');
                 if (Array.isArray(cached)) rawDocs = cached;
-            } catch (e) {
-                console.warn('IndexedDB 读取失败', e);
-            }
+            } catch (e) { console.warn('IndexedDB 读取失败', e); }
             rawDocs.forEach(d => {
                 if (!d.code || !d.code.startsWith('CM-')) d.code = generateDocCode();
                 if (!Array.isArray(d.attachments)) d.attachments = [];
@@ -1434,6 +1185,7 @@
             });
         }
 
+        /* renderDocList 末尾强制同步回到顶部按钮：列表页永远隐藏 */
         function renderDocList() {
             const query = (searchQuery || '').toLowerCase();
             const filtered = docs.filter(d => {
@@ -1452,6 +1204,18 @@
             else listTitleEl.textContent = '所有条目';
             document.getElementById('docCountText').textContent = `${filtered.length} 个文档`;
             renderVirtualList(filtered);
+
+            /* 列表渲染完成后，同步回到顶部按钮状态 */
+            if (typeof checkBackToTopBtnVisibility === 'function') {
+                checkBackToTopBtnVisibility();
+            } else {
+                const viewVisible = !document.getElementById('viewPanel').classList.contains('hidden');
+                const editVisible = !document.getElementById('editPanel').classList.contains('hidden');
+                if (!viewVisible && !editVisible) {
+                    const btn = document.getElementById('backToTopBtn');
+                    if (btn) btn.classList.add('hidden');
+                }
+            }
         }
 
         function performSearch() {
@@ -1538,7 +1302,7 @@
             });
         }
 
-        /* ==================== 附件上传 / 删除 / 下载 ==================== */
+        /* ==================== 附件上传/删除/下载 ==================== */
         function uploadImageAsJson(file) {
             return new Promise((resolve) => {
                 if (!githubConfig.token || !githubConfig.repo) {
@@ -1556,42 +1320,28 @@
                         let width = img.width;
                         let height = img.height;
                         const maxWidth = 1200;
-                        if (width > maxWidth) {
-                            height = Math.round((height * maxWidth) / width);
-                            width = maxWidth;
-                        }
+                        if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
                         canvas.width = width;
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
                         const base64DataUrl = canvas.toDataURL('image/webp', 0.7);
                         const payload = { data: base64DataUrl };
-                        const jsonString = JSON.stringify(payload);
-                        const contentEncoded = btoa(unescape(encodeURIComponent(jsonString)));
+                        const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
                         const filename = `images/img_${Date.now()}_${Math.floor(Math.random() * 1000)}.json`;
                         const apiPath = encodeRepoPath(filename);
                         try {
                             const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                                 method: 'PUT',
-                                headers: {
-                                    'Authorization': `token ${githubConfig.token}`,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    message: `kb: upload image json ${filename}`,
-                                    content: contentEncoded
-                                })
+                                headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ message: `kb: upload image json ${filename}`, content: contentEncoded })
                             });
                             if (res.ok) {
                                 insertAtCursor(document.getElementById('editContentInput'), `\n![图片](${filename})\n`);
                                 if (tipEl) tipEl.textContent = 'Markdown 源码（图片已上传并插入）';
                                 showToast('图片上传成功', 'success');
-                            } else {
-                                showToast('图片上传失败', 'error');
-                            }
-                        } catch (err) {
-                            showToast('网络异常，图片上传失败', 'error');
-                        }
+                            } else { showToast('图片上传失败', 'error'); }
+                        } catch (err) { showToast('网络异常，图片上传失败', 'error'); }
                         resolve();
                     };
                     img.onerror = () => resolve();
@@ -1603,14 +1353,8 @@
         }
 
         async function uploadGenericAttachment(file, currentIdx = 1, total = 1) {
-            if (!githubConfig.token || !githubConfig.repo) {
-                showToast('请先绑定 GitHub Token！', 'error');
-                return;
-            }
-            if (file.size > MAX_ATTACHMENT_SIZE) {
-                showToast(`「${file.name}」超过 20MB，无法上传`, 'error');
-                return;
-            }
+            if (!githubConfig.token || !githubConfig.repo) { showToast('请先绑定 GitHub Token！', 'error'); return; }
+            if (file.size > MAX_ATTACHMENT_SIZE) { showToast(`「${file.name}」超过 20MB，无法上传`, 'error'); return; }
             const type = getAttachmentType(file);
             const folder = ATTACHMENT_FOLDERS[type] || '其他';
             const safeName = sanitizeFileName(file.name);
@@ -1621,34 +1365,19 @@
                 const base64 = await fileToBase64(file);
                 const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                     method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${githubConfig.token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: `kb: upload attachment ${file.name}`,
-                        content: base64
-                    })
+                    headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `kb: upload attachment ${file.name}`, content: base64 })
                 });
                 if (res.ok) {
-                    editAttachments.push({
-                        name: file.name,
-                        path,
-                        size: file.size,
-                        type,
-                        uploadedAt: new Date().toLocaleString()
-                    });
+                    editAttachments.push({ name: file.name, path, size: file.size, type, uploadedAt: new Date().toLocaleString() });
                     renderEditAttachments();
                     showToast(`「${file.name}」上传成功`, 'success');
                 } else {
                     const errJson = await res.json().catch(() => ({}));
                     showToast(`「${file.name}」上传失败：${errJson.message || '未知错误'}`, 'error');
                 }
-            } catch (e) {
-                showToast(`「${file.name}」上传失败`, 'error');
-            } finally {
-                hideLoading();
-            }
+            } catch (e) { showToast(`「${file.name}」上传失败`, 'error'); }
+            finally { hideLoading(); }
         }
 
         async function handleAttachmentUpload(files) {
@@ -1659,12 +1388,8 @@
                 if (getAttachmentType(file) === 'image') imageFiles.push(file);
                 else otherFiles.push(file);
             }
-            for (const file of imageFiles) {
-                await uploadImageAsJson(file);
-            }
-            for (let i = 0; i < otherFiles.length; i++) {
-                await uploadGenericAttachment(otherFiles[i], i + 1, otherFiles.length);
-            }
+            for (const file of imageFiles) await uploadImageAsJson(file);
+            for (let i = 0; i < otherFiles.length; i++) await uploadGenericAttachment(otherFiles[i], i + 1, otherFiles.length);
         }
 
         async function deleteEditAttachment(index) {
@@ -1673,9 +1398,7 @@
             const ok = await showConfirm({
                 title: '删除附件',
                 desc: `确定要删除附件「${att.name}」吗？文件也会从 GitHub 中清理。`,
-                okText: '确定删除',
-                cancelText: '取消',
-                type: 'danger'
+                okText: '确定删除', cancelText: '取消', type: 'danger'
             });
             if (!ok) return;
             showLoading('正在删除附件...');
@@ -1689,25 +1412,16 @@
                         const fileData = await getRes.json();
                         await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                             method: 'DELETE',
-                            headers: {
-                                'Authorization': `token ${githubConfig.token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                message: `kb: delete attachment ${att.name}`,
-                                sha: fileData.sha
-                            })
+                            headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message: `kb: delete attachment ${att.name}`, sha: fileData.sha })
                         });
                     }
                 }
                 editAttachments.splice(index, 1);
                 renderEditAttachments();
                 showToast('附件已删除', 'success');
-            } catch (e) {
-                showToast('删除失败', 'error');
-            } finally {
-                hideLoading();
-            }
+            } catch (e) { showToast('删除失败', 'error'); }
+            finally { hideLoading(); }
         }
 
         async function downloadAttachment(index) {
@@ -1733,21 +1447,15 @@
                         const fileData = await getRes.json();
                         await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                             method: 'DELETE',
-                            headers: {
-                                'Authorization': `token ${githubConfig.token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                message: `kb: delete attachment ${att.name}`,
-                                sha: fileData.sha
-                            })
+                            headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message: `kb: delete attachment ${att.name}`, sha: fileData.sha })
                         });
                     }
                 } catch (e) {}
             }));
         }
 
-        /* ==================== 查看文档（按需加载正文） ==================== */
+        /* ==================== 查看文档 ==================== */
         async function openDocView(id, options = {}) {
             const skipOverlay = !!options.skipOverlay;
             currentDocId = id;
@@ -1761,12 +1469,8 @@
 
             let content = docContentCache[id];
             if (content === undefined) {
-                try {
-                    content = await fetchDocContent(id);
-                } catch (e) {
-                    content = '';
-                    showToast('正文加载失败：' + (e.message || '未知错误'), 'error');
-                }
+                try { content = await fetchDocContent(id); }
+                catch (e) { content = ''; showToast('正文加载失败：' + (e.message || '未知错误'), 'error'); }
             }
 
             const parsedHtml = marked.parse(content || '');
@@ -1810,16 +1514,13 @@
             document.getElementById('viewCategoryBadge').textContent = doc.category || '通用';
             document.getElementById('viewDate').innerHTML = `<i class="ri-time-line mr-1"></i>修改于: ${doc.updatedAt || '未知'}`;
 
-            const codeTextEl = document.getElementById('viewCodeText');
-            codeTextEl.textContent = doc.code || 'CM-0000';
+            document.getElementById('viewCodeText').textContent = doc.code || 'CM-0000';
             const codeBtn = document.getElementById('viewCodeBtn');
             const handleCodeCopy = (e) => {
                 if (e) e.preventDefault();
                 navigator.clipboard.writeText(doc.code || '').then(() => {
                     showToast(`已复制知识编码: ${doc.code}`, 'success');
-                }).catch(() => {
-                    showToast(`已复制知识编码: ${doc.code}`, 'success');
-                });
+                }).catch(() => { showToast(`已复制知识编码: ${doc.code}`, 'success'); });
                 codeBtn.blur();
                 codeBtn.classList.remove('active');
             };
@@ -1827,8 +1528,7 @@
             codeBtn.ontouchend = handleCodeCopy;
 
             document.getElementById('viewContent').innerHTML = tempDiv.innerHTML;
-            const renderedImages = document.getElementById('viewContent').querySelectorAll('img');
-            renderedImages.forEach(imgEl => {
+            document.getElementById('viewContent').querySelectorAll('img').forEach(imgEl => {
                 imgEl.onclick = () => openImageViewerModal(imgEl.src);
             });
 
@@ -1848,22 +1548,33 @@
             checkBackToTopBtnVisibility();
         }
 
+        /* 回到顶部按钮：只在文档查看/编辑面板可见时才可能显示 */
         function setupGlobalBackToTop() {
             const btn = document.getElementById('backToTopBtn');
             const viewScroll = document.getElementById('viewScrollContainer');
             const editScroll = document.getElementById('editScrollContainer');
+
             window.checkBackToTopBtnVisibility = function() {
-                let currentScrollTop = 0;
-                if (!document.getElementById('viewPanel').classList.contains('hidden')) {
-                    currentScrollTop = viewScroll.scrollTop;
-                } else if (!document.getElementById('editPanel').classList.contains('hidden')) {
-                    currentScrollTop = editScroll.scrollTop;
+                const viewVisible = !document.getElementById('viewPanel').classList.contains('hidden');
+                const editVisible = !document.getElementById('editPanel').classList.contains('hidden');
+
+                /* 关键：列表页、空状态、搜索等场景，按钮必须隐藏 */
+                if (!viewVisible && !editVisible) {
+                    btn.classList.add('hidden');
+                    return;
                 }
+
+                let currentScrollTop = 0;
+                if (viewVisible) currentScrollTop = viewScroll.scrollTop;
+                else if (editVisible) currentScrollTop = editScroll.scrollTop;
+
                 if (currentScrollTop > 200) btn.classList.remove('hidden');
                 else btn.classList.add('hidden');
             };
+
             viewScroll.addEventListener('scroll', checkBackToTopBtnVisibility);
             editScroll.addEventListener('scroll', checkBackToTopBtnVisibility);
+
             btn.onclick = () => {
                 if (!document.getElementById('viewPanel').classList.contains('hidden')) {
                     viewScroll.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1899,10 +1610,7 @@
             });
 
             downloadBtn.onclick = () => {
-                if (!currentModalImgSrc) {
-                    showToast('图片未加载', 'error');
-                    return;
-                }
+                if (!currentModalImgSrc) { showToast('图片未加载', 'error'); return; }
                 const src = currentModalImgSrc;
                 let srcExt = 'jpg';
                 if (src.startsWith('data:image/png')) srcExt = 'png';
@@ -1911,10 +1619,7 @@
                 else if (src.startsWith('data:image/jpeg') || src.startsWith('data:image/jpg')) srcExt = 'jpg';
                 else if (src.startsWith('data:image/')) {
                     const m = src.match(/^data:image\/([a-zA-Z0-9.+-]+)/);
-                    if (m) {
-                        srcExt = m[1].toLowerCase();
-                        if (srcExt === 'jpeg') srcExt = 'jpg';
-                    }
+                    if (m) { srcExt = m[1].toLowerCase(); if (srcExt === 'jpeg') srcExt = 'jpg'; }
                 }
                 const targetExt = srcExt === 'webp' ? 'png' : srcExt;
                 const filename = `knowledge_image_${Date.now()}.${targetExt}`;
@@ -1933,12 +1638,7 @@
                             r.readAsDataURL(blob);
                         });
                     }
-                    if (srcExt === 'webp') {
-                        return await convertDataUrlToBlobType(sourceUrl, 'image/png');
-                    }
-                    if (srcExt === 'gif') {
-                        return dataURLtoBlob(sourceUrl);
-                    }
+                    if (srcExt === 'webp') return await convertDataUrlToBlobType(sourceUrl, 'image/png');
                     return dataURLtoBlob(sourceUrl);
                 });
             };
@@ -1973,10 +1673,7 @@
                     startDragY = e.touches[0].clientY - imgTranslateY;
                 } else if (e.touches.length === 2) {
                     isDraggingImg = false;
-                    initialPinchDistance = Math.hypot(
-                        e.touches[0].clientX - e.touches[1].clientX,
-                        e.touches[0].clientY - e.touches[1].clientY
-                    );
+                    initialPinchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
                     initialPinchScale = currentScale;
                 }
             }, { passive: true });
@@ -1987,10 +1684,7 @@
                     clampTranslation();
                     updateImageTransform();
                 } else if (e.touches.length === 2 && initialPinchDistance) {
-                    const dist = Math.hypot(
-                        e.touches[0].clientX - e.touches[1].clientX,
-                        e.touches[0].clientY - e.touches[1].clientY
-                    );
+                    const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
                     let newScale = initialPinchScale * (dist / initialPinchDistance);
                     if (newScale < minScale) newScale = minScale;
                     if (newScale > maxScale) newScale = maxScale;
@@ -2050,17 +1744,12 @@
             textarea.addEventListener('paste', function(e) {
                 const items = (e.clipboardData || e.originalEvent.clipboardData).items;
                 for (let item of items) {
-                    if (item.type.indexOf('image') === 0) {
-                        e.preventDefault();
-                        uploadImageAsJson(item.getAsFile());
-                    }
+                    if (item.type.indexOf('image') === 0) { e.preventDefault(); uploadImageAsJson(item.getAsFile()); }
                 }
             });
             fileInput.addEventListener('change', async function(e) {
                 const files = e.target.files;
-                if (files && files.length) {
-                    await handleAttachmentUpload(files);
-                }
+                if (files && files.length) await handleAttachmentUpload(files);
                 fileInput.value = '';
             });
         }
@@ -2081,14 +1770,8 @@
                         const fileData = await getRes.json();
                         await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                             method: 'DELETE',
-                            headers: {
-                                'Authorization': `token ${githubConfig.token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                message: `kb: delete unused image json ${jsonPath}`,
-                                sha: fileData.sha
-                            })
+                            headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message: `kb: delete unused image json ${jsonPath}`, sha: fileData.sha })
                         });
                     }
                 } catch (e) {}
@@ -2109,7 +1792,7 @@
             }
         }
 
-        /* ==================== 事件绑定 ==================== */
+        /* ==================== 事件 ==================== */
         function setupEventListeners() {
             const searchInput = document.getElementById('searchInput');
             const clearSearchBtn = document.getElementById('clearSearchBtn');
@@ -2119,16 +1802,10 @@
                 if (searchInput.value.length > 0) clearSearchBtn.classList.remove('hidden');
                 else clearSearchBtn.classList.add('hidden');
             };
-
             searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    performSearch();
-                }
+                if (e.key === 'Enter') { e.preventDefault(); performSearch(); }
             });
-
             searchSubmitBtn.onclick = () => performSearch();
-
             clearSearchBtn.onclick = () => {
                 searchInput.value = '';
                 clearSearchBtn.classList.add('hidden');
@@ -2140,11 +1817,7 @@
 
             const syncRefreshBtn = document.getElementById('syncRefreshBtn');
             if (syncRefreshBtn) {
-                syncRefreshBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    manualSyncRefresh();
-                });
+                syncRefreshBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); manualSyncRefresh(); });
             }
 
             document.getElementById('newDocBtn').onclick = () => {
@@ -2174,16 +1847,10 @@
                 if (!doc) return;
                 isEditing = true;
                 editAttachments = (doc.attachments || []).map(a => ({...a}));
-
                 let content = docContentCache[currentDocId];
                 if (content === undefined) {
-                    try {
-                        content = await fetchDocContent(currentDocId);
-                    } catch (e) {
-                        content = '';
-                    }
+                    try { content = await fetchDocContent(currentDocId); } catch (e) { content = ''; }
                 }
-
                 document.getElementById('viewPanel').classList.add('hidden');
                 document.getElementById('editPanel').classList.remove('hidden');
                 document.getElementById('editorModeTitle').textContent = '编辑文章';
@@ -2222,7 +1889,6 @@
                 checkBackToTopBtnVisibility();
             };
 
-            /* 保存：正文 + 索引 增量上传 */
             document.getElementById('saveDocBtn').onclick = async () => {
                 const title = document.getElementById('editTitleInput').value.trim() || '未命名文章';
                 const category = document.getElementById('editCategoryInput').value.trim() || '通用';
@@ -2235,12 +1901,7 @@
                 try {
                     let docId = currentDocId;
                     const existingDoc = docId ? docs.find(d => d.id === docId) : null;
-
-                    if (!docId) {
-                        docId = 'doc-' + Date.now();
-                        currentDocId = docId;
-                        previousDocId = docId;
-                    }
+                    if (!docId) { docId = 'doc-' + Date.now(); currentDocId = docId; previousDocId = docId; }
 
                     updateLoadingText('正在保存正文...');
                     await uploadDocContent(docId, content, { title, updatedAt: now });
@@ -2249,15 +1910,11 @@
                     const indexEntry = {
                         id: docId,
                         code: (existingDoc && existingDoc.code) || generateDocCode(),
-                        title,
-                        category,
-                        tags,
-                        updatedAt: now,
+                        title, category, tags, updatedAt: now,
                         summary: makeSummary(content),
                         attachments: editAttachments.slice(),
                         hasContent: true
                     };
-
                     const idx = docs.findIndex(d => d.id === docId);
                     if (idx >= 0) docs[idx] = indexEntry;
                     else docs.unshift(indexEntry);
@@ -2269,21 +1926,15 @@
                     editAttachments = [];
                     await openDocView(docId, { skipOverlay: true });
                     showToast('保存成功并已同步', 'success');
-                } catch (err) {
-                    showToast('保存失败，请重试', 'error');
-                } finally {
-                    hideLoading();
-                }
+                } catch (err) { showToast('保存失败，请重试', 'error'); }
+                finally { hideLoading(); }
             };
 
-            /* 删除：清理图片 + 附件 + 正文 + 索引 */
             document.getElementById('deleteDocBtn').onclick = async () => {
                 const ok = await showConfirm({
                     title: '删除知识条目',
                     desc: '确定要删除这篇知识条目吗？关联的正文、独立图片 JSON 和附件会同步从 GitHub 中清理，此操作不可撤销。',
-                    okText: '确定删除',
-                    cancelText: '取消',
-                    type: 'danger'
+                    okText: '确定删除', cancelText: '取消', type: 'danger'
                 });
                 if (!ok) return;
                 const docToDelete = docs.find(d => d.id === currentDocId);
@@ -2317,31 +1968,20 @@
 
                     document.getElementById('viewPanel').classList.add('hidden');
                     document.getElementById('editPanel').classList.add('hidden');
-                    if (window.innerWidth < 768) {
-                        document.getElementById('mainPanel').classList.add('hidden');
-                    } else {
-                        document.getElementById('emptyState').classList.remove('hidden');
-                    }
+                    if (window.innerWidth < 768) document.getElementById('mainPanel').classList.add('hidden');
+                    else document.getElementById('emptyState').classList.remove('hidden');
                     if (virtualList.container) virtualList.container.scrollTop = 0;
                     showToast('删除成功', 'success');
                     checkBackToTopBtnVisibility();
-                } catch (err) {
-                    showToast('删除失败，请重试', 'error');
-                } finally {
-                    hideLoading();
-                }
+                } catch (err) { showToast('删除失败，请重试', 'error'); }
+                finally { hideLoading(); }
             };
 
             const githubBtn = document.getElementById('githubConfigBtn');
             const githubDropdown = document.getElementById('githubDropdown');
-            githubBtn.onclick = (e) => {
-                e.stopPropagation();
-                githubDropdown.classList.toggle('hidden');
-            };
+            githubBtn.onclick = (e) => { e.stopPropagation(); githubDropdown.classList.toggle('hidden'); };
             document.addEventListener('click', (e) => {
-                if (!githubBtn.contains(e.target) && !githubDropdown.contains(e.target)) {
-                    githubDropdown.classList.add('hidden');
-                }
+                if (!githubBtn.contains(e.target) && !githubDropdown.contains(e.target)) githubDropdown.classList.add('hidden');
             });
             document.getElementById('menuConfigBtn').onclick = () => {
                 githubDropdown.classList.add('hidden');
@@ -2351,9 +1991,7 @@
                 document.getElementById('githubModal').classList.remove('hidden');
             };
             document.getElementById('menuResetBtn').onclick = () => handleResetBinding();
-            document.getElementById('closeModalBtn').onclick = () => {
-                document.getElementById('githubModal').classList.add('hidden');
-            };
+            document.getElementById('closeModalBtn').onclick = () => { document.getElementById('githubModal').classList.add('hidden'); };
             document.getElementById('saveGithubConfigBtn').onclick = () => {
                 githubConfig.token = document.getElementById('ghTokenInput').value.trim();
                 githubConfig.repo = document.getElementById('ghRepoInput').value.trim() || 'XiandeShen/Xiande-kb';
@@ -2419,9 +2057,7 @@
             const ok = await showConfirm({
                 title: '解除绑定并重置',
                 desc: '确定要解除 GitHub 绑定并重置吗？本地的知识缓存也会被清空，需要重新输入访问令牌。',
-                okText: '确定重置',
-                cancelText: '再想想',
-                type: 'normal'
+                okText: '确定重置', cancelText: '再想想', type: 'normal'
             });
             if (!ok) return;
             localStorage.removeItem('kb_gh_config');
@@ -2447,7 +2083,6 @@
 
         window.onload = async function() {
             loadGithubConfig();
-
             setupConfirmModal();
             setupAdvancedToggle();
             setupEventListeners();
@@ -2480,13 +2115,8 @@
         document.getElementById('toggleTokenVisibility').addEventListener('click', () => {
             const input = document.getElementById('authTokInput');
             const icon = document.getElementById('toggleTokenIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'ri-eye-off-line text-base';
-            } else {
-                input.type = 'password';
-                icon.className = 'ri-eye-line text-base';
-            }
+            if (input.type === 'password') { input.type = 'text'; icon.className = 'ri-eye-off-line text-base'; }
+            else { input.type = 'password'; icon.className = 'ri-eye-line text-base'; }
         });
 
         document.getElementById('authForm').addEventListener('submit', (e) => {
@@ -2506,7 +2136,6 @@
             pullFromGithub();
         });
 
-        /* ==================== 拉取主索引 ==================== */
         async function pullFromGithub() {
             if (!githubConfig.token || !githubConfig.repo) {
                 if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
@@ -2527,11 +2156,7 @@
                         showLoading('正在初始化知识库...');
                         docs = [];
                         docContentCache = {};
-                        try {
-                            await uploadMainIndex([]);
-                        } catch (e) {
-                            console.warn('初始化空索引失败', e);
-                        }
+                        try { await uploadMainIndex([]); } catch (e) { console.warn('初始化空索引失败', e); }
                         hideLoading();
                         hideAuth();
                         showApp();
