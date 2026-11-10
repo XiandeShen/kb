@@ -112,13 +112,11 @@
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
 
-    <!-- Toast -->
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-medium z-[200] transition-all duration-300 transform translate-y-12 opacity-0 pointer-events-none flex items-center space-x-2">
         <i id="toastIcon" class="ri-checkbox-circle-line text-emerald-400 text-sm"></i>
         <span id="toastText">提示信息</span>
     </div>
 
-    <!-- 全局加载遮罩 -->
     <div id="loadingOverlay" class="fixed inset-0 w-screen h-screen z-[160] flex items-center justify-center overflow-hidden bg-slate-950">
         <div id="loadingDecor" class="absolute inset-0 overflow-hidden pointer-events-none">
             <div class="absolute -top-40 -left-32 w-[28rem] h-[28rem] bg-blue-600/20 rounded-full blur-3xl"></div>
@@ -131,7 +129,6 @@
         </div>
     </div>
 
-    <!-- 内部确认弹窗 -->
     <div id="confirmModal" class="fixed inset-0 z-[170] flex items-center justify-center p-4 hidden">
         <div id="confirmModalOverlay" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"></div>
         <div class="confirm-card relative w-full max-w-[340px] bg-white rounded-2xl shadow-2xl px-6 pt-7 pb-6">
@@ -383,7 +380,6 @@
                     <p class="text-sm font-medium">选择左侧列表中的文章查看，或新建知识条目</p>
                 </div>
 
-                <!-- 查看模式 -->
                 <div id="viewPanel" class="hidden flex-1 flex flex-col overflow-hidden bg-white md:bg-transparent h-full relative">
                     <div class="h-12 px-4 md:px-6 border-b border-slate-200 bg-white flex items-center justify-between flex-shrink-0 gap-2 z-10">
                         <div class="flex items-center space-x-2 min-w-0 flex-1">
@@ -419,7 +415,6 @@
                     </div>
                 </div>
 
-                <!-- 编辑模式 -->
                 <div id="editPanel" class="hidden flex-1 flex flex-col bg-white overflow-hidden h-full">
                     <div class="h-12 px-4 md:px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50 flex-shrink-0">
                         <div class="flex items-center space-x-2">
@@ -465,8 +460,6 @@
                                 <textarea id="editContentInput" placeholder="使用 Markdown 语法编写内容..."
                                     class="flex-1 w-full p-4 bg-transparent font-mono text-sm resize-none focus:outline-none text-slate-800 placeholder-slate-400"></textarea>
                             </div>
-
-                            <!-- 编辑态附件列表 -->
                             <div class="pt-2">
                                 <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">附件</div>
                                 <div id="editAttachmentsList" class="space-y-2"></div>
@@ -543,6 +536,7 @@
         const imageJsonCache = {};
         const DEFAULT_LOADING_TEXT = '正在加载知识库...';
         const MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
+        const DOWNLOAD_REVOKE_DELAY = 60000;
         const ATTACHMENT_FOLDERS = {
             table: '表格',
             word: 'Word',
@@ -552,7 +546,162 @@
             other: '其他'
         };
 
-        /* ---------------- 附件工具函数 ---------------- */
+        /* ==================== 核心：GitHub 文件读取工具 ==================== */
+        function encodeRepoPath(path) {
+            return path.split('/').map(encodeURIComponent).join('/');
+        }
+
+        /**
+         * 用 GitHub raw media type 直接读取文件原始二进制，绕开 1MB 的 base64 限制。
+         * 返回 Blob。
+         */
+        async function fetchGithubFileRaw(path) {
+            if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
+            const apiPath = encodeRepoPath(path);
+            const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                headers: {
+                    'Authorization': `token ${githubConfig.token}`,
+                    'Accept': 'application/vnd.github.v3.raw'
+                }
+            });
+            if (!res.ok) {
+                let errMsg = `获取文件失败 (${res.status})`;
+                try {
+                    const errJson = await res.json();
+                    if (errJson && errJson.message) errMsg += '：' + errJson.message;
+                } catch (e) {}
+                throw new Error(errMsg);
+            }
+            const blob = await res.blob();
+            if (!blob || blob.size === 0) throw new Error('文件内容为空');
+            return blob;
+        }
+
+        /**
+         * 用 raw media type 获取文件文本内容（用于 JSON）。
+         */
+        async function fetchGithubFileText(path) {
+            if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
+            const apiPath = encodeRepoPath(path);
+            const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                headers: {
+                    'Authorization': `token ${githubConfig.token}`,
+                    'Accept': 'application/vnd.github.v3.raw'
+                }
+            });
+            if (!res.ok) throw new Error(`获取文件失败 (${res.status})`);
+            return await res.text();
+        }
+
+        /**
+         * 获取仓库根 JSON（知识库主数据）。先拿 metadata 得到 sha，再用 raw 拿内容，
+         * 避免大 JSON 时 content 为空的问题。
+         */
+        async function fetchGithubJSONWithMeta(path) {
+            if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
+            const apiPath = encodeRepoPath(path);
+            // 先拿 metadata（含 sha）
+            const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                headers: { 'Authorization': `token ${githubConfig.token}` }
+            });
+            if (!metaRes.ok) {
+                const err = new Error(`获取元数据失败 (${metaRes.status})`);
+                err.status = metaRes.status;
+                throw err;
+            }
+            const meta = await metaRes.json();
+            const sha = meta.sha;
+            // 再拿内容
+            let text;
+            if (meta.content && meta.encoding === 'base64') {
+                text = decodeURIComponent(escape(atob(meta.content)));
+            } else {
+                // 大文件：content 为空，需要走 raw
+                const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                    headers: {
+                        'Authorization': `token ${githubConfig.token}`,
+                        'Accept': 'application/vnd.github.v3.raw'
+                    }
+                });
+                if (!rawRes.ok) throw new Error(`获取内容失败 (${rawRes.status})`);
+                text = await rawRes.text();
+            }
+            return { sha, text };
+        }
+
+        /* ==================== 下载工具 ==================== */
+        function dataURLtoBlob(dataUrl) {
+            const parts = dataUrl.split(',');
+            const header = parts[0] || '';
+            const base64 = parts[1] || '';
+            const mimeMatch = header.match(/:(.*?);/);
+            const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+            const binary = atob(base64);
+            const len = binary.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+            return new Blob([bytes], { type: mime });
+        }
+
+        function triggerBlobDownload(filename, blob) {
+            if (!blob || blob.size === 0) throw new Error('文件内容为空');
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.rel = 'noopener';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            // 延迟清理，确保下载器有时间读取 Blob URL
+            setTimeout(() => {
+                try { if (a.parentNode) a.parentNode.removeChild(a); } catch (e) {}
+                try { URL.revokeObjectURL(url); } catch (e) {}
+            }, DOWNLOAD_REVOKE_DELAY);
+        }
+
+        async function prepareAndDownload(filename, getBlob) {
+            showLoading('正在准备下载...');
+            try {
+                const blob = await getBlob();
+                if (!blob || blob.size === 0) throw new Error('文件内容为空');
+                triggerBlobDownload(filename, blob);
+                hideLoading();
+                showToast('下载已开始，请到浏览器下载列表查看', 'success');
+            } catch (e) {
+                hideLoading();
+                showToast('下载失败：' + (e.message || '未知错误'), 'error');
+            }
+        }
+
+        function guessMimeByName(name) {
+            const ext = (name.split('.').pop() || '').toLowerCase();
+            const map = {
+                pdf: 'application/pdf',
+                doc: 'application/msword',
+                docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                xls: 'application/vnd.ms-excel',
+                xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                ppt: 'application/vnd.ms-powerpoint',
+                pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                csv: 'text/csv',
+                txt: 'text/plain',
+                md: 'text/markdown',
+                json: 'application/json',
+                zip: 'application/zip',
+                rar: 'application/vnd.rar',
+                '7z': 'application/x-7z-compressed',
+                png: 'image/png',
+                jpg: 'image/jpeg',
+                jpeg: 'image/jpeg',
+                gif: 'image/gif',
+                webp: 'image/webp',
+                svg: 'image/svg+xml'
+            };
+            return map[ext] || 'application/octet-stream';
+        }
+
+        /* ==================== 附件工具 ==================== */
         function getAttachmentType(file) {
             const name = (file.name || '').toLowerCase();
             const mime = (file.type || '').toLowerCase();
@@ -598,9 +747,6 @@
         function sanitizeFileName(name) {
             return (name || 'file').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').slice(0, 100);
         }
-        function encodeRepoPath(path) {
-            return path.split('/').map(encodeURIComponent).join('/');
-        }
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -614,7 +760,7 @@
             });
         }
 
-        /* ---------------- 内部确认弹窗 ---------------- */
+        /* ==================== 内部确认弹窗 ==================== */
         let confirmResolve = null;
         function showConfirm(options = {}) {
             const { title = '确认操作', desc = '', okText = '确定', cancelText = '取消', type = 'danger' } = options;
@@ -668,7 +814,7 @@
             });
         }
 
-        /* ---------------- 加载与界面显隐 ---------------- */
+        /* ==================== 加载与界面显隐 ==================== */
         function setLoadingMode(mode) {
             const overlay = document.getElementById('loadingOverlay');
             const decor = document.getElementById('loadingDecor');
@@ -984,7 +1130,6 @@
             });
         }
 
-        /* ---------------- 附件渲染 ---------------- */
         function renderEditAttachments() {
             const container = document.getElementById('editAttachmentsList');
             if (!container) return;
@@ -1054,7 +1199,7 @@
             });
         }
 
-        /* ---------------- 附件上传 / 删除 / 下载 ---------------- */
+        /* ==================== 附件上传 / 删除 / 下载（修复版） ==================== */
         function uploadImageAsJson(file) {
             return new Promise((resolve) => {
                 if (!githubConfig.token || !githubConfig.repo) {
@@ -1226,36 +1371,20 @@
             }
         }
 
+        /**
+         * 关键修复：附件下载用 raw media type 直接获取二进制，
+         * 不再依赖 base64 content（大文件时为空）。
+         */
         async function downloadAttachment(index) {
             const doc = docs.find(d => d.id === currentDocId);
             if (!doc || !doc.attachments || !doc.attachments[index]) return;
             const att = doc.attachments[index];
-            showLoading('正在获取附件...');
-            try {
-                const apiPath = encodeRepoPath(att.path);
-                const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    headers: { 'Authorization': `token ${githubConfig.token}` }
-                });
-                if (!res.ok) { showToast('获取附件失败', 'error'); return; }
-                const fileData = await res.json();
-                const binary = atob(fileData.content.replace(/\n/g, ''));
-                const bytes = new Uint8Array(binary.length);
-                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-                const blob = new Blob([bytes]);
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = att.name;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showToast('附件下载已开始', 'success');
-            } catch (e) {
-                showToast('下载失败', 'error');
-            } finally {
-                hideLoading();
-            }
+            await prepareAndDownload(att.name, async () => {
+                const rawBlob = await fetchGithubFileRaw(att.path);
+                // 用扩展名修正 MIME 类型，方便系统正确识别
+                const mime = guessMimeByName(att.name);
+                return new Blob([rawBlob], { type: mime });
+            });
         }
 
         async function deleteGithubAttachments(attachments) {
@@ -1284,7 +1413,7 @@
             }));
         }
 
-        /* ---------------- 查看文档 ---------------- */
+        /* ==================== 查看文档 ==================== */
         async function openDocView(id, options = {}) {
             const skipOverlay = !!options.skipOverlay;
             currentDocId = id;
@@ -1422,31 +1551,35 @@
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
             });
-            downloadBtn.onclick = async () => {
-                if (!currentModalImgSrc) return;
-                try {
-                    const response = await fetch(currentModalImgSrc);
-                    const blob = await response.blob();
-                    const isPng = blob.type.includes('png');
-                    const ext = isPng ? 'png' : 'jpg';
-                    const blobUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = blobUrl;
-                    a.download = `knowledge_image_${Date.now()}.${ext}`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(blobUrl);
-                    showToast(`图片已成功下载`, 'success');
-                } catch (err) {
-                    const a = document.createElement('a');
-                    a.href = currentModalImgSrc;
-                    a.download = `knowledge_image_${Date.now()}.png`;
-                    a.target = '_blank';
-                    a.click();
-                    showToast('图片下载已触发', 'success');
+
+            downloadBtn.onclick = () => {
+                if (!currentModalImgSrc) {
+                    showToast('图片未加载', 'error');
+                    return;
                 }
+                const src = currentModalImgSrc;
+                let ext = 'jpg';
+                if (src.startsWith('data:image/png')) ext = 'png';
+                else if (src.startsWith('data:image/webp')) ext = 'webp';
+                else if (src.startsWith('data:image/gif')) ext = 'gif';
+                else if (src.startsWith('data:image/jpeg') || src.startsWith('data:image/jpg')) ext = 'jpg';
+                else if (src.startsWith('data:image/')) {
+                    const m = src.match(/^data:image\/([a-zA-Z0-9.+-]+)/);
+                    if (m) ext = m[1] === 'jpeg' ? 'jpg' : m[1];
+                }
+                const filename = `knowledge_image_${Date.now()}.${ext}`;
+                prepareAndDownload(filename, async () => {
+                    if (src.startsWith('data:')) {
+                        return dataURLtoBlob(src);
+                    }
+                    const response = await fetch(src);
+                    if (!response.ok) throw new Error('获取图片失败');
+                    const blob = await response.blob();
+                    if (!blob || blob.size === 0) throw new Error('图片内容为空');
+                    return blob;
+                });
             };
+
             container.addEventListener('wheel', (e) => {
                 e.preventDefault();
                 const zoomFactor = 0.15;
@@ -1548,19 +1681,18 @@
             imgView.style.transform = `translate3d(${imgTranslateX}px, ${imgTranslateY}px, 0px) scale(${currentScale})`;
         }
 
+        /**
+         * 关键修复：图片 JSON 也用 raw media type 读取，
+         * 避免 JSON 超过 1MB 时 content 为空导致图片加载失败。
+         */
         async function fetchImageJsonFromGithub(path) {
-            if (!githubConfig.token || !githubConfig.repo) return null;
-            const apiPath = encodeRepoPath(path);
-            const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                headers: { 'Authorization': `token ${githubConfig.token}` }
-            });
-            if (res.ok) {
-                const fileData = await res.json();
-                const jsonStr = decodeURIComponent(escape(atob(fileData.content)));
-                const obj = JSON.parse(jsonStr);
-                return obj.data;
+            try {
+                const text = await fetchGithubFileText(path);
+                const obj = JSON.parse(text);
+                return obj.data || null;
+            } catch (e) {
+                return null;
             }
-            return null;
         }
 
         function setupImageHandling() {
@@ -1883,32 +2015,39 @@
             }
             updateSyncStatus('loading', '同步中');
             try {
-                const apiPath = encodeRepoPath(githubConfig.path);
-                const actualRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    headers: { 'Authorization': `token ${githubConfig.token}` }
+                let sha, text;
+                try {
+                    const result = await fetchGithubJSONWithMeta(githubConfig.path);
+                    sha = result.sha;
+                    text = result.text;
+                } catch (metaErr) {
+                    if (metaErr.status === 404) {
+                        // 仓库中还没有该 JSON，先推送本地数据初始化
+                        await syncToGithub();
+                        hideLoading();
+                        hideAuth();
+                        showApp();
+                        if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
+                        return;
+                    }
+                    throw metaErr;
+                }
+                githubConfig.sha = sha;
+                docs = JSON.parse(text) || [];
+                docs.forEach(d => {
+                    if (!d.code || !d.code.startsWith('CM-')) d.code = generateDocCode();
+                    if (!Array.isArray(d.attachments)) d.attachments = [];
                 });
-                if (actualRes.ok) {
-                    const data = await actualRes.json();
-                    githubConfig.sha = data.sha;
-                    const content = decodeURIComponent(escape(atob(data.content)));
-                    docs = JSON.parse(content) || [];
-                    docs.forEach(d => {
-                        if (!d.code || !d.code.startsWith('CM-')) d.code = generateDocCode();
-                        if (!Array.isArray(d.attachments)) d.attachments = [];
-                    });
-                    saveLocalDocs();
-                    updateSyncStatus('success', '已同步');
-                    hideLoading();
-                    hideAuth();
-                    showApp();
-                    if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
-                } else if (actualRes.status === 404) {
-                    await syncToGithub();
-                    hideLoading();
-                    hideAuth();
-                    showApp();
-                    if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
-                } else {
+                saveLocalDocs();
+                updateSyncStatus('success', '已同步');
+                hideLoading();
+                hideAuth();
+                showApp();
+                if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
+            } catch (e) {
+                // 401/403 视为令牌错误；其他视为网络异常
+                const status = e.status;
+                if (status === 401 || status === 403) {
                     docs = [];
                     localStorage.removeItem('kb_docs');
                     renderCategoryList();
@@ -1919,12 +2058,12 @@
                     hideLoading();
                     if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
                     else { hideApp(); fillAdvancedOptions(); showAuth(); }
+                } else {
+                    updateSyncStatus('error', '网络异常');
+                    hideLoading();
+                    if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
+                    else { hideApp(); fillAdvancedOptions(); showAuth(); }
                 }
-            } catch (e) {
-                updateSyncStatus('error', '网络异常');
-                hideLoading();
-                if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
-                else { hideApp(); fillAdvancedOptions(); showAuth(); }
             }
         }
 
