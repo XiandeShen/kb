@@ -54,10 +54,14 @@
         .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
 
-        /* 文档列表容器：底部安全区，避免最后一条被浏览器工具栏/系统导航栏遮挡 */
+        /* 文档列表：默认无额外底边距，仅在移动端增加底部安全区 */
         #docList {
-            padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
             -webkit-overflow-scrolling: touch;
+        }
+        @media (max-width: 767px) {
+            #docList {
+                padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+            }
         }
 
         #backToTopBtn {
@@ -637,7 +641,7 @@
             spacer: null,
             items: [],
             itemHeight: 96,
-            buffer: 8,       // 由 6 提升到 8，进一步保证底部条目可见
+            buffer: 8,
             rafPending: false
         };
 
