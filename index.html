@@ -1051,10 +1051,15 @@
             setLoginButtonLoading(false);
         }
         function hideAuth() { document.getElementById('authOverlay').classList.add('hidden'); }
+
+        /* showApp：显示应用后补一次按钮状态检查 */
         function showApp() {
             document.getElementById('appShell').classList.remove('hidden');
             requestAnimationFrame(() => {
                 if (virtualList.container) renderVirtualItems();
+                if (typeof window.checkBackToTopBtnVisibility === 'function') {
+                    window.checkBackToTopBtnVisibility();
+                }
             });
         }
         function hideApp() { document.getElementById('appShell').classList.add('hidden'); }
@@ -1185,7 +1190,7 @@
             });
         }
 
-        /* renderDocList 末尾强制同步回到顶部按钮：列表页永远隐藏 */
+        /* renderDocList 末尾强制同步按钮状态 */
         function renderDocList() {
             const query = (searchQuery || '').toLowerCase();
             const filtered = docs.filter(d => {
@@ -1205,13 +1210,10 @@
             document.getElementById('docCountText').textContent = `${filtered.length} 个文档`;
             renderVirtualList(filtered);
 
-            /* 列表渲染完成后，同步回到顶部按钮状态 */
-            if (typeof checkBackToTopBtnVisibility === 'function') {
-                checkBackToTopBtnVisibility();
+            if (typeof window.checkBackToTopBtnVisibility === 'function') {
+                window.checkBackToTopBtnVisibility();
             } else {
-                const viewVisible = !document.getElementById('viewPanel').classList.contains('hidden');
-                const editVisible = !document.getElementById('editPanel').classList.contains('hidden');
-                if (!viewVisible && !editVisible) {
+                if (document.getElementById('mainPanel').classList.contains('hidden')) {
                     const btn = document.getElementById('backToTopBtn');
                     if (btn) btn.classList.add('hidden');
                 }
@@ -1548,22 +1550,32 @@
             checkBackToTopBtnVisibility();
         }
 
-        /* 回到顶部按钮：只在文档查看/编辑面板可见时才可能显示 */
+        /* 回到顶部按钮：三层防护，确保列表页永不显示 */
         function setupGlobalBackToTop() {
             const btn = document.getElementById('backToTopBtn');
             const viewScroll = document.getElementById('viewScrollContainer');
             const editScroll = document.getElementById('editScrollContainer');
 
             window.checkBackToTopBtnVisibility = function() {
-                const viewVisible = !document.getElementById('viewPanel').classList.contains('hidden');
-                const editVisible = !document.getElementById('editPanel').classList.contains('hidden');
+                const mainPanel = document.getElementById('mainPanel');
+                const viewPanel = document.getElementById('viewPanel');
+                const editPanel = document.getElementById('editPanel');
 
-                /* 关键：列表页、空状态、搜索等场景，按钮必须隐藏 */
+                /* 第一层：mainPanel 整体隐藏（移动端回到列表页）→ 按钮必须隐藏 */
+                if (mainPanel.classList.contains('hidden')) {
+                    btn.classList.add('hidden');
+                    return;
+                }
+
+                /* 第二层：查看/编辑面板都隐藏（空状态）→ 按钮必须隐藏 */
+                const viewVisible = !viewPanel.classList.contains('hidden');
+                const editVisible = !editPanel.classList.contains('hidden');
                 if (!viewVisible && !editVisible) {
                     btn.classList.add('hidden');
                     return;
                 }
 
+                /* 第三层：检查滚动位置 */
                 let currentScrollTop = 0;
                 if (viewVisible) currentScrollTop = viewScroll.scrollTop;
                 else if (editVisible) currentScrollTop = editScroll.scrollTop;
