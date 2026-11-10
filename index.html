@@ -146,8 +146,9 @@
         <div class="relative min-h-full flex flex-col sm:flex-row">
             <div class="flex-1 flex flex-col items-center justify-center px-6 py-14 sm:items-start sm:justify-center sm:px-12 sm:py-0 lg:px-20 xl:px-28">
                 <div class="w-full max-w-lg">
-                    <div class="flex flex-col items-center sm:flex-row sm:items-center sm:space-x-3">
-                        <svg class="w-14 h-14 sm:w-12 sm:h-12 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 登录页 Logo 放大：w-16 h-16 (64px) / sm:w-14 sm:h-14 (56px)，间距 sm:space-x-4 -->
+                    <div class="flex flex-col items-center sm:flex-row sm:items-center sm:space-x-4">
+                        <svg class="w-16 h-16 sm:w-14 sm:h-14 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                                 <linearGradient id="login-logo-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
                                 <linearGradient id="login-logo-g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0052d4"/><stop offset="100%" stop-color="#4364f7"/></linearGradient>
@@ -237,14 +238,14 @@
     <div id="appShell" class="hidden flex flex-col flex-1 min-h-0 w-full">
         <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/50 backdrop-blur-md z-[100] hidden lg:hidden transition-opacity"></div>
 
-        <!-- 头部：调整了右侧边距 lg:pr-3，使左右视觉更平衡 -->
+        <!-- 顶栏：Logo 放大到 32px (w-8 h-8)，间距 space-x-3 -->
         <header class="h-14 w-full bg-slate-900 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 lg:pl-2 lg:pr-3 z-50 shadow-md relative">
             <div class="flex items-center space-x-2 flex-shrink-0">
                 <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
                     <i class="ri-menu-line text-xl"></i>
                 </button>
-                <div class="hidden lg:flex items-center space-x-2.5">
-                    <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <div class="hidden lg:flex items-center space-x-3">
+                    <svg class="w-8 h-8 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="header-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
                             <linearGradient id="header-g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0052d4"/><stop offset="100%" stop-color="#4364f7"/></linearGradient>
@@ -260,7 +261,6 @@
                     <span class="font-extrabold text-base tracking-tight text-white whitespace-nowrap">椿沐智库</span>
                 </div>
             </div>
-            <!-- 搜索框区域：高度从 h-10 改为 h-9，内边距调整，整体更纤细 -->
             <div class="flex-1 min-w-0 max-w-lg mx-2 sm:mx-5">
                 <div class="flex items-center w-full h-9 rounded-full bg-slate-800/60 border border-slate-700/50 focus-within:ring-1 focus-within:ring-brand-500/60 focus-within:border-brand-500/40 focus-within:bg-slate-800/90 transition-all duration-200 pl-3 sm:pl-4 pr-1">
                     <i class="ri-search-line text-slate-500 text-[13px] flex-shrink-0"></i>
@@ -307,9 +307,9 @@
         <div class="flex-1 flex overflow-hidden relative w-full min-h-0">
             <!-- 侧边栏：PC 实色深底 / 移动端近乎实色深底（轻微模糊） -->
             <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-slate-900/95 backdrop-blur-xl lg:bg-slate-900 lg:backdrop-blur-none z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
-                <!-- 移动端 logo 区：透明，继承背景 -->
-                <div class="lg:hidden flex items-center space-x-2.5 px-4 h-14 bg-transparent flex-shrink-0">
-                    <svg class="w-7 h-7 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- 移动端 logo 区：透明，继承背景。Logo 放大到 32px (w-8 h-8)，间距 space-x-3 -->
+                <div class="lg:hidden flex items-center space-x-3 px-4 h-14 bg-transparent flex-shrink-0">
+                    <svg class="w-8 h-8 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="sidebar-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
                             <linearGradient id="sidebar-g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0052d4"/><stop offset="100%" stop-color="#4364f7"/></linearGradient>
