@@ -546,15 +546,11 @@
             other: '其他'
         };
 
-        /* ==================== 核心：GitHub 文件读取工具 ==================== */
+        /* ==================== GitHub 文件读取工具 ==================== */
         function encodeRepoPath(path) {
             return path.split('/').map(encodeURIComponent).join('/');
         }
 
-        /**
-         * 用 GitHub raw media type 直接读取文件原始二进制，绕开 1MB 的 base64 限制。
-         * 返回 Blob。
-         */
         async function fetchGithubFileRaw(path) {
             if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
             const apiPath = encodeRepoPath(path);
@@ -577,30 +573,9 @@
             return blob;
         }
 
-        /**
-         * 用 raw media type 获取文件文本内容（用于 JSON）。
-         */
-        async function fetchGithubFileText(path) {
-            if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
-            const apiPath = encodeRepoPath(path);
-            const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                headers: {
-                    'Authorization': `token ${githubConfig.token}`,
-                    'Accept': 'application/vnd.github.v3.raw'
-                }
-            });
-            if (!res.ok) throw new Error(`获取文件失败 (${res.status})`);
-            return await res.text();
-        }
-
-        /**
-         * 获取仓库根 JSON（知识库主数据）。先拿 metadata 得到 sha，再用 raw 拿内容，
-         * 避免大 JSON 时 content 为空的问题。
-         */
         async function fetchGithubJSONWithMeta(path) {
             if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
             const apiPath = encodeRepoPath(path);
-            // 先拿 metadata（含 sha）
             const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                 headers: { 'Authorization': `token ${githubConfig.token}` }
             });
@@ -611,12 +586,10 @@
             }
             const meta = await metaRes.json();
             const sha = meta.sha;
-            // 再拿内容
             let text;
             if (meta.content && meta.encoding === 'base64') {
                 text = decodeURIComponent(escape(atob(meta.content)));
             } else {
-                // 大文件：content 为空，需要走 raw
                 const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                     headers: {
                         'Authorization': `token ${githubConfig.token}`,
@@ -627,6 +600,36 @@
                 text = await rawRes.text();
             }
             return { sha, text };
+        }
+
+        async function fetchImageJsonFromGithub(path) {
+            if (!githubConfig.token || !githubConfig.repo) return null;
+            const apiPath = encodeRepoPath(path);
+            try {
+                const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                    headers: { 'Authorization': `token ${githubConfig.token}` }
+                });
+                if (!metaRes.ok) return null;
+                const meta = await metaRes.json();
+                let jsonStr = '';
+                if (meta.content && meta.encoding === 'base64') {
+                    jsonStr = decodeURIComponent(escape(atob(meta.content)));
+                } else {
+                    const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                        headers: {
+                            'Authorization': `token ${githubConfig.token}`,
+                            'Accept': 'application/vnd.github.v3.raw'
+                        }
+                    });
+                    if (!rawRes.ok) return null;
+                    jsonStr = await rawRes.text();
+                }
+                if (!jsonStr) return null;
+                const obj = JSON.parse(jsonStr);
+                return obj.data || null;
+            } catch (e) {
+                return null;
+            }
         }
 
         /* ==================== 下载工具 ==================== */
@@ -643,6 +646,38 @@
             return new Blob([bytes], { type: mime });
         }
 
+        /**
+         * 将 data URL 转换成指定 MIME 的 Blob（用 canvas 重绘）。
+         * 用于 webp → png 等格式转换。
+         */
+        function convertDataUrlToBlobType(dataUrl, targetMime) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.naturalWidth || img.width;
+                        canvas.height = img.naturalHeight || img.height;
+                        const ctx = canvas.getContext('2d');
+                        // jpg 不支持透明，先填白底
+                        if (targetMime === 'image/jpeg') {
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        }
+                        ctx.drawImage(img, 0, 0);
+                        canvas.toBlob((blob) => {
+                            if (blob && blob.size > 0) resolve(blob);
+                            else reject(new Error('图片转换失败'));
+                        }, targetMime, targetMime === 'image/jpeg' ? 0.92 : undefined);
+                    } catch (e) {
+                        reject(new Error('图片转换失败'));
+                    }
+                };
+                img.onerror = () => reject(new Error('图片加载失败'));
+                img.src = dataUrl;
+            });
+        }
+
         function triggerBlobDownload(filename, blob) {
             if (!blob || blob.size === 0) throw new Error('文件内容为空');
             const url = URL.createObjectURL(blob);
@@ -653,7 +688,6 @@
             a.style.display = 'none';
             document.body.appendChild(a);
             a.click();
-            // 延迟清理，确保下载器有时间读取 Blob URL
             setTimeout(() => {
                 try { if (a.parentNode) a.parentNode.removeChild(a); } catch (e) {}
                 try { URL.revokeObjectURL(url); } catch (e) {}
@@ -1199,7 +1233,7 @@
             });
         }
 
-        /* ==================== 附件上传 / 删除 / 下载（修复版） ==================== */
+        /* ==================== 附件上传 / 删除 / 下载 ==================== */
         function uploadImageAsJson(file) {
             return new Promise((resolve) => {
                 if (!githubConfig.token || !githubConfig.repo) {
@@ -1371,17 +1405,12 @@
             }
         }
 
-        /**
-         * 关键修复：附件下载用 raw media type 直接获取二进制，
-         * 不再依赖 base64 content（大文件时为空）。
-         */
         async function downloadAttachment(index) {
             const doc = docs.find(d => d.id === currentDocId);
             if (!doc || !doc.attachments || !doc.attachments[index]) return;
             const att = doc.attachments[index];
             await prepareAndDownload(att.name, async () => {
                 const rawBlob = await fetchGithubFileRaw(att.path);
-                // 用扩展名修正 MIME 类型，方便系统正确识别
                 const mime = guessMimeByName(att.name);
                 return new Blob([rawBlob], { type: mime });
             });
@@ -1552,31 +1581,60 @@
                 if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
             });
 
+            /* 图片下载：webp 自动转 png，其它格式保持原样 */
             downloadBtn.onclick = () => {
                 if (!currentModalImgSrc) {
                     showToast('图片未加载', 'error');
                     return;
                 }
                 const src = currentModalImgSrc;
-                let ext = 'jpg';
-                if (src.startsWith('data:image/png')) ext = 'png';
-                else if (src.startsWith('data:image/webp')) ext = 'webp';
-                else if (src.startsWith('data:image/gif')) ext = 'gif';
-                else if (src.startsWith('data:image/jpeg') || src.startsWith('data:image/jpg')) ext = 'jpg';
+
+                /* 检测原图格式 */
+                let srcExt = 'jpg';
+                if (src.startsWith('data:image/png')) srcExt = 'png';
+                else if (src.startsWith('data:image/webp')) srcExt = 'webp';
+                else if (src.startsWith('data:image/gif')) srcExt = 'gif';
+                else if (src.startsWith('data:image/jpeg') || src.startsWith('data:image/jpg')) srcExt = 'jpg';
                 else if (src.startsWith('data:image/')) {
                     const m = src.match(/^data:image\/([a-zA-Z0-9.+-]+)/);
-                    if (m) ext = m[1] === 'jpeg' ? 'jpg' : m[1];
-                }
-                const filename = `knowledge_image_${Date.now()}.${ext}`;
-                prepareAndDownload(filename, async () => {
-                    if (src.startsWith('data:')) {
-                        return dataURLtoBlob(src);
+                    if (m) {
+                        srcExt = m[1].toLowerCase();
+                        if (srcExt === 'jpeg') srcExt = 'jpg';
                     }
-                    const response = await fetch(src);
-                    if (!response.ok) throw new Error('获取图片失败');
-                    const blob = await response.blob();
-                    if (!blob || blob.size === 0) throw new Error('图片内容为空');
-                    return blob;
+                }
+
+                /* webp 转 png（兼容性最好、保留透明），其它格式保持原样 */
+                const targetExt = srcExt === 'webp' ? 'png' : srcExt;
+                const filename = `knowledge_image_${Date.now()}.${targetExt}`;
+
+                prepareAndDownload(filename, async () => {
+                    /* 先确保拿到 data URL（data: 直接用，非 data 先下载再转 data URL） */
+                    let sourceUrl = src;
+                    if (!src.startsWith('data:')) {
+                        const resp = await fetch(src);
+                        if (!resp.ok) throw new Error('获取图片失败');
+                        const blob = await resp.blob();
+                        if (!blob || blob.size === 0) throw new Error('图片内容为空');
+                        sourceUrl = await new Promise((res, rej) => {
+                            const r = new FileReader();
+                            r.onload = () => res(r.result);
+                            r.onerror = () => rej(new Error('图片读取失败'));
+                            r.readAsDataURL(blob);
+                        });
+                    }
+
+                    /* webp 通过 canvas 转 png */
+                    if (srcExt === 'webp') {
+                        return await convertDataUrlToBlobType(sourceUrl, 'image/png');
+                    }
+
+                    /* gif 保留动画，直接用原 blob */
+                    if (srcExt === 'gif') {
+                        return dataURLtoBlob(sourceUrl);
+                    }
+
+                    /* png/jpg 原样下载 */
+                    return dataURLtoBlob(sourceUrl);
                 });
             };
 
@@ -1679,20 +1737,6 @@
         function updateImageTransform() {
             const imgView = document.getElementById('modalImageView');
             imgView.style.transform = `translate3d(${imgTranslateX}px, ${imgTranslateY}px, 0px) scale(${currentScale})`;
-        }
-
-        /**
-         * 关键修复：图片 JSON 也用 raw media type 读取，
-         * 避免 JSON 超过 1MB 时 content 为空导致图片加载失败。
-         */
-        async function fetchImageJsonFromGithub(path) {
-            try {
-                const text = await fetchGithubFileText(path);
-                const obj = JSON.parse(text);
-                return obj.data || null;
-            } catch (e) {
-                return null;
-            }
         }
 
         function setupImageHandling() {
@@ -2022,7 +2066,6 @@
                     text = result.text;
                 } catch (metaErr) {
                     if (metaErr.status === 404) {
-                        // 仓库中还没有该 JSON，先推送本地数据初始化
                         await syncToGithub();
                         hideLoading();
                         hideAuth();
@@ -2045,7 +2088,6 @@
                 showApp();
                 if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
             } catch (e) {
-                // 401/403 视为令牌错误；其他视为网络异常
                 const status = e.status;
                 if (status === 401 || status === 403) {
                     docs = [];
