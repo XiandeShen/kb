@@ -237,7 +237,8 @@
     <div id="appShell" class="hidden flex flex-col flex-1 min-h-0 w-full">
         <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/50 backdrop-blur-md z-[100] hidden lg:hidden transition-opacity"></div>
 
-        <header class="h-14 w-full bg-slate-900 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 z-50 shadow-md relative">
+        <!-- 关键修改点：将 lg:pl-4 改为 lg:pl-2，拉开与下方文字（26px）的距离 -->
+        <header class="h-14 w-full bg-slate-900 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 lg:pl-2 z-50 shadow-md relative">
             <div class="flex items-center space-x-2 flex-shrink-0">
                 <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
                     <i class="ri-menu-line text-xl"></i>
@@ -697,7 +698,6 @@
             const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - buffer);
             const endIndex = Math.min(items.length, Math.ceil((scrollTop + viewportHeight) / itemHeight) + buffer);
 
-            // 删除范围外的节点（回收），保留视口内节点，避免触摸中断
             nodes.forEach((node, index) => {
                 if (index < startIndex || index >= endIndex) {
                     try { if (node.parentNode) node.parentNode.removeChild(node); } catch (e) {}
@@ -705,7 +705,6 @@
                 }
             });
 
-            // 添加缺失节点
             let fragment = null;
             for (let i = startIndex; i < endIndex; i++) {
                 if (nodes.has(i)) continue;
