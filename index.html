@@ -204,6 +204,17 @@
         }
         .doc-card.is-selected:hover { border-color: #93c5fd; }
 
+        /* ===== 编辑器“紧急通知”图标按钮 ===== */
+        .urgent-label { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .urgent-toggle { transition: color .18s ease, background-color .18s ease, border-color .18s ease, transform .12s ease; }
+        .urgent-label:active .urgent-toggle { transform: scale(0.94); }
+        #editUrgentInput:checked + .urgent-toggle { color: #ef4444; background-color: #fef2f2; border-color: #fecaca; }
+        #editUrgentInput:focus-visible + .urgent-toggle { outline: 2px solid #fca5a5; outline-offset: 2px; }
+        /* 只在支持真实悬停的设备上做 hover，避免移动端点击后颜色残留 */
+        @media (hover: hover) {
+            #editUrgentInput:not(:checked) + .urgent-toggle:hover { color: #ef4444; background-color: #fef2f2; border-color: #fecaca; }
+        }
+
         /* ===== 图片查看器顶部按钮区：与顶栏右侧按钮对齐 ===== */
         #imageModal > .fixed.top-0.right-0 { padding-right: 12px; }
         @media (min-width: 640px) { #imageModal > .fixed.top-0.right-0 { padding-right: 24px; } }
@@ -533,7 +544,7 @@
                                 <input type="text" id="editTitleInput" placeholder="输入文章标题..."
                                     class="w-full text-2xl font-bold bg-transparent border-b border-slate-200 pb-2 focus:outline-none focus:border-brand-500 text-slate-900 placeholder-slate-400">
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] gap-4">
                                 <div>
                                     <label class="block text-[13px] font-medium text-slate-500 mb-1">分类</label>
                                     <input type="text" id="editCategoryInput" placeholder="例如：产品知识、FAQ..."
@@ -541,8 +552,16 @@
                                 </div>
                                 <div>
                                     <label class="block text-[13px] font-medium text-slate-500 mb-1">标签（用逗号或空格隔开）</label>
-                                    <input type="text" id="editTagsInput" placeholder="例如：甜虾 售后 质量说明"
-                                        class="w-full px-3.5 py-2.5 text-[14px] rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800">
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" id="editTagsInput" placeholder="例如：甜虾 售后 质量说明"
+                                            class="flex-1 min-w-0 px-3.5 py-2.5 text-[14px] rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800">
+                                        <label class="urgent-label flex items-center flex-shrink-0 self-stretch cursor-pointer select-none" title="标记为紧急通知">
+                                            <input type="checkbox" id="editUrgentInput" class="sr-only" aria-label="标记为紧急通知">
+                                            <span class="urgent-toggle flex h-full w-[42px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-400">
+                                                <i class="ri-alarm-warning-line text-[18px] pointer-events-none"></i>
+                                            </span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                             <div class="flex flex-col h-[400px] md:h-[500px] border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
@@ -666,6 +685,8 @@
         let activeCategory = 'ALL';
         let activeTag = null;
         let searchQuery = '';
+        // 本次进入页面是否已按紧急通知切回“全部条目”
+        let urgentDefaultApplied = false;
         let isEditing = false;
         let isLoggingIn = false;
         let isManualSyncing = false;
@@ -986,6 +1007,7 @@
                         <div class="mt-2 h-[18px] flex items-center gap-1.5 overflow-hidden">
                             <span class="inline-block px-2 py-[1px] rounded-md bg-slate-100 text-slate-600 text-[12px] font-medium leading-[16px] truncate max-w-[120px] flex-shrink">${escapeHtml(catName)}</span>
                             ${d.code ? `<span class="inline-block px-2 py-[1px] rounded-md bg-slate-100 text-slate-500 text-[12px] font-mono leading-[16px] tracking-tight flex-shrink-0">${escapeHtml(d.code)}</span>` : ''}
+                            ${d.urgent ? '<span class="inline-flex items-center gap-0.5 px-1.5 py-[1px] rounded-md bg-red-50 text-red-600 text-[12px] font-medium leading-[16px] flex-shrink-0"><i class="ri-alarm-warning-line text-[12px]"></i>紧急</span>' : ''}
                             <span class="flex-1"></span>
                             ${attCount > 0 ? `<span class="inline-flex items-center gap-0.5 text-[12px] text-slate-400 leading-none flex-shrink-0"><i class="ri-attachment-2 text-[13px]"></i>${attCount}</span>` : ''}
                         </div>
@@ -1848,6 +1870,8 @@
                 const matchTag = !activeTag || (d.tags && d.tags.includes(activeTag));
                 return matchSearch && matchCat && matchTag;
             });
+            // 紧急通知置顶
+            filtered.sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0));
             const listTitleEl = document.getElementById('listTitle');
             if (searchQuery) listTitleEl.textContent = `搜索: "${searchQuery}"`;
             else if (activeTag) listTitleEl.textContent = `# ${activeTag}`;
@@ -2398,6 +2422,9 @@
             if (isEditing) return;
             const targetId = currentDocId || localStorage.getItem(LAST_DOC_KEY);
             if (!targetId) return;
+
+            // 进入页面时若存在紧急通知，优先停留在“全部条目”列表，不自动打开上次文档
+            if (!currentDocId && docs.some(d => d && d.urgent)) return;
 
             if (!docs.some(d => d.id === targetId)) {
                 localStorage.removeItem(LAST_DOC_KEY);
@@ -3002,6 +3029,7 @@
                 document.getElementById('editTitleInput').value = '';
                 document.getElementById('editCategoryInput').value = activeCategory !== 'ALL' ? activeCategory : '通用';
                 document.getElementById('editTagsInput').value = '';
+                document.getElementById('editUrgentInput').checked = false;
                 document.getElementById('editContentInput').value = '';
                 renderEditAttachments();
                 setPreviewMode(false);
@@ -3025,6 +3053,7 @@
                 document.getElementById('editTitleInput').value = doc.title || '';
                 document.getElementById('editCategoryInput').value = doc.category || '通用';
                 document.getElementById('editTagsInput').value = (doc.tags || []).join(' ');
+                document.getElementById('editUrgentInput').checked = !!doc.urgent;
                 document.getElementById('editContentInput').value = content;
                 renderEditAttachments();
                 setPreviewMode(false);
@@ -3070,6 +3099,7 @@
                 const category = document.getElementById('editCategoryInput').value.trim() || '通用';
                 const tagsStr = document.getElementById('editTagsInput').value.trim();
                 const tags = tagsStr ? tagsStr.split(/[,，\s]+/).filter(Boolean) : [];
+                const urgent = document.getElementById('editUrgentInput').checked;
                 const content = document.getElementById('editContentInput').value;
                 const now = new Date().toLocaleString();
 
@@ -3094,7 +3124,8 @@
                         title, category, tags, updatedAt: now,
                         summary: makeSummary(content),
                         attachments: editAttachments.slice(),
-                        hasContent: true
+                        hasContent: true,
+                        urgent
                     };
                     const nextDocs = docs.slice();
                     const idx = nextDocs.findIndex(d => d.id === docId);
@@ -3516,11 +3547,21 @@
                     if (d.hasContent === undefined) d.hasContent = true;
                 });
                 docs = rawDocs;
+                // 进入页面时如有紧急通知，默认回到“全部条目”，确保通知卡片可见
+                if (!urgentDefaultApplied && docs.some(d => d && d.urgent)) {
+                    urgentDefaultApplied = true;
+                    activeCategory = 'ALL';
+                    activeTag = null;
+                    if (virtualList.container) virtualList.container.scrollTop = 0;
+                }
                 hideLoading();
                 hideAuth();
                 showApp();
                 saveLocalDocs();
                 updateSyncStatus('success', '已同步');
+                renderCategoryList();
+                renderTagList();
+                renderDocList();
                 if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
                 // 刷新/同步后自动恢复或刷新当前文档，无需再次点击列表
                 await maybeRestoreDocView();
