@@ -99,6 +99,11 @@
         /* ===== 列表卡片微阴影 ===== */
         .doc-card { box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04); transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease; }
         .doc-card:hover { box-shadow: 0 1px 3px rgba(16, 24, 40, 0.07); }
+
+        /* ===== 图片查看器顶部按钮区：与顶栏右侧按钮对齐 ===== */
+        #imageModal > .fixed.top-0.right-0 { padding-right: 12px; }
+        @media (min-width: 640px) { #imageModal > .fixed.top-0.right-0 { padding-right: 24px; } }
+        @media (min-width: 1024px) { #imageModal > .fixed.top-0.right-0 { padding-right: 12px; } }
     </style>
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
@@ -453,8 +458,9 @@
         <i class="ri-arrow-up-line text-lg pointer-events-none"></i>
     </button>
 
+    <!-- 图片查看器：顶部按钮区与顶栏右侧按钮对齐 -->
     <div id="imageModal" class="fixed inset-0 w-screen h-screen bg-slate-950/90 backdrop-blur-md z-[130] flex items-center justify-center hidden select-none">
-        <div class="fixed top-0 right-0 h-14 flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 z-[135] pointer-events-auto">
+        <div class="fixed top-0 right-0 h-14 flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 lg:pl-2 lg:pr-3 z-[135] pointer-events-auto">
             <button id="downloadImageBtn" title="下载图片" class="w-9 h-9 no-sticky-hover flex items-center justify-center rounded-xl text-slate-300 hover:text-white transition-colors">
                 <i class="ri-download-line text-lg pointer-events-none"></i>
             </button>
@@ -1750,6 +1756,120 @@
                 if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
             });
 
+            // ===== 单击/点按关闭：位移与时长阈值 =====
+            const TAP_MOVE_THRESHOLD = 10;   // 位移超过 10px 视为拖拽
+            const TAP_TIME_THRESHOLD = 600;  // 按住超过 600ms 不算单击
+            let pointerDownX = 0, pointerDownY = 0, pointerDownTime = 0;
+            let pointerMoved = false;
+            let pinchActive = false;
+
+            const beginPointer = (x, y) => {
+                pointerDownX = x;
+                pointerDownY = y;
+                pointerDownTime = Date.now();
+                pointerMoved = false;
+            };
+            const movedBeyondThreshold = (x, y) => {
+                return Math.hypot(x - pointerDownX, y - pointerDownY) > TAP_MOVE_THRESHOLD;
+            };
+            const shouldCloseByTap = (x, y) => {
+                if (modal.classList.contains('hidden')) return false;
+                if (pointerMoved) return false;
+                if (movedBeyondThreshold(x, y)) return false;
+                if (Date.now() - pointerDownTime > TAP_TIME_THRESHOLD) return false;
+                return true;
+            };
+
+            // ===== 桌面端：滚轮缩放 =====
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomFactor = 0.15;
+                let newScale = e.deltaY < 0 ? currentScale + zoomFactor : currentScale - zoomFactor;
+                if (newScale < minScale) newScale = minScale;
+                if (newScale > maxScale) newScale = maxScale;
+                currentScale = newScale;
+                clampTranslation();
+                updateImageTransform();
+            }, { passive: false });
+
+            // ===== 桌面端：按下 / 拖拽 / 抬起 =====
+            container.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                isDraggingImg = true;
+                startDragX = e.clientX - imgTranslateX;
+                startDragY = e.clientY - imgTranslateY;
+                beginPointer(e.clientX, e.clientY);
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!isDraggingImg) return;
+                imgTranslateX = e.clientX - startDragX;
+                imgTranslateY = e.clientY - startDragY;
+                if (movedBeyondThreshold(e.clientX, e.clientY)) pointerMoved = true;
+                clampTranslation();
+                updateImageTransform();
+            });
+            window.addEventListener('mouseup', (e) => {
+                if (!isDraggingImg) return;
+                isDraggingImg = false;
+                // 未发生明显位移且未超时 → 视为单击，关闭查看器
+                if (shouldCloseByTap(e.clientX, e.clientY)) closeModal();
+            });
+
+            // ===== 移动端：单指拖拽 / 双指缩放 =====
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDraggingImg = true;
+                    startDragX = e.touches[0].clientX - imgTranslateX;
+                    startDragY = e.touches[0].clientY - imgTranslateY;
+                    beginPointer(e.touches[0].clientX, e.touches[0].clientY);
+                    pinchActive = false;
+                } else if (e.touches.length === 2) {
+                    isDraggingImg = false;
+                    pointerMoved = true; // 双指操作一律不算单击
+                    pinchActive = true;
+                    initialPinchDistance = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    initialPinchScale = currentScale;
+                }
+            }, { passive: true });
+
+            container.addEventListener('touchmove', (e) => {
+                if (isDraggingImg && e.touches.length === 1) {
+                    imgTranslateX = e.touches[0].clientX - startDragX;
+                    imgTranslateY = e.touches[0].clientY - startDragY;
+                    if (movedBeyondThreshold(e.touches[0].clientX, e.touches[0].clientY)) pointerMoved = true;
+                    clampTranslation();
+                    updateImageTransform();
+                } else if (e.touches.length === 2 && initialPinchDistance) {
+                    const dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    let newScale = initialPinchScale * (dist / initialPinchDistance);
+                    if (newScale < minScale) newScale = minScale;
+                    if (newScale > maxScale) newScale = maxScale;
+                    currentScale = newScale;
+                    clampTranslation();
+                    updateImageTransform();
+                }
+            }, { passive: true });
+
+            container.addEventListener('touchend', (e) => {
+                if (e.touches.length === 0) {
+                    const wasDragging = isDraggingImg;
+                    isDraggingImg = false;
+                    if (wasDragging && !pinchActive && e.changedTouches && e.changedTouches[0]) {
+                        const t = e.changedTouches[0];
+                        if (shouldCloseByTap(t.clientX, t.clientY)) closeModal();
+                    }
+                    pinchActive = false;
+                }
+                if (e.touches.length < 2) initialPinchDistance = null;
+            });
+
+            // ===== 下载图片 =====
             downloadBtn.onclick = () => {
                 if (!currentModalImgSrc) { showToast('图片未加载', 'error'); return; }
                 const src = currentModalImgSrc;
@@ -1783,61 +1903,6 @@
                     return dataURLtoBlob(sourceUrl);
                 });
             };
-
-            container.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                const zoomFactor = 0.15;
-                let newScale = e.deltaY < 0 ? currentScale + zoomFactor : currentScale - zoomFactor;
-                if (newScale < minScale) newScale = minScale;
-                if (newScale > maxScale) newScale = maxScale;
-                currentScale = newScale;
-                clampTranslation();
-                updateImageTransform();
-            }, { passive: false });
-            container.addEventListener('mousedown', (e) => {
-                isDraggingImg = true;
-                startDragX = e.clientX - imgTranslateX;
-                startDragY = e.clientY - imgTranslateY;
-            });
-            window.addEventListener('mousemove', (e) => {
-                if (!isDraggingImg) return;
-                imgTranslateX = e.clientX - startDragX;
-                imgTranslateY = e.clientY - startDragY;
-                clampTranslation();
-                updateImageTransform();
-            });
-            window.addEventListener('mouseup', () => { isDraggingImg = false; });
-            container.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) {
-                    isDraggingImg = true;
-                    startDragX = e.touches[0].clientX - imgTranslateX;
-                    startDragY = e.touches[0].clientY - imgTranslateY;
-                } else if (e.touches.length === 2) {
-                    isDraggingImg = false;
-                    initialPinchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                    initialPinchScale = currentScale;
-                }
-            }, { passive: true });
-            container.addEventListener('touchmove', (e) => {
-                if (isDraggingImg && e.touches.length === 1) {
-                    imgTranslateX = e.touches[0].clientX - startDragX;
-                    imgTranslateY = e.touches[0].clientY - startDragY;
-                    clampTranslation();
-                    updateImageTransform();
-                } else if (e.touches.length === 2 && initialPinchDistance) {
-                    const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                    let newScale = initialPinchScale * (dist / initialPinchDistance);
-                    if (newScale < minScale) newScale = minScale;
-                    if (newScale > maxScale) newScale = maxScale;
-                    currentScale = newScale;
-                    clampTranslation();
-                    updateImageTransform();
-                }
-            }, { passive: true });
-            container.addEventListener('touchend', (e) => {
-                if (e.touches.length === 0) isDraggingImg = false;
-                if (e.touches.length < 2) initialPinchDistance = null;
-            });
         }
         function clampTranslation() {
             const imgView = document.getElementById('modalImageView');
