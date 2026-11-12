@@ -21,6 +21,11 @@
         button, a, input { -webkit-tap-highlight-color: transparent; }
         @media (hover: hover) { .no-sticky-hover:hover { background-color: rgb(30 41 59); } }
         .no-sticky-hover:active { background-color: rgb(30 41 59) !important; }
+        /* 触屏设备没有真正的悬停，避免点击复制编码后蓝色悬停态一直残留 */
+        @media (hover: none) {
+            #viewCodeBtn:hover { color: inherit; }
+            #viewCodeBtn:active { color: #1d4ed8; }
+        }
         .markdown-body { word-break: break-word; overflow-wrap: break-word; font-size: 15px; }
         .markdown-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); background: #f1f5f9; cursor: zoom-in; }
         .markdown-body p { margin-bottom: 0.8rem; line-height: 1.7; color: inherit; }
@@ -2470,6 +2475,8 @@
         // 移动端左右滑动换图
         let swipeOffsetX = 0;
         let swipeIntent = null; // null | 'swipe' | 'pan'
+        // 关闭查看器后短暂屏蔽点击，避免 touchend 的合成 click 落到下方的文档图片上
+        let suppressGalleryOpenUntil = 0;
 
         function setupImageViewerModal() {
             const modal = document.getElementById('imageModal');
@@ -2634,6 +2641,9 @@
                                 springBackGallerySwipe();
                             }
                         } else if (shouldCloseByTap(t.clientX, t.clientY)) {
+                            // 阻止 touchend 之后浏览器补发的 click 穿透到文档图片
+                            if (e.cancelable) e.preventDefault();
+                            suppressGalleryOpenUntil = Date.now() + 450;
                             closeModal();
                         }
                     }
@@ -2692,6 +2702,7 @@
         }
         // 从正文里的某张图打开查看器，并把同文档的全部图片一起带上
         function openGalleryFromImage(imgEl) {
+            if (Date.now() < suppressGalleryOpenUntil) return;
             const scope = imgEl.closest('.markdown-body') || document.getElementById('viewContent') || document.getElementById('editPreview');
             let imgs = scope ? Array.from(scope.querySelectorAll('img')) : [imgEl];
             imgs = imgs.filter(el => {
