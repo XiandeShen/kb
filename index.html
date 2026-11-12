@@ -13,6 +13,7 @@
         tailwind.config = { theme: { extend: { colors: { brand: { 50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a' } } } } };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
@@ -33,6 +34,70 @@
         .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.8rem; }
         .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.8rem; }
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
+
+        /* ===== Markdown 图片加载态（避免浏览器原生的“图片损坏”占位） ===== */
+        .markdown-body .md-img-frame {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            margin: 12px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: transparent;
+            vertical-align: middle;
+        }
+        .markdown-body .md-img-frame.is-loading {
+            min-height: 180px;
+            background: linear-gradient(100deg, #eef2f7 25%, #f8fafc 37%, #eef2f7 63%);
+            background-size: 400% 100%;
+            animation: mdImgShimmer 1.4s ease infinite;
+        }
+        .markdown-body .md-img-frame.is-error {
+            min-height: 120px;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            cursor: pointer;
+        }
+        .markdown-body .md-img-frame img.md-img {
+            margin: 0;
+            box-shadow: none;
+            max-width: 100%;
+            opacity: 0;
+            transition: opacity .25s ease;
+        }
+        .markdown-body .md-img-frame.is-loading img.md-img,
+        .markdown-body .md-img-frame.is-error img.md-img { display: none; }
+        .markdown-body .md-img-frame.is-ready img.md-img { opacity: 1; cursor: zoom-in; }
+        .md-img-spinner {
+            display: none;
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 24px;
+            height: 24px;
+            border: 2.5px solid #dbe3ec;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: mdImgSpin .8s linear infinite;
+        }
+        .md-img-frame.is-loading .md-img-spinner { display: block; }
+        .md-img-error {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: #94a3b8;
+            font-size: 12px;
+            line-height: 1.4;
+            text-align: center;
+            padding: 12px;
+        }
+        .md-img-error i { font-size: 22px; }
+        .md-img-frame.is-error .md-img-error { display: flex; }
+        @keyframes mdImgShimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+        @keyframes mdImgSpin { to { transform: rotate(360deg); } }
 
         /* ===== 品牌字体：椿沐智库 ===== */
         .brand-title {
@@ -108,28 +173,49 @@
         #advancedOptions.is-open { max-height: 320px; opacity: 1; }
         #advancedChevron { transition: transform 0.25s ease; }
         #advancedChevron.is-open { transform: rotate(180deg); }
-        .login-progress-fill { width: 40%; animation: loginProgressMove 1.3s ease-in-out infinite; }
-        @keyframes loginProgressMove { 0% { left: -40%; } 100% { left: 100%; } }
         #syncRefreshBtn { -webkit-tap-highlight-color: transparent; }
         #syncRefreshBtn:active { transform: scale(0.9); }
         #confirmModal .confirm-card { animation: confirmPop 0.18s ease-out; }
         @keyframes confirmPop { 0% { opacity: 0; transform: scale(0.96) translateY(6px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
 
-        /* ===== 列表卡片微阴影 ===== */
-        .doc-card { box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04); transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease; }
-        .doc-card:hover { box-shadow: 0 1px 3px rgba(16, 24, 40, 0.07); }
+        /* ===== 列表卡片 ===== */
+        .doc-card {
+            background: #fff;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+            -webkit-tap-highlight-color: transparent;
+            transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+        }
+        .doc-card:hover {
+            border-color: #cbd5e1;
+            background: #fdfefe;
+            box-shadow: 0 4px 10px -4px rgba(15, 23, 42, 0.14);
+        }
+        .doc-card:active { transform: scale(0.992); }
+        .doc-card.is-selected {
+            background: linear-gradient(180deg, #eef5ff 0%, #ffffff 88%);
+            border-color: #bfdbfe;
+            box-shadow: 0 3px 12px -6px rgba(37, 99, 235, 0.35);
+        }
+        .doc-card.is-selected:hover { border-color: #93c5fd; }
 
         /* ===== 图片查看器顶部按钮区：与顶栏右侧按钮对齐 ===== */
         #imageModal > .fixed.top-0.right-0 { padding-right: 12px; }
         @media (min-width: 640px) { #imageModal > .fixed.top-0.right-0 { padding-right: 24px; } }
         @media (min-width: 1024px) { #imageModal > .fixed.top-0.right-0 { padding-right: 12px; } }
+
+        /* ===== 编辑预览 ===== */
+        #editPreview { scrollbar-width: thin; scrollbar-color: #dbe2ea transparent; }
+        #editPreview::-webkit-scrollbar { width: 6px; height: 6px; }
+        #editPreview::-webkit-scrollbar-track { background: transparent; }
+        #editPreview::-webkit-scrollbar-thumb { background: #dbe2ea; border-radius: 999px; }
     </style>
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
 
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl text-[13px] font-medium z-[200] transition-all duration-300 transform translate-y-12 opacity-0 pointer-events-none flex items-center space-x-2">
-        <i id="toastIcon" class="ri-checkbox-circle-line text-emerald-400 text-sm"></i>
-        <span id="toastText">提示信息</span>
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 max-w-[92vw] bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl text-[13px] font-medium z-[200] transition-all duration-300 transform translate-y-12 opacity-0 pointer-events-none flex items-center space-x-2">
+        <i id="toastIcon" class="ri-checkbox-circle-line text-emerald-400 text-sm flex-shrink-0"></i>
+        <span id="toastText" class="min-w-0 break-words leading-snug">提示信息</span>
     </div>
 
     <div id="loadingOverlay" class="fixed inset-0 w-screen h-screen z-[160] flex items-center justify-center overflow-hidden bg-slate-950">
@@ -138,9 +224,20 @@
             <div class="absolute -bottom-40 -right-32 w-[28rem] h-[28rem] bg-cyan-500/20 rounded-full blur-3xl"></div>
             <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-[36rem] h-[36rem] bg-indigo-600/10 rounded-full blur-3xl"></div>
         </div>
-        <div class="relative bg-white px-6 py-4 rounded-2xl shadow-xl flex items-center space-x-3">
-            <div class="w-6 h-6 border-[3px] border-brand-600 border-t-transparent rounded-full animate-spin"></div>
-            <span id="loadingText" class="text-[13px] font-medium text-slate-700">正在加载知识库...</span>
+        <div class="relative bg-white px-6 py-4 rounded-2xl shadow-xl flex flex-col max-w-[320px]">
+            <div class="flex items-center space-x-3">
+                <div class="w-6 h-6 border-[3px] border-brand-600 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+                <span id="loadingText" class="text-[13px] font-medium text-slate-700">正在加载知识库...</span>
+            </div>
+            <div id="loadingProgressWrap" class="hidden w-[220px] max-w-[70vw] mt-3">
+                <div class="h-1.5 w-full bg-slate-200/80 rounded-full overflow-hidden">
+                    <div id="loadingProgressBar" class="h-full bg-brand-500 rounded-full transition-[width] duration-200" style="width:0%"></div>
+                </div>
+                <div class="mt-1.5 flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                    <span id="loadingProgressStage" class="truncate">正在处理...</span>
+                    <span id="loadingProgressPercent" class="tabular-nums flex-shrink-0">0%</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -167,95 +264,72 @@
             <div class="absolute top-0 left-1/4 -translate-x-1/2 w-[44rem] h-[44rem] -translate-y-1/2 bg-blue-500/[0.10] rounded-full blur-3xl"></div>
             <div class="absolute bottom-0 right-0 w-[32rem] h-[32rem] translate-x-1/4 translate-y-1/4 bg-cyan-500/[0.07] rounded-full blur-3xl"></div>
         </div>
-        <div class="relative min-h-full flex flex-col sm:flex-row">
-            <div class="flex-1 flex flex-col items-center justify-center px-6 py-14 sm:items-start sm:justify-center sm:px-12 sm:py-0 lg:px-20 xl:px-28">
-                <div class="w-full max-w-lg">
-                    <!-- 登录页 Logo 与文字 -->
-                    <div class="flex flex-col items-center sm:flex-row sm:items-center sm:space-x-4">
-                        <svg class="w-16 h-16 sm:w-14 sm:h-14 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                                <linearGradient id="login-logo-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
-                                <linearGradient id="login-logo-g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0052d4"/><stop offset="100%" stop-color="#4364f7"/></linearGradient>
-                                <linearGradient id="login-logo-g3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="50%" stop-color="#0072ff"/><stop offset="100%" stop-color="#0052d4"/></linearGradient>
-                            </defs>
-                            <g>
-                                <path d="M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z" fill="url(#login-logo-g2)"/>
-                                <path d="M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z" fill="url(#login-logo-g1)" opacity="0.9"/>
-                                <path d="M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z" fill="url(#login-logo-g3)"/>
-                                <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
-                            </g>
-                        </svg>
-                        <div class="mt-4 sm:mt-0 flex items-center space-x-2">
-                            <span class="brand-title text-xl sm:text-2xl text-white whitespace-nowrap">椿沐智库</span>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-semibold text-slate-300 ring-1 ring-inset ring-white/15 tracking-widest leading-none">v3.2.1</span>
-                        </div>
-                    </div>
-                    <p class="sm:hidden text-center text-xs text-slate-400 leading-relaxed mt-4">云端知识库 · 安全可控 · 随时访问</p>
-                    <div class="hidden sm:block">
-                        <h2 class="text-3xl lg:text-4xl font-light text-white leading-snug mt-14">让知识沉淀，<br class="hidden lg:block">让经验传承</h2>
-                        <p class="text-sm text-slate-400 leading-relaxed mt-5 max-w-md">安全连接你的 GitHub 知识库，支持 Markdown 编辑、多格式附件上传、分类与标签检索，随时随地访问你的知识资产。</p>
-                        <div class="space-y-6 mt-14">
-                            <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0"><i class="ri-file-text-line text-lg text-brand-400"></i></div>
-                                <div><h3 class="text-sm font-medium text-white mb-1">索引与正文分离</h3><p class="text-xs text-slate-500 leading-relaxed">主索引轻量加载，正文按需拉取，支撑万条级知识库</p></div>
-                            </div>
-                            <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0"><i class="ri-attachment-2 text-lg text-brand-400"></i></div>
-                                <div><h3 class="text-sm font-medium text-white mb-1">多格式附件</h3><p class="text-xs text-slate-500 leading-relaxed">支持表格、Word、PPT、PDF、压缩包等格式，按类型分类存放</p></div>
-                            </div>
-                            <div class="flex items-start space-x-4">
-                                <div class="w-10 h-10 rounded-xl bg-white/[0.05] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0"><i class="ri-search-eye-line text-lg text-brand-400"></i></div>
-                                <div><h3 class="text-sm font-medium text-white mb-1">智能检索</h3><p class="text-xs text-slate-500 leading-relaxed">按标题、摘要、编码、标签快速定位知识条目</p></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- 左上角品牌：与应用顶栏一致 -->
+        <div class="absolute top-0 left-0 h-14 flex items-center px-4 sm:px-6 z-20">
+            <div class="flex items-end space-x-1.5 -translate-y-[3px]">
+                <svg class="w-8 h-8 flex-shrink-0 -mb-[3px]" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="login-logo-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
+                        <linearGradient id="login-logo-g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0052d4"/><stop offset="100%" stop-color="#4364f7"/></linearGradient>
+                        <linearGradient id="login-logo-g3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="50%" stop-color="#0072ff"/><stop offset="100%" stop-color="#0052d4"/></linearGradient>
+                    </defs>
+                    <g>
+                        <path d="M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z" fill="url(#login-logo-g2)"/>
+                        <path d="M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z" fill="url(#login-logo-g1)" opacity="0.9"/>
+                        <path d="M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z" fill="url(#login-logo-g3)"/>
+                        <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
+                    </g>
+                </svg>
+                <span class="brand-title text-base text-white whitespace-nowrap">椿沐智库</span>
             </div>
-            <div class="w-full sm:w-[460px] lg:w-[520px] flex-shrink-0 px-6 pb-14 sm:flex sm:items-center sm:justify-center sm:border-l border-white/[0.06] sm:px-8 sm:py-0">
-                <div class="w-full sm:max-w-[340px]">
-                    <form id="authForm" class="space-y-8" autocomplete="off">
+        </div>
+
+        <!-- 居中登录卡片 -->
+        <div class="relative z-10 min-h-full flex items-center justify-center px-6 py-24">
+            <div class="w-full max-w-[380px]">
+                <div class="rounded-2xl border border-white/10 bg-white/[0.055] backdrop-blur-xl p-8 shadow-2xl shadow-black/40">
+                    <div class="mb-6">
+                        <h1 class="text-[18px] font-semibold text-white">登录到智库</h1>
+                    </div>
+                    <form id="authForm" class="space-y-5" autocomplete="off">
                         <div>
-                            <label for="authTokInput" class="block text-[11px] font-medium text-slate-400 mb-2.5 tracking-widest uppercase">访问令牌</label>
-                            <div class="relative">
-                                <input type="password" id="authTokInput" placeholder="请输入访问令牌" spellcheck="false"
-                                    class="w-full bg-transparent border-0 border-b border-white/15 px-0 py-3 pr-9 text-[15px] text-white placeholder-slate-600 focus:outline-none focus:border-white/60 transition-colors duration-200">
+                            <label for="authTokInput" class="block mb-1 text-[12px] font-medium text-slate-300">访问令牌</label>
+                            <div class="flex items-center gap-1 border-b border-white/15 transition-colors duration-200 focus-within:border-brand-400">
+                                <input type="password" id="authTokInput" placeholder="粘贴 GitHub 访问令牌" spellcheck="false"
+                                    class="flex-1 min-w-0 h-12 bg-transparent text-[14px] text-white placeholder-slate-600 focus:outline-none">
                                 <button type="button" id="toggleTokenVisibility" title="显示/隐藏令牌"
-                                    class="absolute right-0 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-300 transition">
+                                    class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-slate-500 hover:text-slate-200 transition-colors">
                                     <i id="toggleTokenIcon" class="ri-eye-line text-base"></i>
+                                </button>
+                                <button type="submit" id="authSubmitBtn" title="登录"
+                                    class="flex-shrink-0 w-8 h-8 flex items-center justify-center text-slate-300 hover:text-brand-400 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <i id="loginSpinner" class="hidden ri-loader-4-line animate-spin text-[15px]"></i>
+                                    <i id="loginArrow" class="ri-arrow-right-line text-lg"></i>
                                 </button>
                             </div>
                         </div>
-                        <button type="submit" id="authSubmitBtn"
-                            class="relative overflow-hidden w-full py-3.5 bg-white text-slate-900 font-medium text-[15px] rounded-full hover:bg-slate-100 active:bg-slate-200 active:scale-[0.99] transition-all duration-200 disabled:opacity-80 disabled:cursor-not-allowed disabled:hover:bg-white disabled:active:scale-100">
-                            <span class="relative z-10 flex items-center justify-center space-x-2">
-                                <i id="loginSpinner" class="hidden ri-loader-4-line animate-spin text-base"></i>
-                                <span id="loginBtnText">登录</span>
-                            </span>
-                            <div id="loginProgressBar" class="hidden absolute bottom-0 left-0 right-0 h-[3px] overflow-hidden">
-                                <div class="login-progress-fill absolute top-0 bottom-0 bg-brand-500 rounded-full"></div>
-                            </div>
-                        </button>
                         <div>
-                            <button type="button" id="toggleAdvancedBtn" class="group flex items-center space-x-1.5 text-[12px] text-slate-500 hover:text-slate-300 transition-colors">
+                            <button type="button" id="toggleAdvancedBtn" class="group flex items-center space-x-1.5 text-[12px] text-slate-400 hover:text-slate-200 transition-colors">
                                 <i id="advancedChevron" class="ri-arrow-down-s-line text-sm"></i>
-                                <span class="tracking-widest uppercase">高级选项</span>
+                                <span>高级选项</span>
                             </button>
                             <div id="advancedOptions" class="pt-3">
                                 <div class="space-y-5 pl-0.5">
                                     <div>
-                                        <label for="authRepoInput" class="block text-[11px] font-medium text-slate-400 mb-2 tracking-widest uppercase">仓库地址</label>
+                                        <label for="authRepoInput" class="block text-[12px] font-medium text-slate-300 mb-2">仓库地址</label>
                                         <input type="text" id="authRepoInput" placeholder="Owner/Repo" spellcheck="false"
-                                            class="w-full bg-transparent border-0 border-b border-white/10 px-0 py-2.5 text-[15px] text-white placeholder-slate-600 focus:outline-none focus:border-white/50 transition-colors duration-200">
+                                            class="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[13px] text-white placeholder-slate-500 focus:outline-none focus:border-brand-400/60 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-200">
                                     </div>
                                     <div>
-                                        <label for="authPathInput" class="block text-[11px] font-medium text-slate-400 mb-2 tracking-widest uppercase">JSON 文件名</label>
+                                        <label for="authPathInput" class="block text-[12px] font-medium text-slate-300 mb-2">JSON 文件名</label>
                                         <input type="text" id="authPathInput" placeholder="kb_docs.json" spellcheck="false"
-                                            class="w-full bg-transparent border-0 border-b border-white/10 px-0 py-2.5 text-[15px] text-white placeholder-slate-600 focus:outline-none focus:border-white/50 transition-colors duration-200">
+                                            class="w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[13px] text-white placeholder-slate-500 focus:outline-none focus:border-brand-400/60 focus:ring-2 focus:ring-brand-500/20 transition-colors duration-200">
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -271,8 +345,8 @@
                 <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
                     <i class="ri-menu-line text-xl"></i>
                 </button>
-                <div class="hidden lg:flex items-center space-x-3">
-                    <svg class="w-8 h-8 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <div class="hidden lg:flex items-end space-x-1.5 -translate-y-[3px]">
+                    <svg class="w-8 h-8 flex-shrink-0 -mb-[3px]" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="header-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
                             <linearGradient id="header-g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0052d4"/><stop offset="100%" stop-color="#4364f7"/></linearGradient>
@@ -285,10 +359,7 @@
                             <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
                         </g>
                     </svg>
-                    <div class="flex items-center space-x-2">
-                        <span class="brand-title text-base text-white whitespace-nowrap">椿沐智库</span>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-semibold text-slate-300 ring-1 ring-inset ring-white/15 tracking-widest leading-none">v3.2.1</span>
-                    </div>
+                    <span class="brand-title text-base text-white whitespace-nowrap">椿沐智库</span>
                 </div>
             </div>
             <div class="flex-1 min-w-0 max-w-lg mx-2 sm:mx-5">
@@ -338,8 +409,9 @@
             <!-- 侧边栏：移动端保持深色；PC 使用浅灰（比列表栏稍深） -->
             <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-slate-900/95 backdrop-blur-xl lg:bg-[#e8ecf2] lg:border-r lg:border-slate-300/60 lg:backdrop-blur-none z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
                 <!-- 移动端 logo 区 -->
-                <div class="lg:hidden flex items-center space-x-3 px-4 h-14 bg-transparent flex-shrink-0">
-                    <svg class="w-8 h-8 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <div class="lg:hidden flex items-center px-4 h-14 bg-transparent flex-shrink-0">
+                    <div class="flex items-end space-x-1.5 -translate-y-[3px]">
+                    <svg class="w-8 h-8 flex-shrink-0 -mb-[3px]" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="sidebar-g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00c6ff"/><stop offset="100%" stop-color="#0072ff"/></linearGradient>
                             <linearGradient id="sidebar-g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0052d4"/><stop offset="100%" stop-color="#4364f7"/></linearGradient>
@@ -352,9 +424,7 @@
                             <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
                         </g>
                     </svg>
-                    <div class="flex items-center space-x-2">
-                        <span class="brand-title text-base text-white whitespace-nowrap">椿沐智库</span>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-semibold text-slate-300 ring-1 ring-inset ring-white/15 tracking-widest leading-none">v3.2.1</span>
+                    <span class="brand-title text-base text-white whitespace-nowrap">椿沐智库</span>
                     </div>
                 </div>
                 <div id="sidebarScrollContainer" class="p-3.5 space-y-6 overflow-y-auto flex-1">
@@ -392,23 +462,20 @@
                 </div>
 
                 <div id="viewPanel" class="hidden flex-1 flex flex-col overflow-hidden bg-white h-full relative">
-                    <div class="h-12 px-4 md:px-6 border-b border-slate-200 bg-white flex items-center justify-between flex-shrink-0 gap-2 z-10">
-                        <div class="flex items-center space-x-2 min-w-0 flex-1">
-                            <button id="backToListBtn" class="md:hidden p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg flex items-center space-x-1 text-[13px] font-medium flex-shrink-0">
-                                <i class="ri-arrow-left-line text-base"></i><span>返回</span>
-                            </button>
-                            <span id="viewCategoryBadge" class="px-2.5 py-1 rounded-full text-[13px] font-medium bg-brand-50 text-brand-600 truncate max-w-[140px] sm:max-w-xs flex-shrink-0">通用</span>
-                        </div>
-                        <div class="flex items-center space-x-2 flex-shrink-0">
-                            <button id="editDocBtn" class="px-3 py-2 text-[13px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl flex items-center space-x-1 transition">
-                                <i class="ri-edit-line"></i><span>编辑</span>
-                            </button>
-                            <button id="deleteDocBtn" class="px-3 py-2 text-[13px] font-medium bg-red-50 hover:bg-red-100 text-red-600 rounded-xl flex items-center space-x-1 transition">
-                                <i class="ri-delete-bin-line"></i><span>删除</span>
-                            </button>
-                        </div>
+                    <!-- 顶部渐隐，正文滚动时不与悬浮操作按钮互相干扰 -->
+                    <div class="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white via-white/80 to-transparent z-10 pointer-events-none"></div>
+                    <button id="backToListBtn" class="md:hidden absolute top-2 left-3 z-20 flex items-center gap-1 px-2.5 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100/80 rounded-lg transition">
+                        <i class="ri-arrow-left-line text-base"></i><span>返回</span>
+                    </button>
+                    <div class="absolute top-2 right-3 md:right-4 z-20 flex items-center gap-1">
+                        <button id="editDocBtn" class="px-2.5 py-1.5 text-[13px] font-medium text-slate-500 hover:text-brand-600 hover:bg-slate-100/80 rounded-lg flex items-center space-x-1 transition">
+                            <i class="ri-edit-line"></i><span>编辑</span>
+                        </button>
+                        <button id="deleteDocBtn" class="px-2.5 py-1.5 text-[13px] font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg flex items-center space-x-1 transition">
+                            <i class="ri-delete-bin-line"></i><span>删除</span>
+                        </button>
                     </div>
-                    <div id="viewScrollContainer" class="flex-1 overflow-y-auto p-4 md:p-10 w-full relative">
+                    <div id="viewScrollContainer" class="flex-1 overflow-y-auto px-4 pt-14 pb-4 md:p-10 w-full relative">
                         <div class="max-w-4xl mx-auto w-full pb-12">
                             <h1 id="viewTitle" class="text-2xl sm:text-[2rem] font-extrabold text-slate-900 mb-3 leading-tight"></h1>
                             <div class="flex flex-wrap items-center gap-3 text-[13px] text-slate-400 mb-6 pb-4 border-b border-slate-200">
@@ -418,7 +485,12 @@
                                     <span>编码:</span>
                                     <span id="viewCodeText" class="font-mono">--</span>
                                 </span>
-                                <div id="viewTags" class="flex flex-wrap gap-1"></div>
+                                <span id="viewCategoryBadge" class="flex items-center min-w-0 max-w-[180px]">
+                                    <i class="ri-bookmark-line mr-1 flex-shrink-0"></i>
+                                    <span class="flex-shrink-0">分类:</span>
+                                    <span id="viewCategoryText" class="ml-1 min-w-0 truncate">通用</span>
+                                </span>
+                                <div id="viewTags" class="flex flex-wrap items-center gap-x-3 gap-y-1"></div>
                             </div>
                             <div id="viewContent" class="markdown-body text-slate-700 text-[15px]"></div>
                             <div id="viewAttachments"></div>
@@ -426,22 +498,27 @@
                     </div>
                 </div>
 
-                <div id="editPanel" class="hidden flex-1 flex flex-col bg-white overflow-hidden h-full">
-                    <div class="h-12 px-4 md:px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50 flex-shrink-0">
-                        <div class="flex items-center space-x-2">
-                            <button id="cancelEditBtn" class="md:hidden p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg flex items-center space-x-1 text-[13px] font-medium">
-                                <i class="ri-arrow-left-line text-base"></i><span>返回</span>
-                            </button>
-                            <span id="editorModeTitle" class="font-bold text-[13px] text-slate-700">编辑文章</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button id="desktopCancelEditBtn" class="hidden md:inline-block px-3 py-1.5 text-[13px] text-slate-600 hover:bg-slate-200 rounded-xl transition">取消</button>
-                            <button id="saveDocBtn" class="px-4 py-2 text-[13px] font-medium bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm transition flex items-center space-x-1">
-                                <i class="ri-save-line"></i><span>保存</span>
-                            </button>
-                        </div>
+                <div id="editPanel" class="hidden flex-1 flex flex-col bg-white overflow-hidden h-full relative">
+                    <!-- 与查看态一致的悬浮操作：无工具栏、无分割线 -->
+                    <div class="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white via-white/80 to-transparent z-10 pointer-events-none"></div>
+                    <div class="absolute top-2 left-3 md:left-4 z-20 flex h-[32px] items-center gap-2">
+                        <button id="cancelEditBtn" class="md:hidden flex items-center gap-1 px-2.5 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100/80 rounded-lg transition">
+                            <i class="ri-arrow-left-line text-base"></i><span>返回</span>
+                        </button>
+                        <span id="editorModeTitle" class="text-[13px] font-medium text-slate-400 whitespace-nowrap">编辑文章</span>
                     </div>
-                    <div id="editScrollContainer" class="flex-1 overflow-y-auto p-4 md:p-6">
+                    <div class="absolute top-2 right-3 md:right-4 z-20 flex items-center gap-1">
+                        <button id="togglePreviewBtn" class="px-2.5 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100/80 rounded-lg flex items-center gap-1 transition">
+                            <i id="togglePreviewIcon" class="ri-eye-line"></i><span id="togglePreviewText">预览</span>
+                        </button>
+                        <button id="desktopCancelEditBtn" class="hidden md:flex px-2.5 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100/80 rounded-lg items-center gap-1 transition">
+                            <i class="ri-close-line"></i><span>取消</span>
+                        </button>
+                        <button id="saveDocBtn" class="px-2.5 py-1.5 text-[13px] font-semibold text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg flex items-center gap-1 transition">
+                            <i class="ri-save-line"></i><span>保存</span>
+                        </button>
+                    </div>
+                    <div id="editScrollContainer" class="flex-1 overflow-y-auto px-4 pt-14 pb-4 md:px-6 md:pt-12 md:pb-6">
                         <div class="max-w-5xl mx-auto w-full space-y-4 pb-12">
                             <div>
                                 <input type="text" id="editTitleInput" placeholder="输入文章标题..."
@@ -470,10 +547,11 @@
                                 </div>
                                 <textarea id="editContentInput" placeholder="使用 Markdown 语法编写内容..."
                                     class="flex-1 w-full p-4 bg-transparent font-mono text-[14px] leading-relaxed resize-none focus:outline-none text-slate-800 placeholder-slate-400"></textarea>
+                                <div id="editPreview" class="hidden flex-1 w-full p-4 overflow-y-auto markdown-body text-slate-800 bg-white"></div>
                             </div>
                             <div class="pt-2">
                                 <div class="text-[12px] font-semibold text-slate-400 uppercase tracking-wider mb-2">附件</div>
-                                <div id="editAttachmentsList" class="space-y-2"></div>
+                                <div id="editAttachmentsList" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
                             </div>
                         </div>
                     </div>
@@ -497,8 +575,16 @@
             </button>
         </div>
         <div id="imageContainer" class="w-full h-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing p-4 touch-none relative">
-            <img id="modalImageView" src="" alt="全屏大图" class="absolute max-w-none max-h-none object-contain pointer-events-none origin-center">
+            <img id="modalImageView" src="" alt="全屏大图" class="absolute max-w-none max-h-none object-contain pointer-events-none origin-center transition-opacity duration-150">
         </div>
+        <div id="galleryCounter" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[135] px-3 py-1 rounded-full bg-slate-900/60 backdrop-blur-md text-white/90 text-[12px] font-medium tabular-nums pointer-events-none">1 / 1</div>
+        <button id="prevImageBtn" type="button" title="上一张 (←)" class="hidden fixed left-3 sm:left-5 top-1/2 -translate-y-1/2 z-[135] w-11 h-11 rounded-full bg-slate-900/45 hover:bg-slate-900/75 active:bg-slate-900/85 text-white backdrop-blur-md flex items-center justify-center transition">
+            <i class="ri-arrow-left-s-line text-2xl pointer-events-none"></i>
+        </button>
+        <button id="nextImageBtn" type="button" title="下一张 (→)" class="hidden fixed right-3 sm:right-5 top-1/2 -translate-y-1/2 z-[135] w-11 h-11 rounded-full bg-slate-900/45 hover:bg-slate-900/75 active:bg-slate-900/85 text-white backdrop-blur-md flex items-center justify-center transition">
+            <i class="ri-arrow-right-s-line text-2xl pointer-events-none"></i>
+        </button>
+        <div id="galleryThumbs" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[135] max-w-[92vw] flex items-center gap-2 px-2.5 py-2 rounded-2xl bg-slate-900/50 backdrop-blur-md overflow-x-auto"></div>
     </div>
 
     <div id="githubModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[145] flex items-center justify-center p-4 hidden">
@@ -515,8 +601,13 @@
             <p class="text-[13px] text-slate-500 leading-relaxed">修改你的 GitHub 访问凭证与存储路径。</p>
             <div class="space-y-3">
                 <div>
-                    <label class="block text-[13px] font-medium text-slate-600 mb-1">Personal Access Token (PAT)</label>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-[13px] font-medium text-slate-600">Personal Access Token (PAT)</label>
+                        <button type="button" id="verifyTokenBtn" class="text-[12px] font-medium text-brand-600 hover:text-brand-700 transition">验证权限</button>
+                    </div>
                     <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxx" class="w-full px-3.5 py-2.5 text-[14px] rounded-xl border border-slate-200 bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-brand-500">
+                    <p class="mt-1.5 text-[11px] text-slate-400 leading-relaxed">令牌保存在本机浏览器（localStorage），请勿在公用设备使用。</p>
+                    <p id="verifyTokenStatus" class="hidden mt-1.5 text-[12px] leading-relaxed"></p>
                 </div>
                 <div>
                     <label class="block text-[13px] font-medium text-slate-600 mb-1">仓库路径 (Owner/Repo)</label>
@@ -534,8 +625,33 @@
     </div>
 
     <script>
+        /* ==================== 内存缓存（LRU，防止无上限增长） ==================== */
+        class SimpleLRU {
+            constructor(limit) { this.limit = limit; this.map = new Map(); }
+            get(key) {
+                if (!this.map.has(key)) return undefined;
+                const value = this.map.get(key);
+                this.map.delete(key);
+                this.map.set(key, value);
+                return value;
+            }
+            has(key) { return this.map.has(key); }
+            set(key, value) {
+                if (this.map.has(key)) this.map.delete(key);
+                this.map.set(key, value);
+                while (this.map.size > this.limit) {
+                    const oldest = this.map.keys().next().value;
+                    this.map.delete(oldest);
+                }
+            }
+            delete(key) { this.map.delete(key); }
+            clear() { this.map.clear(); }
+        }
+
         let docs = [];
-        let docContentCache = {};
+        // 正文缓存最多保留 25 篇；图片 JSON（base64）最多保留 30 张
+        const docContentCache = new SimpleLRU(25);
+        const imageJsonCache = new SimpleLRU(30);
         let currentDocId = null;
         let previousDocId = null;
         let activeCategory = 'ALL';
@@ -552,22 +668,183 @@
         let pendingDeletedAttachments = [];
         // 编辑会话标识：取消/保存后递增，用于丢弃迟到的上传结果，避免产生孤儿文件
         let editSessionId = 0;
+        let isPreviewMode = false;
+        let isSavingDoc = false;
+        let searchDebounceTimer = null;
+        // Git Data API 使用的默认分支缓存（切换仓库时重置）
+        let repoDefaultBranch = '';
 
-        const imageJsonCache = {};
         const DEFAULT_LOADING_TEXT = '正在加载知识库...';
+        // 记住最后打开的文档，刷新后自动恢复
+        const LAST_DOC_KEY = 'kb_last_doc_id';
         const MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
+        // 10MB 以内优先走 Contents API（单请求）；更大的文件走 Git Data API
+        const CONTENTS_UPLOAD_LIMIT = 10 * 1024 * 1024;
+        // 超过 2MB 的附件按 1.5MB 分片上传，规避单次请求体过大导致的网络中断
+        const CHUNKED_UPLOAD_THRESHOLD = 2 * 1024 * 1024;
+        const CHUNK_SIZE = 1.5 * 1024 * 1024;
         const DOWNLOAD_REVOKE_DELAY = 60000;
         const DOCS_FOLDER = 'docs';
         const ATTACHMENT_FOLDERS = { table: '表格', word: 'Word', ppt: 'PPT', pdf: 'PDF', archive: '压缩包', other: '其他' };
 
-        /* ==================== 列表分类小标签（统一浅灰） ==================== */
-        function getCategoryChipClass() {
-            return 'bg-slate-100 text-slate-600 ring-slate-200/70';
+        /* ==================== 列表卡片辅助 ==================== */
+        // 今天/昨天优先，其次当年只显示 MM-DD，更省空间也更易读
+        function formatDocDate(value) {
+            if (!value) return '';
+            const raw = String(value);
+            const m = raw.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+            if (!m) return raw.split(' ')[0];
+            const now = new Date();
+            const target = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const diffDays = Math.round((today - target) / 86400000);
+            if (diffDays === 0) return '今天';
+            if (diffDays === 1) return '昨天';
+            if (target.getFullYear() === now.getFullYear()) return `${Number(m[2])}-${Number(m[3])}`;
+            return `${m[1]}/${Number(m[2])}/${Number(m[3])}`;
         }
+
         function escapeHtml(str) {
             return String(str == null ? '' : str)
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        /* ==================== UTF-8 Base64（替代 unescape 方案） ==================== */
+        function utf8ToBase64(str) {
+            const bytes = new TextEncoder().encode(str);
+            let binary = '';
+            const CHUNK = 0x8000;
+            for (let i = 0; i < bytes.length; i += CHUNK) {
+                binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+            }
+            return btoa(binary);
+        }
+
+        function base64ToUtf8(b64) {
+            const binary = atob(String(b64 || '').replace(/\s/g, ''));
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            return new TextDecoder().decode(bytes);
+        }
+
+        /* ==================== Markdown 安全渲染 ==================== */
+        // 优先使用 DOMPurify；CDN 未加载时退回到基于惰性文档的保守清洗
+        function sanitizeHtml(html) {
+            if (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function') {
+                return window.DOMPurify.sanitize(html, {
+                    USE_PROFILES: { html: true },
+                    ADD_ATTR: ['target', 'rel']
+                });
+            }
+            const parsed = new DOMParser().parseFromString(String(html || ''), 'text/html');
+            parsed.querySelectorAll('script,iframe,frame,object,embed,link,style,meta,form,base').forEach(n => n.remove());
+            parsed.querySelectorAll('*').forEach(el => {
+                for (const attr of Array.from(el.attributes)) {
+                    const name = attr.name.toLowerCase();
+                    const value = (attr.value || '').trim();
+                    if (name.startsWith('on')) { el.removeAttribute(attr.name); continue; }
+                    if ((name === 'href' || name === 'src' || name === 'xlink:href' || name === 'action') &&
+                        /^(javascript|vbscript|data:text\/html)/i.test(value)) {
+                        el.removeAttribute(attr.name);
+                    }
+                }
+            });
+            return parsed.body.innerHTML;
+        }
+
+        // 图片加载：先在骨架屏里等待数据，拿到后再赋 src，避免浏览器渲染原生“破图”占位
+        async function loadImageIntoFrame(img, src, frame) {
+            frame.classList.remove('is-error', 'is-ready');
+            frame.classList.add('is-loading');
+            frame.onclick = null;
+
+            let dataUrl = imageJsonCache.get(src) || null;
+            if (!dataUrl) {
+                try { dataUrl = await fetchImageJsonFromGithub(src); } catch (e) { dataUrl = null; }
+            }
+            if (!dataUrl) {
+                img.removeAttribute('src');
+                frame.classList.remove('is-loading');
+                frame.classList.add('is-error');
+                frame.onclick = (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    loadImageIntoFrame(img, src, frame);
+                };
+                return false;
+            }
+            imageJsonCache.set(src, dataUrl);
+
+            const loaded = await new Promise((resolve) => {
+                const finish = (ok) => { img.onload = null; img.onerror = null; resolve(ok); };
+                img.onload = () => finish(true);
+                img.onerror = () => finish(false);
+                img.src = dataUrl;
+                if (img.complete && img.naturalWidth > 0) finish(true);
+            });
+
+            if (!loaded) {
+                img.removeAttribute('src');
+                frame.classList.remove('is-loading');
+                frame.classList.add('is-error');
+                frame.onclick = (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    imageJsonCache.delete(src);
+                    loadImageIntoFrame(img, src, frame);
+                };
+                return false;
+            }
+            frame.classList.remove('is-loading');
+            frame.classList.add('is-ready');
+            img.onclick = () => openGalleryFromImage(img);
+            return true;
+        }
+
+        async function renderMarkdownInto(container, content) {
+            // 先在离屏节点里解析并挂好加载态，再整体搬进页面：
+            // 这样浏览器始终看不到 "images/*.json" 这种无效 src，不会出现原生破图
+            const staging = document.createElement('div');
+            staging.innerHTML = sanitizeHtml(marked.parse(content || ''));
+            const tasks = [];
+            staging.querySelectorAll('img').forEach(img => {
+                const src = img.getAttribute('src') || '';
+                if (!src.startsWith('images/') || !src.endsWith('.json')) return;
+
+                const frame = document.createElement('span');
+                frame.className = 'md-img-frame is-loading';
+                const spinner = document.createElement('span');
+                spinner.className = 'md-img-spinner';
+                const errBox = document.createElement('span');
+                errBox.className = 'md-img-error';
+                errBox.innerHTML = '<i class="ri-image-2-line"></i><span>图片加载失败，点击重试</span>';
+                frame.appendChild(spinner);
+                frame.appendChild(errBox);
+
+                // 关键：先把无效的 json 路径从 src 上摘掉，浏览器就不会画破图
+                img.removeAttribute('src');
+                img.classList.add('md-img');
+
+                const parent = img.parentNode;
+                if (!parent) return;
+                parent.insertBefore(frame, img);
+                frame.appendChild(img);
+                tasks.push(loadImageIntoFrame(img, src, frame));
+            });
+            await Promise.all(tasks);
+
+            // 外部图片（非 images/*.json）保持原有行为
+            staging.querySelectorAll('img:not(.md-img)').forEach(imgEl => {
+                imgEl.onclick = () => openGalleryFromImage(imgEl);
+            });
+
+            container.replaceChildren(...Array.from(staging.childNodes));
+        }
+
+        function clearAllCaches() {
+            docContentCache.clear();
+            imageJsonCache.clear();
         }
 
         /* ==================== 搜索框 placeholder 自适应 ==================== */
@@ -636,7 +913,9 @@
         }
 
         /* ==================== 虚拟列表（节点池复用） ==================== */
-        const virtualList = { container: null, spacer: null, items: [], itemHeight: 122, buffer: 10, rafPending: false, nodes: new Map() };
+        // 行高固定为 116px（标题 + 两行摘要 + 元信息行，均为定高），
+        // 虚拟列表的定位、spacer 高度与回收计算全部依赖这个常量
+        const virtualList = { container: null, spacer: null, items: [], itemHeight: 116, buffer: 10, rafPending: false, nodes: new Map() };
 
         function initVirtualList() {
             const container = document.getElementById('docList');
@@ -680,30 +959,26 @@
             wrapper.dataset.docId = d.id;
 
             const catName = d.category || '通用';
-            const catChip = getCategoryChipClass();
             const attCount = (d.attachments || []).length;
-            const dateStr = d.updatedAt ? String(d.updatedAt).split(' ')[0] : '';
+            const dateStr = formatDocDate(d.updatedAt);
 
             const summaryText = escapeHtml((d.summary || '').replace(/[#*`!]/g, '').trim());
             const summaryHtml = summaryText || '<span class="text-slate-300">暂无摘要</span>';
 
-            const cardClass = isSelected
-                ? 'doc-card bg-brand-50/90 border-brand-200'
-                : 'doc-card bg-white border-slate-200/80 hover:border-slate-300 hover:bg-[#fbfcfe] active:bg-slate-50';
-
             wrapper.innerHTML = `
-                <div class="relative h-full rounded-xl border ${cardClass} cursor-pointer overflow-hidden">
-                    ${isSelected ? '<span class="absolute left-0 top-3 bottom-3 w-[3px] rounded-full bg-brand-500"></span>' : ''}
-                    <div class="h-full flex flex-col justify-center pl-4 pr-3.5">
+                <div class="doc-card relative h-full rounded-[14px] overflow-hidden cursor-pointer ${isSelected ? 'is-selected' : ''}">
+                    ${isSelected ? '<span class="absolute left-0 top-3.5 bottom-3.5 w-[3px] rounded-full bg-brand-500"></span>' : ''}
+                    <div class="h-full flex flex-col justify-center px-3.5">
                         <div class="flex items-center justify-between gap-2">
-                            <h4 class="flex-1 min-w-0 text-[15px] font-semibold leading-snug truncate ${isSelected ? 'text-brand-700' : 'text-slate-900'}">${escapeHtml(d.title || '无标题')}</h4>
-                            <span class="flex-shrink-0 text-[11px] text-slate-400 tabular-nums">${dateStr}</span>
+                            <h4 class="flex-1 min-w-0 text-[14.5px] font-semibold leading-[20px] tracking-[-0.01em] truncate ${isSelected ? 'text-brand-700' : 'text-slate-800'}">${escapeHtml(d.title || '无标题')}</h4>
+                            <span class="flex-shrink-0 text-[11px] leading-none tabular-nums ${isSelected ? 'text-brand-400' : 'text-slate-400'}">${dateStr}</span>
                         </div>
-                        <p class="mt-1 text-[13px] leading-[19px] text-slate-500 line-clamp-2 h-[38px] overflow-hidden">${summaryHtml}</p>
-                        <div class="mt-1.5 h-[18px] flex items-center gap-2 overflow-hidden">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium leading-none ring-1 ring-inset max-w-[120px] truncate ${catChip}">${escapeHtml(catName)}</span>
-                            ${d.code ? `<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[11px] font-mono leading-none tracking-tight">${escapeHtml(d.code)}</span>` : ''}
-                            ${attCount > 0 ? `<span class="inline-flex items-center gap-0.5 text-[11px] text-slate-400 leading-none"><i class="ri-attachment-2 text-[12px]"></i>${attCount}</span>` : ''}
+                        <p class="mt-1.5 text-[12.5px] leading-[18px] text-slate-500 line-clamp-2 h-[36px] overflow-hidden">${summaryHtml}</p>
+                        <div class="mt-2 h-[18px] flex items-center gap-1.5 overflow-hidden">
+                            <span class="inline-block px-2 py-[1px] rounded-md bg-slate-100 text-slate-600 text-[12px] font-medium leading-[16px] truncate max-w-[120px] flex-shrink">${escapeHtml(catName)}</span>
+                            ${d.code ? `<span class="inline-block px-2 py-[1px] rounded-md bg-slate-100 text-slate-500 text-[12px] font-mono leading-[16px] tracking-tight flex-shrink-0">${escapeHtml(d.code)}</span>` : ''}
+                            <span class="flex-1"></span>
+                            ${attCount > 0 ? `<span class="inline-flex items-center gap-0.5 text-[12px] text-slate-400 leading-none flex-shrink-0"><i class="ri-attachment-2 text-[13px]"></i>${attCount}</span>` : ''}
                         </div>
                     </div>
                 </div>
@@ -870,27 +1145,182 @@
         }
 
         /* ==================== GitHub 文件读写 ==================== */
-        async function fetchGithubFileRaw(path) {
-            if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
-            const apiPath = encodeRepoPath(path);
-            const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                headers: { 'Authorization': `token ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
+        async function githubApi(path, options = {}) {
+            const headers = {
+                'Authorization': `Bearer ${githubConfig.token}`,
+                'Accept': 'application/vnd.github+json',
+                ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+                ...(options.headers || {})
+            };
+            return fetch(`https://api.github.com${path}`, { ...options, headers });
+        }
+
+        // 把 GitHub 返回的 message 一并带出，失败时用户能知道具体原因
+        async function githubErrorText(res, fallback) {
+            let msg = `${fallback} (${res.status})`;
+            try {
+                const data = await res.json();
+                if (data && data.message) msg += '：' + data.message;
+            } catch (e) {}
+            return msg;
+        }
+
+        async function getRepoDefaultBranch() {
+            if (repoDefaultBranch) return repoDefaultBranch;
+            const res = await githubApi(`/repos/${githubConfig.repo}`);
+            if (!res.ok) throw new Error(await githubErrorText(res, '获取仓库信息失败'));
+            const data = await res.json();
+            repoDefaultBranch = data.default_branch || 'main';
+            return repoDefaultBranch;
+        }
+
+        // 用 XHR 发送 JSON 请求，才能拿到真实的上传进度（fetch 不提供上传进度）
+        function xhrJsonRequest(method, url, payload, onProgress, errorLabel) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open(method, url);
+                xhr.setRequestHeader('Authorization', `Bearer ${githubConfig.token}`);
+                xhr.setRequestHeader('Accept', 'application/vnd.github+json');
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.upload.onprogress = (e) => {
+                    if (onProgress && e.lengthComputable && e.total > 0) onProgress(e.loaded / e.total);
+                };
+                xhr.onerror = () => reject(new Error(`${errorLabel || '请求'}失败：网络异常，上传中断`));
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try { resolve(xhr.responseText ? JSON.parse(xhr.responseText) : {}); }
+                        catch (e) { resolve({}); }
+                    } else {
+                        let msg = `${errorLabel || '请求'}失败 (${xhr.status})`;
+                        try {
+                            const j = JSON.parse(xhr.responseText);
+                            if (j && j.message) msg += '：' + j.message;
+                        } catch (e) {}
+                        reject(new Error(msg));
+                    }
+                };
+                xhr.send(JSON.stringify(payload));
             });
-            if (!res.ok) {
-                let errMsg = `获取文件失败 (${res.status})`;
-                try { const errJson = await res.json(); if (errJson && errJson.message) errMsg += '：' + errJson.message; } catch (e) {}
-                throw new Error(errMsg);
+        }
+
+        // 大附件走 Git Data API（blobs + trees + commits），避免 Contents API 的大小限制
+        function createGithubBlobWithProgress(base64Content, onProgress) {
+            return xhrJsonRequest('POST', `https://api.github.com/repos/${githubConfig.repo}/git/blobs`,
+                { content: base64Content, encoding: 'base64' }, onProgress, '创建 blob ');
+        }
+
+        // 10MB 以内的附件直接走 Contents API：单次请求、链路更短，比多步 Git Data 更稳
+        async function uploadAttachmentViaContents(path, base64Content, message, onProgress) {
+            const apiPath = encodeRepoPath(path);
+            const url = `https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`;
+            let sha = '';
+            try {
+                const check = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Accept': 'application/vnd.github+json' }
+                });
+                if (check.ok) {
+                    const data = await check.json();
+                    sha = data.sha || '';
+                }
+            } catch (e) {}
+            const payload = { message, content: base64Content };
+            if (sha) payload.sha = sha;
+            await xhrJsonRequest('PUT', url, payload, onProgress, '上传附件');
+        }
+
+        async function uploadAttachmentViaGitData(path, base64Content, message, onProgress = null, onStage = null) {
+            if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
+            const repo = githubConfig.repo;
+            const branch = await getRepoDefaultBranch();
+            const encodedBranch = branch.split('/').map(encodeURIComponent).join('/');
+
+            // 先传 blob，再读取分支头并提交：大文件上传耗时长，这样能降低提交时分支已变化的概率
+            const blob = await createGithubBlobWithProgress(base64Content, onProgress);
+            if (onStage) onStage('write');
+
+            // 分支冲突时只重做 tree/commit/ref，不重复上传大文件
+            for (let attempt = 0; attempt <= 2; attempt++) {
+                const refRes = await githubApi(`/repos/${repo}/git/ref/heads/${encodedBranch}`);
+                if (!refRes.ok) throw new Error(await githubErrorText(refRes, '获取分支引用失败'));
+                const parentSha = (await refRes.json()).object.sha;
+
+                const commitRes = await githubApi(`/repos/${repo}/git/commits/${parentSha}`);
+                if (!commitRes.ok) throw new Error(await githubErrorText(commitRes, '获取父提交失败'));
+                const parentCommit = await commitRes.json();
+
+                const treeRes = await githubApi(`/repos/${repo}/git/trees`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        base_tree: parentCommit.tree.sha,
+                        tree: [{ path, mode: '100644', type: 'blob', sha: blob.sha }]
+                    })
+                });
+                if (!treeRes.ok) throw new Error(await githubErrorText(treeRes, '创建 tree 失败'));
+                const tree = await treeRes.json();
+
+                const newCommitRes = await githubApi(`/repos/${repo}/git/commits`, {
+                    method: 'POST',
+                    body: JSON.stringify({ message, tree: tree.sha, parents: [parentSha] })
+                });
+                if (!newCommitRes.ok) throw new Error(await githubErrorText(newCommitRes, '创建提交失败'));
+                const newCommit = await newCommitRes.json();
+
+                const updateRes = await githubApi(`/repos/${repo}/git/refs/heads/${encodedBranch}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ sha: newCommit.sha, force: false })
+                });
+                if (updateRes.ok) return true;
+                if ((updateRes.status === 409 || updateRes.status === 422) && attempt < 2) {
+                    await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
+                    continue;
+                }
+                throw new Error(await githubErrorText(updateRes, '更新分支失败'));
             }
-            const blob = await res.blob();
-            if (!blob || blob.size === 0) throw new Error('文件内容为空');
-            return blob;
+            throw new Error('更新分支失败：多次重试仍未成功');
+        }
+
+        // XHR 下载可以拿到 onprogress，用来显示真实的下载进度
+        function fetchGithubFileRawWithProgress(path, onProgress) {
+            return new Promise((resolve, reject) => {
+                if (!githubConfig.token || !githubConfig.repo) { reject(new Error('未配置仓库')); return; }
+                const apiPath = encodeRepoPath(path);
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`);
+                xhr.setRequestHeader('Authorization', `Bearer ${githubConfig.token}`);
+                xhr.setRequestHeader('Accept', 'application/vnd.github.v3.raw');
+                xhr.responseType = 'blob';
+                xhr.onprogress = (e) => {
+                    if (onProgress && e.lengthComputable && e.total > 0) onProgress(e.loaded / e.total);
+                };
+                xhr.onerror = () => reject(new Error('网络异常，下载中断'));
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        const blob = xhr.response;
+                        if (!blob || blob.size === 0) { reject(new Error('文件内容为空')); return; }
+                        resolve(blob);
+                        return;
+                    }
+                    const fallback = `获取文件失败 (${xhr.status})`;
+                    const blob = xhr.response;
+                    if (blob && typeof blob.text === 'function') {
+                        blob.text().then(text => {
+                            let msg = fallback;
+                            try { const j = JSON.parse(text); if (j && j.message) msg += '：' + j.message; } catch (e) {}
+                            reject(new Error(msg));
+                        }).catch(() => reject(new Error(fallback)));
+                    } else {
+                        reject(new Error(fallback));
+                    }
+                };
+                xhr.send();
+            });
         }
 
         async function fetchGithubJSONWithMeta(path) {
             if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
             const apiPath = encodeRepoPath(path);
             const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                headers: { 'Authorization': `token ${githubConfig.token}` }
+                headers: { 'Authorization': `Bearer ${githubConfig.token}` }
             });
             if (!metaRes.ok) {
                 const err = new Error(`获取元数据失败 (${metaRes.status})`);
@@ -901,10 +1331,10 @@
             const sha = meta.sha;
             let text;
             if (meta.content && meta.encoding === 'base64') {
-                text = decodeURIComponent(escape(atob(meta.content)));
+                text = base64ToUtf8(meta.content);
             } else {
                 const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    headers: { 'Authorization': `token ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
+                    headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
                 });
                 if (!rawRes.ok) throw new Error(`获取内容失败 (${rawRes.status})`);
                 text = await rawRes.text();
@@ -916,16 +1346,16 @@
             if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
             const apiPath = encodeRepoPath(path);
             const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                headers: { 'Authorization': `token ${githubConfig.token}` }
+                headers: { 'Authorization': `Bearer ${githubConfig.token}` }
             });
             if (!metaRes.ok) throw new Error(`获取文件失败 (${metaRes.status})`);
             const meta = await metaRes.json();
             let text;
             if (meta.content && meta.encoding === 'base64') {
-                text = decodeURIComponent(escape(atob(meta.content)));
+                text = base64ToUtf8(meta.content);
             } else {
                 const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    headers: { 'Authorization': `token ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
+                    headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
                 });
                 if (!rawRes.ok) throw new Error(`获取内容失败 (${rawRes.status})`);
                 text = await rawRes.text();
@@ -938,16 +1368,16 @@
             const apiPath = encodeRepoPath(path);
             try {
                 const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    headers: { 'Authorization': `token ${githubConfig.token}` }
+                    headers: { 'Authorization': `Bearer ${githubConfig.token}` }
                 });
                 if (!metaRes.ok) return null;
                 const meta = await metaRes.json();
                 let jsonStr = '';
                 if (meta.content && meta.encoding === 'base64') {
-                    jsonStr = decodeURIComponent(escape(atob(meta.content)));
+                    jsonStr = base64ToUtf8(meta.content);
                 } else {
                     const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                        headers: { 'Authorization': `token ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
+                        headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
                     });
                     if (!rawRes.ok) return null;
                     jsonStr = await rawRes.text();
@@ -964,11 +1394,11 @@
             const path = `${DOCS_FOLDER}/${id}.json`;
             const apiPath = encodeRepoPath(path);
             const payload = { id, title: meta.title || '', content, updatedAt: meta.updatedAt || new Date().toLocaleString() };
-            const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+            const contentEncoded = utf8ToBase64(JSON.stringify(payload));
             let sha = '';
             try {
                 const checkRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    headers: { 'Authorization': `token ${githubConfig.token}` }
+                    headers: { 'Authorization': `Bearer ${githubConfig.token}` }
                 });
                 if (checkRes.ok) { const checkData = await checkRes.json(); sha = checkData.sha; }
             } catch (e) {}
@@ -976,7 +1406,7 @@
             if (sha) body.sha = sha;
             const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                 method: 'PUT',
-                headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
+                headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
             if (res.ok) return true;
@@ -989,10 +1419,11 @@
         }
 
         async function fetchDocContent(id) {
-            if (docContentCache[id] !== undefined) return docContentCache[id];
+            const cached = docContentCache.get(id);
+            if (cached !== undefined) return cached;
             const obj = await fetchGithubJSONFile(`${DOCS_FOLDER}/${id}.json`);
             const content = obj.content || '';
-            docContentCache[id] = content;
+            docContentCache.set(id, content);
             return content;
         }
 
@@ -1001,13 +1432,13 @@
             const apiPath = encodeRepoPath(`${DOCS_FOLDER}/${id}.json`);
             try {
                 const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    headers: { 'Authorization': `token ${githubConfig.token}` }
+                    headers: { 'Authorization': `Bearer ${githubConfig.token}` }
                 });
                 if (getRes.ok) {
                     const fileData = await getRes.json();
                     await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                         method: 'DELETE',
-                        headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
+                        headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Content-Type': 'application/json' },
                         body: JSON.stringify({ message: `kb: delete doc content ${id}`, sha: fileData.sha })
                     });
                 }
@@ -1023,18 +1454,18 @@
                     try {
                         const apiPath = encodeRepoPath(githubConfig.path);
                         const checkRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                            headers: { 'Authorization': `token ${githubConfig.token}` }
+                            headers: { 'Authorization': `Bearer ${githubConfig.token}` }
                         });
                         if (checkRes.ok) { const checkData = await checkRes.json(); githubConfig.sha = checkData.sha; }
                     } catch (ex) {}
                 }
-                const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(indexDocs, null, 2))));
+                const contentEncoded = utf8ToBase64(JSON.stringify(indexDocs, null, 2));
                 const body = { message: `kb: update index ${new Date().toLocaleString()}`, content: contentEncoded };
                 if (githubConfig.sha) body.sha = githubConfig.sha;
                 const apiPath = encodeRepoPath(githubConfig.path);
                 const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                     method: 'PUT',
-                    headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
+                    headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
                 if (res.ok) {
@@ -1088,15 +1519,18 @@
         function sanitizeFileName(name) {
             return (name || 'file').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').slice(0, 100);
         }
-        function fileToBase64(file) {
+        function fileToBase64(file, onProgress) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
+                reader.onprogress = (e) => {
+                    if (onProgress && e.lengthComputable && e.total > 0) onProgress(e.loaded / e.total);
+                };
                 reader.onload = () => {
                     const result = reader.result || '';
                     const idx = result.indexOf(',');
                     resolve(idx >= 0 ? result.slice(idx + 1) : '');
                 };
-                reader.onerror = () => reject(reader.error);
+                reader.onerror = () => reject(reader.error || new Error('文件读取失败'));
                 reader.readAsDataURL(file);
             });
         }
@@ -1173,34 +1607,46 @@
             setLoadingMode('app');
             const overlay = document.getElementById('loadingOverlay');
             updateLoadingText(text || DEFAULT_LOADING_TEXT);
+            setLoadingProgress(null);
             overlay.classList.remove('hidden');
         }
         function updateLoadingText(text) {
             const loadingText = document.getElementById('loadingText');
             if (loadingText) loadingText.textContent = text || DEFAULT_LOADING_TEXT;
         }
+        // percent 传 null 收起进度条；stageText 显示当前阶段（如“正在上传 42%”）
+        function setLoadingProgress(percent, stageText) {
+            const wrap = document.getElementById('loadingProgressWrap');
+            const bar = document.getElementById('loadingProgressBar');
+            const stage = document.getElementById('loadingProgressStage');
+            const pctEl = document.getElementById('loadingProgressPercent');
+            if (!wrap || !bar) return;
+            if (percent === null || percent === undefined) {
+                wrap.classList.add('hidden');
+                bar.style.width = '0%';
+                if (pctEl) pctEl.textContent = '0%';
+                return;
+            }
+            const p = Math.max(0, Math.min(100, Number(percent) || 0));
+            wrap.classList.remove('hidden');
+            bar.style.width = p.toFixed(1) + '%';
+            if (stage) stage.textContent = stageText || '正在处理...';
+            if (pctEl) pctEl.textContent = Math.round(p) + '%';
+        }
         function hideLoading() {
             const overlay = document.getElementById('loadingOverlay');
             updateLoadingText(DEFAULT_LOADING_TEXT);
+            setLoadingProgress(null);
             overlay.classList.add('hidden');
         }
         function setLoginButtonLoading(loading) {
             const btn = document.getElementById('authSubmitBtn');
-            const text = document.getElementById('loginBtnText');
             const spinner = document.getElementById('loginSpinner');
-            const progress = document.getElementById('loginProgressBar');
+            const arrow = document.getElementById('loginArrow');
             if (!btn) return;
-            if (loading) {
-                btn.disabled = true;
-                if (text) text.textContent = '登录中...';
-                if (spinner) spinner.classList.remove('hidden');
-                if (progress) progress.classList.remove('hidden');
-            } else {
-                btn.disabled = false;
-                if (text) text.textContent = '登录';
-                if (spinner) spinner.classList.add('hidden');
-                if (progress) progress.classList.add('hidden');
-            }
+            btn.disabled = loading;
+            if (spinner) spinner.classList.toggle('hidden', !loading);
+            if (arrow) arrow.classList.toggle('hidden', loading);
         }
         function showAuth() {
             const el = document.getElementById('authOverlay');
@@ -1245,6 +1691,7 @@
             document.getElementById('authPathInput').value = githubConfig.path || 'kb_docs.json';
         }
 
+        let toastTimer = null;
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
             const toastText = document.getElementById('toastText');
@@ -1253,10 +1700,12 @@
             toastIcon.className = type === 'error' ? 'ri-error-warning-line text-rose-400 text-sm' : 'ri-checkbox-circle-line text-emerald-400 text-sm';
             toast.classList.remove('translate-y-12', 'opacity-0', 'pointer-events-none');
             toast.classList.add('translate-y-0', 'opacity-100');
-            setTimeout(() => {
+            if (toastTimer) clearTimeout(toastTimer);
+            // 错误信息通常更长，多留一点阅读时间
+            toastTimer = setTimeout(() => {
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-12', 'opacity-0', 'pointer-events-none');
-            }, 2000);
+            }, type === 'error' ? 4000 : 2000);
         }
 
         /* ==================== 本地缓存 ==================== */
@@ -1291,6 +1740,11 @@
                 const cat = d.category || '通用';
                 categories[cat] = (categories[cat] || 0) + 1;
             });
+            // 当前选中的分类已被删除/改名时，回退到“全部条目”，避免列表永远为空
+            if (activeCategory !== 'ALL' && !categories[activeCategory]) {
+                activeCategory = 'ALL';
+                activeTag = null;
+            }
             document.getElementById('allCount').textContent = docs.length;
 
             const allNavBtn = document.getElementById('allDocsNavBtn');
@@ -1403,17 +1857,23 @@
             }
         }
 
-        function performSearch() {
+        function performSearch(options = {}) {
+            const withOverlay = options.withOverlay !== false;
             searchQuery = (document.getElementById('searchInput').value || '').trim();
-            showLoading(searchQuery ? '正在搜索...' : '正在加载列表...');
-            setTimeout(() => {
-                if (window.innerWidth < 768) {
+            const apply = () => {
+                // 编辑中不要因为搜索而把编辑面板收起来，避免未保存内容“凭空消失”
+                if (window.innerWidth < 768 && !isEditing) {
                     currentDocId = null;
                     previousDocId = null;
                     document.getElementById('mainPanel').classList.add('hidden');
                 }
                 renderDocList();
                 if (virtualList.container) virtualList.container.scrollTop = 0;
+            };
+            if (!withOverlay) { apply(); return; }
+            showLoading(searchQuery ? '正在搜索...' : '正在加载列表...');
+            setTimeout(() => {
+                apply();
                 hideLoading();
             }, 60);
         }
@@ -1422,7 +1882,7 @@
             const container = document.getElementById('editAttachmentsList');
             if (!container) return;
             if (!editAttachments.length) {
-                container.innerHTML = '<div class="text-[12px] text-slate-400 py-1 px-1">暂无附件，可点击上方“上传附件”添加</div>';
+                container.innerHTML = '<div class="sm:col-span-2 text-[12px] text-slate-400 py-1 px-1">暂无附件，可点击上方“上传附件”添加</div>';
                 return;
             }
             container.innerHTML = editAttachments.map((att, i) => `
@@ -1432,7 +1892,7 @@
                             <i class="${getAttachIcon(att.type)} text-base"></i>
                         </div>
                         <div class="min-w-0 flex-1">
-                            <div class="text-[13px] font-medium text-slate-700 truncate" title="${att.name}">${att.name}</div>
+                            <div class="text-[13px] font-medium text-slate-700 truncate" title="${escapeHtml(att.name)}">${escapeHtml(att.name)}</div>
                             <div class="text-[11px] text-slate-400">${formatSize(att.size)}</div>
                         </div>
                     </div>
@@ -1447,6 +1907,32 @@
                     deleteEditAttachment(idx);
                 });
             });
+        }
+
+        /* ==================== 编辑/预览切换 ==================== */
+        function setPreviewMode(on) {
+            const textarea = document.getElementById('editContentInput');
+            const preview = document.getElementById('editPreview');
+            const btnText = document.getElementById('togglePreviewText');
+            const icon = document.getElementById('togglePreviewIcon');
+            const tipEl = document.getElementById('uploadStatusTip');
+            if (!textarea || !preview) return;
+            isPreviewMode = !!on;
+            if (isPreviewMode) {
+                textarea.classList.add('hidden');
+                preview.classList.remove('hidden');
+                if (btnText) btnText.textContent = '编辑';
+                if (icon) icon.className = 'ri-edit-line';
+                if (tipEl) tipEl.textContent = 'Markdown 预览';
+                renderMarkdownInto(preview, textarea.value).catch(e => console.warn('预览渲染失败', e));
+            } else {
+                preview.classList.add('hidden');
+                preview.innerHTML = '';
+                textarea.classList.remove('hidden');
+                if (btnText) btnText.textContent = '预览';
+                if (icon) icon.className = 'ri-eye-line';
+                if (tipEl) tipEl.textContent = 'Markdown 源码（支持粘贴截图）';
+            }
         }
 
         function renderViewAttachments() {
@@ -1469,7 +1955,7 @@
                                         <i class="${getAttachIcon(att.type)} text-lg"></i>
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <div class="text-[13px] font-medium text-slate-700 truncate" title="${att.name}">${att.name}</div>
+                                        <div class="text-[13px] font-medium text-slate-700 truncate" title="${escapeHtml(att.name)}">${escapeHtml(att.name)}</div>
                                         <div class="text-[11px] text-slate-400 mt-0.5">${formatSize(att.size)}</div>
                                     </div>
                                 </div>
@@ -1513,13 +1999,13 @@
                         ctx.drawImage(img, 0, 0, width, height);
                         const base64DataUrl = canvas.toDataURL('image/webp', 0.7);
                         const payload = { data: base64DataUrl };
-                        const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+                        const contentEncoded = utf8ToBase64(JSON.stringify(payload));
                         const filename = `images/img_${Date.now()}_${Math.floor(Math.random() * 1000)}.json`;
                         const apiPath = encodeRepoPath(filename);
                         try {
                             const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                                 method: 'PUT',
-                                headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
+                                headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ message: `kb: upload image json ${filename}`, content: contentEncoded })
                             });
                             if (res.ok) {
@@ -1531,8 +2017,11 @@
                                     return;
                                 }
                                 pendingUploads.push({ path: filename, name: filename, type: 'image' });
-                                insertAtCursor(document.getElementById('editContentInput'), `\n![图片](${filename})\n`);
-                                if (tipEl) tipEl.textContent = 'Markdown 源码（图片已上传并插入）';
+                                // 立即写入图片缓存，预览/查看时无需再等网络
+                                imageJsonCache.set(filename, base64DataUrl);
+                                insertImageMarkdown(document.getElementById('editContentInput'), filename);
+                                if (isPreviewMode) setPreviewMode(true);
+                                else if (tipEl) tipEl.textContent = 'Markdown 源码（图片已上传并插入）';
                                 showToast('图片上传成功', 'success');
                             } else { showToast('图片上传失败', 'error'); }
                         } catch (err) { showToast('网络异常，图片上传失败', 'error'); }
@@ -1552,32 +2041,138 @@
             const type = getAttachmentType(file);
             const folder = ATTACHMENT_FOLDERS[type] || '其他';
             const safeName = sanitizeFileName(file.name);
-            const path = `attachments/${folder}/${Date.now()}_${safeName}`;
-            const apiPath = encodeRepoPath(path);
+            const stamp = Date.now();
             const sessionId = editSessionId;
-            showLoading(total > 1 ? `正在上传附件 ${currentIdx}/${total}...` : '正在上传附件...');
+            const fileLabel = total > 1 ? `「${file.name}」（${currentIdx}/${total}）` : `「${file.name}」`;
+            const sizeLabel = formatSize(file.size);
+            const message = `kb: upload attachment ${file.name}`;
+            const isAuthFailure = (err) => /\((401|403|404)\)/.test(err.message || '') || /bad credentials/i.test(err.message || '');
+            const cleanupPaths = async (paths) => { if (paths.length) await Promise.allSettled(paths.map(p => deleteGithubFileByPath(p))); };
+
+            showLoading('正在读取文件...');
             try {
-                const base64 = await fileToBase64(file);
-                const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: `kb: upload attachment ${file.name}`, content: base64 })
-                });
-                if (res.ok) {
+                let path = '';
+                let parts = null;
+
+                if (file.size > CHUNKED_UPLOAD_THRESHOLD) {
+                    // 大文件分片上传：每片约 1.5MB，避免单次请求体过大被网络/网关中断
+                    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+                    parts = [];
+                    try {
+                        for (let i = 0; i < totalChunks; i++) {
+                            if (sessionId !== editSessionId) break;
+                            const start = i * CHUNK_SIZE;
+                            const end = Math.min(file.size, start + CHUNK_SIZE);
+                            const chunk = file.slice(start, end);
+                            updateLoadingText(`正在读取第 ${i + 1}/${totalChunks} 段...`);
+                            const chunkBase64 = await fileToBase64(chunk, (frac) => {
+                                setLoadingProgress(((i + frac) / totalChunks) * 10, `正在读取第 ${i + 1}/${totalChunks} 段…`);
+                            });
+                            const partPath = `attachments/${folder}/${stamp}_${safeName}.part${i + 1}`;
+                            updateLoadingText(`正在上传第 ${i + 1}/${totalChunks} 段...`);
+                            await uploadAttachmentViaContents(partPath, chunkBase64, `${message} (part ${i + 1})`, (frac) => {
+                                setLoadingProgress(10 + ((i + frac) / totalChunks) * 80, `正在上传第 ${i + 1}/${totalChunks} 段…`);
+                            });
+                            parts.push({ path: partPath, size: end - start });
+                            pendingUploads.push({ name: file.name, path: partPath, size: end - start, type });
+                        }
+                    } catch (chunkErr) {
+                        // 分片中途失败：清掉已经传上去的部分，避免留下半截文件
+                        const uploaded = parts.map(p => p.path);
+                        pendingUploads = pendingUploads.filter(u => !uploaded.includes(u.path));
+                        parts = [];
+                        await cleanupPaths(uploaded);
+                        throw chunkErr;
+                    }
+
+                    if (sessionId !== editSessionId || !parts.length) {
+                        const uploaded = parts.map(p => p.path);
+                        pendingUploads = pendingUploads.filter(u => !uploaded.includes(u.path));
+                        await cleanupPaths(uploaded);
+                        return;
+                    }
+                    path = parts[0].path;
+                } else {
+                    path = `attachments/${folder}/${stamp}_${safeName}`;
+                    updateLoadingText('正在读取文件...');
+                    setLoadingProgress(0, '准备读取文件...');
+                    const base64 = await fileToBase64(file, (frac) => {
+                        setLoadingProgress(frac * 10, `正在读取文件 ${sizeLabel}…`);
+                    });
+
+                    updateLoadingText('正在上传附件...');
+                    setLoadingProgress(10, `正在上传文件 ${sizeLabel}…`);
+                    const onUploadProgress = (frac) => setLoadingProgress(10 + frac * 80, `正在上传文件 ${sizeLabel}…`);
+
+                    if (file.size <= CONTENTS_UPLOAD_LIMIT) {
+                        // 10MB 以内默认走 Contents API 单请求；若不是权限问题，再用 Git Data API 补一次
+                        try {
+                            await uploadAttachmentViaContents(path, base64, message, onUploadProgress);
+                        } catch (contentsErr) {
+                            if (isAuthFailure(contentsErr)) throw contentsErr;
+                            console.warn('Contents API 上传失败，改用 Git Data API 重试', contentsErr);
+                            updateLoadingText('正在重试上传...');
+                            setLoadingProgress(10, `正在重试上传 ${sizeLabel}…`);
+                            try {
+                                await uploadAttachmentViaGitData(path, base64, message,
+                                    (frac) => setLoadingProgress(10 + frac * 80, `正在重试上传 ${sizeLabel}…`),
+                                    () => {
+                                        updateLoadingText('正在写入仓库...');
+                                        setLoadingProgress(90, '正在写入仓库…');
+                                    });
+                            } catch (gitErr) {
+                                throw new Error(`${contentsErr.message}；改用 Git Data API 重试仍失败：${gitErr.message}`);
+                            }
+                        }
+                    } else {
+                        try {
+                            await uploadAttachmentViaGitData(path, base64, message, onUploadProgress, () => {
+                                updateLoadingText('正在写入仓库...');
+                                setLoadingProgress(90, '正在写入仓库…');
+                            });
+                        } catch (gitErr) {
+                            if (isAuthFailure(gitErr)) throw gitErr;
+                            // Git Data 的多步提交失败时，退回 Contents API 再试一次
+                            console.warn('Git Data API 上传失败，改用 Contents API 重试', gitErr);
+                            updateLoadingText('正在重试上传...');
+                            setLoadingProgress(10, `正在重试上传 ${sizeLabel}…`);
+                            try {
+                                await uploadAttachmentViaContents(path, base64, message,
+                                    (frac) => setLoadingProgress(10 + frac * 80, `正在重试上传 ${sizeLabel}…`));
+                            } catch (contentsErr) {
+                                throw new Error(`${gitErr.message}；改用 Contents API 重试仍失败：${contentsErr.message}`);
+                            }
+                        }
+                    }
+
                     if (sessionId !== editSessionId) {
                         // 编辑已取消/已保存：这是迟到的上传结果，立即清理，避免留下孤儿文件
                         await deleteGithubFileByPath(path);
-                    } else {
-                        pendingUploads.push({ name: file.name, path, size: file.size, type });
-                        editAttachments.push({ name: file.name, path, size: file.size, type, uploadedAt: new Date().toLocaleString() });
-                        renderEditAttachments();
-                        showToast(`「${file.name}」上传成功`, 'success');
+                        return;
                     }
-                } else {
-                    const errJson = await res.json().catch(() => ({}));
-                    showToast(`「${file.name}」上传失败：${errJson.message || '未知错误'}`, 'error');
+                    pendingUploads.push({ name: file.name, path, size: file.size, type });
                 }
-            } catch (e) { showToast(`「${file.name}」上传失败`, 'error'); }
+
+                updateLoadingText('正在写入仓库...');
+                setLoadingProgress(96, '即将完成…');
+                const record = { name: file.name, path, size: file.size, type, uploadedAt: new Date().toLocaleString() };
+                if (parts) record.parts = parts;
+                editAttachments.push(record);
+                renderEditAttachments();
+                setLoadingProgress(100, '上传完成');
+                showToast(`${fileLabel}上传成功`, 'success');
+            } catch (e) {
+                let msg = e.message || '未知错误';
+                const authError = /\(401\)/i.test(msg) || /bad credentials/i.test(msg);
+                if (authError) {
+                    msg += '。访问令牌无效或已过期，请在仓库配置里重新填写 Token';
+                } else if (/\(403\)/i.test(msg)) {
+                    msg += '。请确认 Token 对仓库拥有 Contents 读写权限';
+                } else if (file.size >= 5 * 1024 * 1024) {
+                    msg += '。该文件较大，若反复失败可尝试压缩到更小或更换网络';
+                }
+                showToast(`${fileLabel}上传失败：${msg}`, 'error');
+            }
             finally { hideLoading(); }
         }
 
@@ -1593,10 +2188,20 @@
             for (let i = 0; i < otherFiles.length; i++) await uploadGenericAttachment(otherFiles[i], i + 1, otherFiles.length);
         }
 
+        // 单文件附件返回 [path]；分片附件返回所有分片路径
+        function getAttachmentPaths(att) {
+            if (!att) return [];
+            if (Array.isArray(att.parts) && att.parts.length) {
+                return att.parts.map(p => p && p.path).filter(Boolean);
+            }
+            return att.path ? [att.path] : [];
+        }
+
         async function deleteEditAttachment(index) {
             const att = editAttachments[index];
             if (!att) return;
-            const isPendingUpload = pendingUploads.some(u => u.path === att.path);
+            const attPaths = getAttachmentPaths(att);
+            const isPendingUpload = attPaths.some(p => pendingUploads.some(u => u.path === p));
             const ok = await showConfirm({
                 title: '删除附件',
                 desc: isPendingUpload
@@ -1609,9 +2214,9 @@
             renderEditAttachments();
             if (isPendingUpload) {
                 // 本次编辑刚上传的附件：立即删除，避免取消编辑后残留在仓库
-                pendingUploads = pendingUploads.filter(u => u.path !== att.path);
+                pendingUploads = pendingUploads.filter(u => !attPaths.includes(u.path));
                 showLoading('正在删除附件...');
-                try { await deleteGithubFileByPath(att.path); } finally { hideLoading(); }
+                try { await Promise.allSettled(attPaths.map(p => deleteGithubFileByPath(p))); } finally { hideLoading(); }
                 showToast('附件已删除', 'success');
             } else {
                 // 原有附件：先从编辑列表移除，保存时才真正删除；取消编辑不会破坏已有文件
@@ -1625,9 +2230,33 @@
             if (!doc || !doc.attachments || !doc.attachments[index]) return;
             const att = doc.attachments[index];
             await prepareAndDownload(att.name, async () => {
-                const rawBlob = await fetchGithubFileRaw(att.path);
                 const mime = guessMimeByName(att.name);
-                return new Blob([rawBlob], { type: mime });
+                const paths = getAttachmentPaths(att);
+                if (!paths.length) throw new Error('附件不存在');
+
+                const partSizes = (att.parts && att.parts.length)
+                    ? att.parts.map(p => Number(p.size) || 0)
+                    : [Number(att.size) || 0];
+                const totalBytes = partSizes.reduce((sum, n) => sum + n, 0) || (Number(att.size) || 0);
+
+                setLoadingProgress(0, paths.length > 1 ? `准备下载（共 ${paths.length} 段）…` : '准备下载…');
+                const blobs = [];
+                let doneBytes = 0;
+                for (let i = 0; i < paths.length; i++) {
+                    const partLabel = paths.length > 1 ? `正在下载 ${i + 1}/${paths.length} 段…` : '正在下载文件…';
+                    updateLoadingText(partLabel);
+                    const blob = await fetchGithubFileRawWithProgress(paths[i], (frac) => {
+                        const loaded = doneBytes + frac * (partSizes[i] || 0);
+                        const pct = totalBytes > 0
+                            ? (loaded / totalBytes) * 100
+                            : ((i + frac) / paths.length) * 100;
+                        setLoadingProgress(pct, partLabel);
+                    });
+                    blobs.push(blob);
+                    doneBytes += blob.size;
+                }
+                setLoadingProgress(100, '下载完成');
+                return new Blob(blobs, { type: mime });
             });
         }
 
@@ -1636,13 +2265,13 @@
             try {
                 const apiPath = encodeRepoPath(path);
                 const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                    headers: { 'Authorization': `token ${githubConfig.token}` }
+                    headers: { 'Authorization': `Bearer ${githubConfig.token}` }
                 });
                 if (!getRes.ok) return false;
                 const fileData = await getRes.json();
                 const delRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
                     method: 'DELETE',
-                    headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
+                    headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: `kb: cleanup ${path}`, sha: fileData.sha })
                 });
                 return delRes.ok;
@@ -1651,7 +2280,9 @@
 
         async function deleteGithubAttachments(attachments) {
             if (!githubConfig.token || !githubConfig.repo || !attachments || !attachments.length) return;
-            await Promise.allSettled(attachments.map(att => deleteGithubFileByPath(att.path)));
+            const paths = [];
+            attachments.forEach(att => paths.push(...getAttachmentPaths(att)));
+            await Promise.allSettled(paths.map(p => deleteGithubFileByPath(p)));
         }
 
         /* ==================== 编辑会话：未保存上传的追踪与清理 ==================== */
@@ -1665,6 +2296,7 @@
         // 作废当前编辑会话，并清理其中已上传但尚未保存的文件
         async function discardEditSessionUploads(showTip = false) {
             const abandoned = pendingUploads.slice();
+            abandoned.forEach(u => imageJsonCache.delete(u.path));
             beginEditSession();
             if (!abandoned.length) return;
             showLoading('正在清理未保存的上传文件...');
@@ -1680,48 +2312,31 @@
             currentDocId = id;
             previousDocId = id;
             isEditing = false;
+            localStorage.setItem(LAST_DOC_KEY, id);
             const doc = docs.find(d => d.id === id);
-            if (!doc) return;
+            if (!doc) {
+                // 文档不存在时也要收起遮罩，避免界面卡在加载态
+                if (!skipOverlay) hideLoading();
+                return;
+            }
             const viewScrollEl = document.getElementById('viewScrollContainer');
             if (viewScrollEl) viewScrollEl.scrollTop = 0;
             if (!skipOverlay) showLoading('正在加载文章...');
 
-            let content = docContentCache[id];
-            if (content === undefined) {
-                try { content = await fetchDocContent(id); }
-                catch (e) { content = ''; showToast('正文加载失败：' + (e.message || '未知错误'), 'error'); }
-            }
-
-            const parsedHtml = marked.parse(content || '');
+            let content = docContentCache.get(id);
             const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = parsedHtml;
-            const imgTags = tempDiv.querySelectorAll('img');
-            const imagePromises = [];
-            imgTags.forEach(img => {
-                const src = img.getAttribute('src');
-                if (src && src.startsWith('images/') && src.endsWith('.json')) {
-                    const p = new Promise(async (resolve) => {
-                        if (imageJsonCache[src]) { img.src = imageJsonCache[src]; resolve(); return; }
-                        try {
-                            const base64Data = await fetchImageJsonFromGithub(src);
-                            if (base64Data) {
-                                imageJsonCache[src] = base64Data;
-                                img.src = base64Data;
-                                await new Promise((resImg) => {
-                                    const testImg = new Image();
-                                    testImg.onload = resImg;
-                                    testImg.onerror = resImg;
-                                    testImg.src = base64Data;
-                                });
-                            }
-                        } catch (e) {}
-                        resolve();
-                    });
-                    imagePromises.push(p);
+            try {
+                if (content === undefined) {
+                    try { content = await fetchDocContent(id); }
+                    catch (e) { content = ''; showToast('正文加载失败：' + (e.message || '未知错误'), 'error'); }
                 }
-            });
-            await Promise.all(imagePromises);
-            if (!skipOverlay) hideLoading();
+                await renderMarkdownInto(tempDiv, content);
+            } catch (e) {
+                console.warn('正文渲染失败', e);
+                showToast('正文渲染失败', 'error');
+            } finally {
+                if (!skipOverlay) hideLoading();
+            }
 
             const mainPanel = document.getElementById('mainPanel');
             mainPanel.classList.remove('hidden');
@@ -1730,8 +2345,10 @@
             document.getElementById('viewPanel').classList.remove('hidden');
 
             document.getElementById('viewTitle').textContent = doc.title;
-            document.getElementById('viewCategoryBadge').textContent = doc.category || '通用';
-            document.getElementById('viewDate').innerHTML = `<i class="ri-time-line mr-1"></i>修改于: ${doc.updatedAt || '未知'}`;
+            document.getElementById('viewCategoryText').textContent = doc.category || '通用';
+            const viewDateEl = document.getElementById('viewDate');
+            viewDateEl.innerHTML = '<i class="ri-time-line mr-1"></i>';
+            viewDateEl.appendChild(document.createTextNode(`修改于: ${doc.updatedAt || '未知'}`));
 
             document.getElementById('viewCodeText').textContent = doc.code || 'CM-0000';
             const codeBtn = document.getElementById('viewCodeBtn');
@@ -1743,19 +2360,19 @@
                 codeBtn.blur();
                 codeBtn.classList.remove('active');
             };
+            // 仅绑定 click：移动端浏览器会在 touchend 后补发 click，同时绑定会导致复制两次
             codeBtn.onclick = handleCodeCopy;
-            codeBtn.ontouchend = handleCodeCopy;
 
-            document.getElementById('viewContent').innerHTML = tempDiv.innerHTML;
-            document.getElementById('viewContent').querySelectorAll('img').forEach(imgEl => {
-                imgEl.onclick = () => openImageViewerModal(imgEl.src);
-            });
+            // 直接搬移 DOM 节点，保留图片加载态、事件（含失败重试），也避免把巨型 dataURL 再解析一遍
+            const viewContentEl = document.getElementById('viewContent');
+            viewContentEl.replaceChildren(...Array.from(tempDiv.childNodes));
 
             const tagsContainer = document.getElementById('viewTags');
             tagsContainer.innerHTML = '';
             (doc.tags || []).forEach(t => {
                 const tagEl = document.createElement('span');
-                tagEl.className = 'px-2.5 py-1 rounded-lg text-[12px] bg-slate-100 text-slate-500';
+                // 与时间、编码保持同一种纯文字样式，不加背景框
+                tagEl.className = 'whitespace-nowrap text-[13px] text-slate-400';
                 tagEl.textContent = `# ${t}`;
                 tagsContainer.appendChild(tagEl);
             });
@@ -1765,6 +2382,28 @@
             if (viewScrollEl) viewScrollEl.scrollTop = 0;
             renderDocList();
             checkBackToTopBtnVisibility();
+        }
+
+        // 同步完成后：刷新当前打开的文档，或恢复上次打开的文档（不打断编辑）
+        async function maybeRestoreDocView() {
+            if (isEditing) return;
+            const targetId = currentDocId || localStorage.getItem(LAST_DOC_KEY);
+            if (!targetId) return;
+
+            if (!docs.some(d => d.id === targetId)) {
+                localStorage.removeItem(LAST_DOC_KEY);
+                if (currentDocId) {
+                    currentDocId = null;
+                    previousDocId = null;
+                    document.getElementById('viewPanel').classList.add('hidden');
+                    document.getElementById('editPanel').classList.add('hidden');
+                    if (window.innerWidth < 768) document.getElementById('mainPanel').classList.add('hidden');
+                    else document.getElementById('emptyState').classList.remove('hidden');
+                    renderDocList();
+                }
+                return;
+            }
+            await openDocView(targetId);
         }
 
         function setupGlobalBackToTop() {
@@ -1812,6 +2451,9 @@
 
         /* ==================== 图片查看器 ==================== */
         let currentModalImgSrc = '';
+        // 当前文档内的图片集合，支持查看器内左右切换
+        let galleryImages = [];
+        let galleryIndex = 0;
         let currentScale = 1;
         let minScale = 1;
         let maxScale = 5;
@@ -1830,8 +2472,21 @@
             const imgView = document.getElementById('modalImageView');
             const closeModal = () => modal.classList.add('hidden');
             closeBtn.onclick = closeModal;
+            document.getElementById('prevImageBtn').onclick = (e) => {
+                e.stopPropagation();
+                showGalleryImage(galleryIndex - 1);
+            };
+            document.getElementById('nextImageBtn').onclick = (e) => {
+                e.stopPropagation();
+                showGalleryImage(galleryIndex + 1);
+            };
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+                if (modal.classList.contains('hidden')) return;
+                if (e.key === 'Escape') { closeModal(); return; }
+                if (galleryImages.length > 1 && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+                    e.preventDefault();
+                    showGalleryImage(galleryIndex + (e.key === 'ArrowRight' ? 1 : -1));
+                }
             });
 
             // ===== 单击/点按关闭：位移与时长阈值 =====
@@ -1939,7 +2594,15 @@
                     isDraggingImg = false;
                     if (wasDragging && !pinchActive && e.changedTouches && e.changedTouches[0]) {
                         const t = e.changedTouches[0];
-                        if (shouldCloseByTap(t.clientX, t.clientY)) closeModal();
+                        const dx = t.clientX - pointerDownX;
+                        const dy = t.clientY - pointerDownY;
+                        const isSwipe = Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.2 && (Date.now() - pointerDownTime) < 500;
+                        if (galleryImages.length > 1 && currentScale <= minScale * 1.01 && isSwipe) {
+                            // 未放大时左右滑动切换图片，和图片预览应用的手感一致
+                            showGalleryImage(galleryIndex + (dx < 0 ? 1 : -1));
+                        } else if (shouldCloseByTap(t.clientX, t.clientY)) {
+                            closeModal();
+                        }
                     }
                     pinchActive = false;
                 }
@@ -1993,28 +2656,113 @@
             imgTranslateX = Math.min(Math.max(imgTranslateX, -maxTransX), maxTransX);
             imgTranslateY = Math.min(Math.max(imgTranslateY, -maxTransY), maxTransY);
         }
-        function openImageViewerModal(src) {
+        // 从正文里的某张图打开查看器，并把同文档的全部图片一起带上
+        function openGalleryFromImage(imgEl) {
+            const scope = imgEl.closest('.markdown-body') || document.getElementById('viewContent') || document.getElementById('editPreview');
+            let imgs = scope ? Array.from(scope.querySelectorAll('img')) : [imgEl];
+            imgs = imgs.filter(el => {
+                const src = el.getAttribute('src');
+                return src && !el.closest('.md-img-frame.is-error');
+            });
+            const srcs = imgs.map(el => el.getAttribute('src'));
+            let index = imgs.indexOf(imgEl);
+            if (index < 0) index = Math.max(0, srcs.indexOf(imgEl.getAttribute('src')));
+            openImageViewerModal(imgEl.getAttribute('src'), srcs, index);
+        }
+
+        function openImageViewerModal(src, images, index) {
+            galleryImages = (Array.isArray(images) && images.length) ? images.slice() : [src];
+            let idx = Number.isInteger(index) ? index : galleryImages.indexOf(src);
+            if (idx < 0 || idx >= galleryImages.length) idx = 0;
+            renderGalleryThumbs();
+            showGalleryImage(idx);
+        }
+
+        function showGalleryImage(index) {
+            if (!galleryImages.length) return;
+            galleryIndex = (index + galleryImages.length) % galleryImages.length;
+            const src = galleryImages[galleryIndex];
             currentModalImgSrc = src;
+
             const modal = document.getElementById('imageModal');
             const imgView = document.getElementById('modalImageView');
-            imgView.src = src;
+            imgView.classList.add('opacity-0');
             imgTranslateX = 0;
             imgTranslateY = 0;
-            imgView.onload = () => {
-                const containerW = window.innerWidth * 0.85;
-                const containerH = window.innerHeight * 0.85;
+            isDraggingImg = false;
+
+            const fit = () => {
+                // 多图时给底部缩略图留出空间，避免大图被遮住
+                const galleryMode = galleryImages.length > 1;
+                const containerW = window.innerWidth * (galleryMode ? 0.82 : 0.85);
+                const containerH = window.innerHeight * (galleryMode ? 0.72 : 0.85);
                 const natW = imgView.naturalWidth || 800;
                 const natH = imgView.naturalHeight || 600;
-                const scaleW = containerW / natW;
-                const scaleH = containerH / natH;
-                minScale = Math.min(scaleW, scaleH, 1.0);
+                minScale = Math.min(containerW / natW, containerH / natH, 1.0);
                 currentScale = minScale;
                 maxScale = Math.max(minScale * 5, 5.0);
                 imgView.style.width = natW + 'px';
                 imgView.style.height = natH + 'px';
                 updateImageTransform();
-                modal.classList.remove('hidden');
+                imgView.classList.remove('opacity-0');
             };
+            imgView.onload = fit;
+            imgView.onerror = () => imgView.classList.remove('opacity-0');
+            imgView.src = src;
+            if (imgView.complete && imgView.naturalWidth > 0) fit();
+
+            modal.classList.remove('hidden');
+
+            const counter = document.getElementById('galleryCounter');
+            if (counter) counter.textContent = `${galleryIndex + 1} / ${galleryImages.length}`;
+            updateGalleryThumbsActive();
+        }
+
+        function renderGalleryThumbs() {
+            const thumbs = document.getElementById('galleryThumbs');
+            const prevBtn = document.getElementById('prevImageBtn');
+            const nextBtn = document.getElementById('nextImageBtn');
+            const counter = document.getElementById('galleryCounter');
+            const multiple = galleryImages.length > 1;
+
+            if (counter) {
+                counter.textContent = `${galleryIndex + 1} / ${galleryImages.length}`;
+                counter.classList.toggle('hidden', !multiple);
+            }
+            if (prevBtn) prevBtn.classList.toggle('hidden', !multiple);
+            if (nextBtn) nextBtn.classList.toggle('hidden', !multiple);
+            if (!thumbs) return;
+            thumbs.classList.toggle('hidden', !multiple);
+            thumbs.innerHTML = '';
+            if (!multiple) return;
+
+            galleryImages.forEach((src, i) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'gallery-thumb relative flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden ring-1 ring-white/25 opacity-55 transition';
+                btn.dataset.index = String(i);
+                const thumbImg = document.createElement('img');
+                thumbImg.src = src;
+                thumbImg.alt = '';
+                thumbImg.className = 'w-full h-full object-cover';
+                btn.appendChild(thumbImg);
+                btn.onclick = (e) => { e.stopPropagation(); showGalleryImage(i); };
+                thumbs.appendChild(btn);
+            });
+        }
+
+        function updateGalleryThumbsActive() {
+            const thumbs = document.getElementById('galleryThumbs');
+            if (!thumbs) return;
+            thumbs.querySelectorAll('.gallery-thumb').forEach(btn => {
+                const active = Number(btn.dataset.index) === galleryIndex;
+                btn.classList.toggle('opacity-100', active);
+                btn.classList.toggle('ring-2', active);
+                btn.classList.toggle('ring-brand-400', active);
+                btn.classList.toggle('opacity-55', !active);
+                btn.classList.toggle('ring-1', !active);
+                btn.classList.toggle('ring-white/25', !active);
+            });
         }
         function updateImageTransform() {
             const imgView = document.getElementById('modalImageView');
@@ -2037,35 +2785,51 @@
             });
         }
 
-        async function deleteGithubImageJsonsInContent(content) {
+        // 统计除指定文档外，其他文档仍在引用的图片/附件路径，删除时跳过，避免误删共享文件
+        async function collectReferencedPathsExcluding(excludeDocId) {
+            const used = new Set();
+            for (const d of docs) {
+                if (!d || d.id === excludeDocId) continue;
+                (d.attachments || []).forEach(a => {
+                    if (!a) return;
+                    if (a.path) used.add(a.path);
+                    (a.parts || []).forEach(p => { if (p && p.path) used.add(p.path); });
+                });
+                let c = docContentCache.get(d.id);
+                if (c === undefined) {
+                    try { c = await fetchDocContent(d.id); } catch (e) { c = ''; }
+                }
+                (String(c).match(/images\/img_\d+(?:_\d+)?\.json/g) || []).forEach(p => used.add(p));
+            }
+            return used;
+        }
+
+        async function deleteGithubImageJsonsInContent(content, protectedPaths = null) {
             if (!githubConfig.token || !githubConfig.repo || !content) return;
             const regex = /images\/img_\d+(?:_\d+)?\.json/g;
             const matches = content.match(regex);
             if (!matches) return;
-            const uniquePaths = [...new Set(matches)];
-            await Promise.allSettled(uniquePaths.map(async (jsonPath) => {
-                try {
-                    const apiPath = encodeRepoPath(jsonPath);
-                    const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                        headers: { 'Authorization': `token ${githubConfig.token}` }
-                    });
-                    if (getRes.ok) {
-                        const fileData = await getRes.json();
-                        await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                            method: 'DELETE',
-                            headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: `kb: delete unused image json ${jsonPath}`, sha: fileData.sha })
-                        });
-                    }
-                } catch (e) {}
-            }));
+            const uniquePaths = [...new Set(matches)].filter(p => !(protectedPaths && protectedPaths.has(p)));
+            uniquePaths.forEach(p => imageJsonCache.delete(p));
+            await Promise.allSettled(uniquePaths.map(jsonPath => deleteGithubFileByPath(jsonPath)));
         }
 
-        function insertAtCursor(textarea, text) {
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            textarea.value = textarea.value.substring(0, start) + text + textarea.value.substring(end);
-            textarea.selectionStart = textarea.selectionEnd = start + text.length;
+        // 插入图片 Markdown：只在前后确实需要时补一个换行，
+        // 空编辑区或行首/行尾已有换行时不额外加，避免出现上下各一条空白行
+        function insertImageMarkdown(textarea, filename) {
+            if (!textarea) return;
+            const value = textarea.value;
+            const start = textarea.selectionStart ?? value.length;
+            const end = textarea.selectionEnd ?? value.length;
+            const before = value.slice(0, start);
+            const after = value.slice(end);
+            const snippet = `![图片](${filename})`;
+            const prefix = before.length && !before.endsWith('\n') ? '\n' : '';
+            const suffix = after.length && !after.startsWith('\n') ? '\n' : '';
+            const inserted = prefix + snippet + suffix;
+            textarea.value = before + inserted + after;
+            const caret = start + inserted.length;
+            textarea.selectionStart = textarea.selectionEnd = caret;
         }
 
         function closeMobileSidebar() {
@@ -2081,15 +2845,28 @@
             const clearSearchBtn = document.getElementById('clearSearchBtn');
             const searchSubmitBtn = document.getElementById('searchSubmitBtn');
 
-            searchInput.oninput = () => {
+            searchInput.oninput = (e) => {
                 if (searchInput.value.length > 0) clearSearchBtn.classList.remove('hidden');
                 else clearSearchBtn.classList.add('hidden');
+                // 输入法组词期间不触发搜索
+                if (e && e.isComposing) return;
+                // 150ms 防抖，避免每次按键都重建列表
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(() => performSearch({ withOverlay: false }), 150);
             };
             searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); performSearch(); }
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    clearTimeout(searchDebounceTimer);
+                    performSearch();
+                }
             });
-            searchSubmitBtn.onclick = () => performSearch();
+            searchSubmitBtn.onclick = () => {
+                clearTimeout(searchDebounceTimer);
+                performSearch();
+            };
             clearSearchBtn.onclick = () => {
+                clearTimeout(searchDebounceTimer);
                 searchInput.value = '';
                 clearSearchBtn.classList.add('hidden');
                 searchQuery = '';
@@ -2102,6 +2879,9 @@
             if (syncRefreshBtn) {
                 syncRefreshBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); manualSyncRefresh(); });
             }
+
+            const togglePreviewBtn = document.getElementById('togglePreviewBtn');
+            if (togglePreviewBtn) togglePreviewBtn.onclick = () => setPreviewMode(!isPreviewMode);
 
             document.getElementById('newDocBtn').onclick = async () => {
                 // 若当前正处于编辑中，先作废该会话并清理已上传但未保存的文件，避免遗留孤儿文件
@@ -2124,6 +2904,7 @@
                 document.getElementById('editTagsInput').value = '';
                 document.getElementById('editContentInput').value = '';
                 renderEditAttachments();
+                setPreviewMode(false);
                 closeMobileSidebar();
                 checkBackToTopBtnVisibility();
             };
@@ -2134,7 +2915,7 @@
                 beginEditSession();
                 isEditing = true;
                 editAttachments = (doc.attachments || []).map(a => ({...a}));
-                let content = docContentCache[currentDocId];
+                let content = docContentCache.get(currentDocId);
                 if (content === undefined) {
                     try { content = await fetchDocContent(currentDocId); } catch (e) { content = ''; }
                 }
@@ -2146,6 +2927,7 @@
                 document.getElementById('editTagsInput').value = (doc.tags || []).join(' ');
                 document.getElementById('editContentInput').value = content;
                 renderEditAttachments();
+                setPreviewMode(false);
                 checkBackToTopBtnVisibility();
             };
 
@@ -2155,6 +2937,7 @@
                 await discardEditSessionUploads(true);
                 editAttachments = [];
                 isEditing = false;
+                setPreviewMode(false);
                 if (previousDocId && docs.some(d => d.id === previousDocId)) {
                     openDocView(previousDocId);
                 } else {
@@ -2174,6 +2957,7 @@
             document.getElementById('backToListBtn').onclick = () => {
                 currentDocId = null;
                 previousDocId = null;
+                localStorage.removeItem(LAST_DOC_KEY);
                 document.getElementById('mainPanel').classList.add('hidden');
                 renderDocList();
                 if (virtualList.container) virtualList.container.scrollTop = 0;
@@ -2181,6 +2965,7 @@
             };
 
             document.getElementById('saveDocBtn').onclick = async () => {
+                if (isSavingDoc) return;
                 const title = document.getElementById('editTitleInput').value.trim() || '未命名文章';
                 const category = document.getElementById('editCategoryInput').value.trim() || '通用';
                 const tagsStr = document.getElementById('editTagsInput').value.trim();
@@ -2188,15 +2973,20 @@
                 const content = document.getElementById('editContentInput').value;
                 const now = new Date().toLocaleString();
 
+                let docId = currentDocId;
+                const isNewDoc = !docId;
+                // 注意：先完成远端写入，成功后才更新本地状态，避免“本地已保存、远端失败”的假成功
+                let contentUploaded = false;
+                if (!docId) docId = 'doc-' + Date.now();
+
+                isSavingDoc = true;
                 showLoading('正在保存并同步...');
                 try {
-                    let docId = currentDocId;
-                    const existingDoc = docId ? docs.find(d => d.id === docId) : null;
-                    if (!docId) { docId = 'doc-' + Date.now(); currentDocId = docId; previousDocId = docId; }
+                    const existingDoc = !isNewDoc ? docs.find(d => d.id === docId) : null;
 
                     updateLoadingText('正在保存正文...');
                     await uploadDocContent(docId, content, { title, updatedAt: now });
-                    docContentCache[docId] = content;
+                    contentUploaded = true;
 
                     const indexEntry = {
                         id: docId,
@@ -2206,13 +2996,20 @@
                         attachments: editAttachments.slice(),
                         hasContent: true
                     };
-                    const idx = docs.findIndex(d => d.id === docId);
-                    if (idx >= 0) docs[idx] = indexEntry;
-                    else docs.unshift(indexEntry);
-                    saveLocalDocs();
+                    const nextDocs = docs.slice();
+                    const idx = nextDocs.findIndex(d => d.id === docId);
+                    if (idx >= 0) nextDocs[idx] = indexEntry;
+                    else nextDocs.unshift(indexEntry);
 
                     updateLoadingText('正在同步索引...');
-                    await uploadMainIndex(docs);
+                    await uploadMainIndex(nextDocs);
+
+                    // 远端全部成功后再落地本地状态
+                    docs = nextDocs;
+                    docContentCache.set(docId, content);
+                    currentDocId = docId;
+                    previousDocId = docId;
+                    saveLocalDocs();
 
                     // 保存成功后再真正清理：编辑中移除的旧附件，以及上传后未被正文引用的图片
                     const removedAttachments = pendingDeletedAttachments.slice();
@@ -2229,10 +3026,17 @@
                     }
 
                     editAttachments = [];
+                    setPreviewMode(false);
                     await openDocView(docId, { skipOverlay: true });
                     showToast('保存成功并已同步', 'success');
-                } catch (err) { showToast('保存失败，请重试', 'error'); }
-                finally { hideLoading(); }
+                } catch (err) {
+                    // 新建文档正文已上传但索引失败时，清理这次产生的正文文件，避免遗留孤儿
+                    if (isNewDoc && contentUploaded) {
+                        try { await deleteDocContentFile(docId); } catch (e) {}
+                        docContentCache.delete(docId);
+                    }
+                    showToast('保存失败，请重试', 'error');
+                } finally { isSavingDoc = false; hideLoading(); }
             };
 
             document.getElementById('deleteDocBtn').onclick = async () => {
@@ -2246,27 +3050,40 @@
                 const docIdToDelete = currentDocId;
                 showLoading('正在删除并同步...');
                 try {
-                    updateLoadingText('正在清理关联图片...');
-                    let content = docContentCache[docIdToDelete];
+                    updateLoadingText('正在检查共享引用...');
+                    let content = docContentCache.get(docIdToDelete);
                     if (content === undefined) {
                         try { content = await fetchDocContent(docIdToDelete); } catch (e) { content = ''; }
                     }
-                    if (content) await deleteGithubImageJsonsInContent(content);
+                    // 其他文档仍在引用的图片/附件先保护起来，避免误删
+                    const protectedPaths = await collectReferencedPathsExcluding(docIdToDelete);
+
+                    updateLoadingText('正在清理关联图片...');
+                    if (content) await deleteGithubImageJsonsInContent(content, protectedPaths);
 
                     if (docToDelete && docToDelete.attachments && docToDelete.attachments.length) {
-                        updateLoadingText('正在清理附件...');
-                        await deleteGithubAttachments(docToDelete.attachments);
+                        const attachmentsToDelete = docToDelete.attachments.filter(a => {
+                            if (!a) return false;
+                            const paths = getAttachmentPaths(a);
+                            return paths.length > 0 && !paths.some(p => protectedPaths.has(p));
+                        });
+                        if (attachmentsToDelete.length) {
+                            updateLoadingText('正在清理附件...');
+                            await deleteGithubAttachments(attachmentsToDelete);
+                        }
                     }
 
                     updateLoadingText('正在删除正文...');
                     await deleteDocContentFile(docIdToDelete);
-                    delete docContentCache[docIdToDelete];
+                    docContentCache.delete(docIdToDelete);
 
                     docs = docs.filter(d => d.id !== docIdToDelete);
                     currentDocId = null;
                     previousDocId = null;
+                    localStorage.removeItem(LAST_DOC_KEY);
                     beginEditSession();
                     editAttachments = [];
+                    setPreviewMode(false);
                     saveLocalDocs();
 
                     updateLoadingText('正在同步索引...');
@@ -2289,20 +3106,19 @@
             document.addEventListener('click', (e) => {
                 if (!githubBtn.contains(e.target) && !githubDropdown.contains(e.target)) githubDropdown.classList.add('hidden');
             });
-            document.getElementById('menuConfigBtn').onclick = () => {
-                githubDropdown.classList.add('hidden');
-                document.getElementById('ghTokenInput').value = githubConfig.token;
-                document.getElementById('ghRepoInput').value = githubConfig.repo || 'XiandeShen/Xiande-kb';
-                document.getElementById('ghPathInput').value = githubConfig.path || 'kb_docs.json';
-                document.getElementById('githubModal').classList.remove('hidden');
-            };
+            document.getElementById('menuConfigBtn').onclick = () => openGithubConfigModal();
             document.getElementById('menuResetBtn').onclick = () => handleResetBinding();
             document.getElementById('closeModalBtn').onclick = () => { document.getElementById('githubModal').classList.add('hidden'); };
+            document.getElementById('verifyTokenBtn').onclick = () => verifyGithubToken();
+            document.getElementById('ghTokenInput').addEventListener('input', () => {
+                document.getElementById('verifyTokenStatus').classList.add('hidden');
+            });
             document.getElementById('saveGithubConfigBtn').onclick = () => {
-                githubConfig.token = document.getElementById('ghTokenInput').value.trim();
+                githubConfig.token = normalizeToken(document.getElementById('ghTokenInput').value);
                 githubConfig.repo = document.getElementById('ghRepoInput').value.trim() || 'XiandeShen/Xiande-kb';
                 githubConfig.path = document.getElementById('ghPathInput').value.trim() || 'kb_docs.json';
                 githubConfig.sha = '';
+                repoDefaultBranch = '';
                 localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
                 document.getElementById('githubModal').classList.add('hidden');
                 showLoading(DEFAULT_LOADING_TEXT);
@@ -2319,16 +3135,113 @@
                 if (sidebarScroll) sidebarScroll.scrollTop = 0;
             };
             overlay.onclick = () => closeMobileSidebar();
+
+            // 编辑快捷键：Ctrl/Cmd+S 保存，Esc 退出编辑
+            document.addEventListener('keydown', (e) => {
+                const editVisible = !document.getElementById('editPanel').classList.contains('hidden');
+                const confirmVisible = !document.getElementById('confirmModal').classList.contains('hidden');
+                const imageVisible = !document.getElementById('imageModal').classList.contains('hidden');
+                const ghModalVisible = !document.getElementById('githubModal').classList.contains('hidden');
+
+                if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 's' || e.key === 'S')) {
+                    if (editVisible) {
+                        e.preventDefault();
+                        document.getElementById('saveDocBtn').click();
+                    }
+                    return;
+                }
+
+                if (e.key === 'Escape') {
+                    if (confirmVisible || imageVisible) return; // 这些弹层已有各自的 Esc 处理
+                    if (ghModalVisible) {
+                        document.getElementById('githubModal').classList.add('hidden');
+                        return;
+                    }
+                    if (editVisible) {
+                        e.preventDefault();
+                        document.getElementById('desktopCancelEditBtn').click();
+                    }
+                }
+            });
         }
 
         /* ==================== 登录 & 同步 ==================== */
+        // 去掉粘贴时常见的空白、零宽字符、引号，以及误带上的 "Bearer "/"token " 前缀
+        function normalizeToken(raw) {
+            let s = String(raw || '').trim();
+            s = s.replace(/^['"“”]+|['"“”]+$/g, '');
+            s = s.replace(/^(?:Bearer|token)\s+/i, '');
+            s = s.replace(/[\s​-‍﻿]/g, '');
+            return s;
+        }
+
         function loadGithubConfig() {
             const saved = localStorage.getItem('kb_gh_config');
             if (saved) {
                 try { githubConfig = JSON.parse(saved); }
                 catch (e) { githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' }; }
+                githubConfig.token = normalizeToken(githubConfig.token);
                 if (!githubConfig.repo) githubConfig.repo = 'XiandeShen/Xiande-kb';
                 if (!githubConfig.path) githubConfig.path = 'kb_docs.json';
+            }
+        }
+
+        function openGithubConfigModal() {
+            document.getElementById('githubDropdown').classList.add('hidden');
+            document.getElementById('ghTokenInput').value = githubConfig.token;
+            document.getElementById('ghRepoInput').value = githubConfig.repo || 'XiandeShen/Xiande-kb';
+            document.getElementById('ghPathInput').value = githubConfig.path || 'kb_docs.json';
+            const statusEl = document.getElementById('verifyTokenStatus');
+            if (statusEl) statusEl.classList.add('hidden');
+            document.getElementById('githubModal').classList.remove('hidden');
+        }
+
+        // 用输入框里的 Token 实测「有效性 + 仓库写权限」，避免保存后才发现失败
+        async function verifyGithubToken() {
+            const statusEl = document.getElementById('verifyTokenStatus');
+            const token = normalizeToken(document.getElementById('ghTokenInput').value);
+            const repo = document.getElementById('ghRepoInput').value.trim() || githubConfig.repo;
+            const showStatus = (text, ok) => {
+                statusEl.textContent = text;
+                statusEl.className = `mt-1.5 text-[12px] leading-relaxed ${ok ? 'text-emerald-600' : 'text-red-500'}`;
+            };
+            if (!token) { showStatus('请先填写 Token。', false); return; }
+            if (!repo || !/^[^\/]+\/[^\/]+$/.test(repo)) { showStatus('仓库路径格式应为 Owner/Repo。', false); return; }
+            showStatus('正在验证 Token…', true);
+            try {
+                const userRes = await fetch('https://api.github.com/user', {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+                });
+                if (userRes.status === 401) {
+                    showStatus('Token 无效或已过期（401 Bad credentials），请重新生成。', false);
+                    return;
+                }
+                if (!userRes.ok) {
+                    showStatus(await githubErrorText(userRes, 'Token 验证失败'), false);
+                    return;
+                }
+                const user = await userRes.json();
+
+                const repoRes = await fetch(`https://api.github.com/repos/${repo}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+                });
+                if (repoRes.status === 404) {
+                    showStatus(`Token 有效（${user.login}），但无法访问仓库 ${repo}；请检查仓库名，或把该仓库加入 Token 的 Repository access。`, false);
+                    return;
+                }
+                if (!repoRes.ok) {
+                    showStatus(await githubErrorText(repoRes, '读取仓库失败'), false);
+                    return;
+                }
+                const repoData = await repoRes.json();
+                const canWrite = !!(repoData.permissions && repoData.permissions.push);
+                if (canWrite) {
+                    showStatus(`验证通过：Token 属于 ${user.login}，对 ${repoData.full_name} 有写权限，可以上传。`, true);
+                } else {
+                    showStatus(`Token 有效（${user.login}），但对 ${repoData.full_name} 没有写权限；请把 Contents 设为 Read and write 后重新生成 Token。`, false);
+                }
+            } catch (e) {
+                showStatus('验证失败：' + (e.message || '网络异常'), false);
             }
         }
 
@@ -2369,12 +3282,14 @@
             localStorage.removeItem('kb_gh_config');
             await idbDel('kb_docs_index');
             docs = [];
-            docContentCache = {};
+            clearAllCaches();
             currentDocId = null;
             previousDocId = null;
+            localStorage.removeItem(LAST_DOC_KEY);
             beginEditSession();
             editAttachments = [];
             searchQuery = '';
+            repoDefaultBranch = '';
             githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
             document.getElementById('authTokInput').value = '';
             document.getElementById('searchInput').value = '';
@@ -2431,7 +3346,7 @@
         document.getElementById('authForm').addEventListener('submit', (e) => {
             e.preventDefault();
             if (isLoggingIn) return;
-            const token = document.getElementById('authTokInput').value.trim();
+            const token = normalizeToken(document.getElementById('authTokInput').value);
             if (!token) { showToast('请输入访问令牌', 'error'); return; }
             const repoInput = document.getElementById('authRepoInput').value.trim();
             const pathInput = document.getElementById('authPathInput').value.trim();
@@ -2439,6 +3354,7 @@
             githubConfig.repo = repoInput || githubConfig.repo || 'XiandeShen/Xiande-kb';
             githubConfig.path = pathInput || githubConfig.path || 'kb_docs.json';
             githubConfig.sha = '';
+            repoDefaultBranch = '';
             localStorage.setItem('kb_gh_config', JSON.stringify(githubConfig));
             isLoggingIn = true;
             setLoginButtonLoading(true);
@@ -2464,8 +3380,21 @@
                         setLoadingMode('auth');
                         showLoading('正在初始化知识库...');
                         docs = [];
-                        docContentCache = {};
-                        try { await uploadMainIndex([]); } catch (e) { console.warn('初始化空索引失败', e); }
+                        clearAllCaches();
+                        try {
+                            await uploadMainIndex([]);
+                        } catch (initErr) {
+                            // 空索引初始化失败（常见于 Token 无写权限），给出明确提示并退回登录页
+                            console.warn('初始化空索引失败', initErr);
+                            updateSyncStatus('error', '初始化失败');
+                            showToast('空索引初始化失败：请确认 Token 拥有该仓库的写入权限', 'error');
+                            hideLoading();
+                            if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
+                            hideApp();
+                            fillAdvancedOptions();
+                            showAuth();
+                            return;
+                        }
                         hideLoading();
                         hideAuth();
                         showApp();
@@ -2477,6 +3406,8 @@
                 }
 
                 githubConfig.sha = sha;
+                // 重新同步后本地缓存可能已过期，清空正文与图片缓存
+                clearAllCaches();
                 let rawDocs = JSON.parse(text) || [];
                 rawDocs.forEach(d => {
                     if (!d.code || !d.code.startsWith('CM-')) d.code = generateDocCode();
@@ -2491,10 +3422,13 @@
                 saveLocalDocs();
                 updateSyncStatus('success', '已同步');
                 if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
+                // 刷新/同步后自动恢复或刷新当前文档，无需再次点击列表
+                await maybeRestoreDocView();
             } catch (e) {
                 const status = e.status;
                 if (status === 401 || status === 403) {
                     docs = [];
+                    clearAllCaches();
                     await idbDel('kb_docs_index');
                     renderCategoryList();
                     renderTagList();
