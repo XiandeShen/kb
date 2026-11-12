@@ -48,7 +48,7 @@
             scrollbar-width: thin;
             scrollbar-color: #dbe2ea transparent;
         }
-        /* ===== 自定义滚动条：深色侧边栏（Firefox） ===== */
+        /* ===== 自定义滚动条：深色侧边栏（移动端，Firefox） ===== */
         #sidebarScrollContainer {
             scrollbar-width: thin;
             scrollbar-color: #475569 transparent;
@@ -61,11 +61,18 @@
         #docList::-webkit-scrollbar-thumb { background: #dbe2ea; border-radius: 999px; }
         #docList::-webkit-scrollbar-thumb:hover { background: #c7d0da; }
 
-        /* ===== 深色侧边栏滚动条 ===== */
+        /* ===== 侧边栏滚动条（移动端深色） ===== */
         #sidebarScrollContainer::-webkit-scrollbar { width: 6px; height: 6px; }
         #sidebarScrollContainer::-webkit-scrollbar-track { background: transparent; }
         #sidebarScrollContainer::-webkit-scrollbar-thumb { background: #475569; border-radius: 999px; }
         #sidebarScrollContainer::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        /* ===== 侧边栏滚动条（PC 浅色） ===== */
+        @media (min-width: 1024px) {
+            #sidebarScrollContainer { scrollbar-color: #bcc7d5 transparent; }
+            #sidebarScrollContainer::-webkit-scrollbar-thumb { background: #bcc7d5; }
+            #sidebarScrollContainer::-webkit-scrollbar-thumb:hover { background: #a3b0c0; }
+        }
 
         /* ===== 右侧内容区 / 编辑器滚动条 ===== */
         #viewScrollContainer::-webkit-scrollbar,
@@ -163,7 +170,7 @@
         <div class="relative min-h-full flex flex-col sm:flex-row">
             <div class="flex-1 flex flex-col items-center justify-center px-6 py-14 sm:items-start sm:justify-center sm:px-12 sm:py-0 lg:px-20 xl:px-28">
                 <div class="w-full max-w-lg">
-                    <!-- 登录页 Logo 与文字：flex items-center 垂直居中，文字用品牌字体，版本号胶囊包裹 -->
+                    <!-- 登录页 Logo 与文字 -->
                     <div class="flex flex-col items-center sm:flex-row sm:items-center sm:space-x-4">
                         <svg class="w-16 h-16 sm:w-14 sm:h-14 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
@@ -328,8 +335,8 @@
         </header>
 
         <div class="flex-1 flex overflow-hidden relative w-full min-h-0">
-            <!-- 侧边栏：PC 使用 slate-800 深灰，与顶栏区分；移动端保持原样 -->
-            <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-slate-900/95 backdrop-blur-xl lg:bg-slate-800 lg:border-r lg:border-slate-700/60 lg:backdrop-blur-none z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
+            <!-- 侧边栏：移动端保持深色；PC 使用浅灰（比列表栏稍深） -->
+            <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-slate-900/95 backdrop-blur-xl lg:bg-[#e8ecf2] lg:border-r lg:border-slate-300/60 lg:backdrop-blur-none z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
                 <!-- 移动端 logo 区 -->
                 <div class="lg:hidden flex items-center space-x-3 px-4 h-14 bg-transparent flex-shrink-0">
                     <svg class="w-8 h-8 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -352,18 +359,18 @@
                 </div>
                 <div id="sidebarScrollContainer" class="p-3.5 space-y-6 overflow-y-auto flex-1">
                     <div class="space-y-1">
-                        <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.12em] mb-1.5">视图</div>
-                        <button id="allDocsNavBtn" class="nav-filter-btn active w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[14px] font-medium bg-brand-500/20 text-brand-200 ring-1 ring-inset ring-brand-500/30 transition" data-category="ALL">
+                        <div class="px-3 text-[11px] font-semibold text-slate-400 lg:text-slate-500 uppercase tracking-[0.12em] mb-1.5">视图</div>
+                        <button id="allDocsNavBtn" class="nav-filter-btn active w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[14px] font-medium bg-brand-500/20 text-brand-200 ring-1 ring-inset ring-brand-500/30 transition lg:bg-brand-50 lg:text-brand-700 lg:ring-brand-200 lg:shadow-sm" data-category="ALL">
                             <span class="flex items-center gap-2"><i class="ri-stack-line text-[15px]"></i><span>全部条目</span></span>
                             <span id="allCount" class="text-[11px] font-semibold bg-brand-500 text-white px-1.5 py-0.5 rounded-md tabular-nums">0</span>
                         </button>
                     </div>
                     <div class="space-y-1">
-                        <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.12em] mb-1.5">分类</div>
+                        <div class="px-3 text-[11px] font-semibold text-slate-400 lg:text-slate-500 uppercase tracking-[0.12em] mb-1.5">分类</div>
                         <div id="categoryList" class="space-y-0.5"></div>
                     </div>
                     <div class="space-y-1">
-                        <div class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.12em] mb-1.5">热门标签</div>
+                        <div class="px-3 text-[11px] font-semibold text-slate-400 lg:text-slate-500 uppercase tracking-[0.12em] mb-1.5">热门标签</div>
                         <div id="tagList" class="flex flex-wrap gap-1.5 px-1"></div>
                     </div>
                 </div>
@@ -1263,7 +1270,7 @@
 
         function generateDocCode() { return 'CM-' + Math.floor(1000 + Math.random() * 9000); }
 
-        /* ==================== 渲染（深灰侧边栏） ==================== */
+        /* ==================== 渲染（移动端深色 / PC 浅灰侧边栏） ==================== */
         function renderCategoryList() {
             const categories = {};
             docs.forEach(d => {
@@ -1277,11 +1284,11 @@
             const isAllActive = (activeCategory === 'ALL' && !activeTag);
 
             if (isAllActive) {
-                allNavBtn.className = 'nav-filter-btn active w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[14px] font-medium bg-brand-500/20 text-brand-200 ring-1 ring-inset ring-brand-500/30 transition';
+                allNavBtn.className = 'nav-filter-btn active w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[14px] font-medium bg-brand-500/20 text-brand-200 ring-1 ring-inset ring-brand-500/30 transition lg:bg-brand-50 lg:text-brand-700 lg:ring-brand-200 lg:shadow-sm';
                 if (allCountEl) allCountEl.className = 'text-[11px] font-semibold px-1.5 py-0.5 rounded-md tabular-nums bg-brand-500 text-white';
             } else {
-                allNavBtn.className = 'nav-filter-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[14px] font-medium text-slate-300 hover:bg-white/[0.06] hover:text-white transition';
-                if (allCountEl) allCountEl.className = 'text-[11px] font-semibold px-1.5 py-0.5 rounded-md tabular-nums bg-slate-700/70 text-slate-300';
+                allNavBtn.className = 'nav-filter-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[14px] font-medium text-slate-300 hover:bg-white/[0.06] hover:text-white transition lg:text-slate-700 lg:hover:bg-white/70 lg:hover:text-slate-900';
+                if (allCountEl) allCountEl.className = 'text-[11px] font-semibold px-1.5 py-0.5 rounded-md tabular-nums bg-slate-700/70 text-slate-300 lg:bg-white/80 lg:text-slate-600 lg:ring-1 lg:ring-inset lg:ring-slate-300/70';
             }
 
             const catListEl = document.getElementById('categoryList');
@@ -1301,13 +1308,15 @@
                 const isSelected = (activeCategory === cat && !activeTag);
                 btn.className = `w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-[14px] font-medium transition ${
                     isSelected
-                        ? 'bg-brand-500/20 text-brand-200 ring-1 ring-inset ring-brand-500/30'
-                        : 'text-slate-300 hover:bg-white/[0.06] hover:text-white'
+                        ? 'bg-brand-500/20 text-brand-200 ring-1 ring-inset ring-brand-500/30 lg:bg-brand-50 lg:text-brand-700 lg:ring-brand-200 lg:shadow-sm'
+                        : 'text-slate-300 hover:bg-white/[0.06] hover:text-white lg:text-slate-700 lg:hover:bg-white/70 lg:hover:text-slate-900'
                 }`;
                 btn.innerHTML = `
                     <span class="truncate min-w-0">${escapeHtml(cat)}</span>
                     <span class="flex-shrink-0 text-[11px] font-semibold px-1.5 py-0.5 rounded-md tabular-nums ${
-                        isSelected ? 'bg-brand-500 text-white' : 'bg-slate-700/70 text-slate-300'
+                        isSelected
+                            ? 'bg-brand-500 text-white'
+                            : 'bg-slate-700/70 text-slate-300 lg:bg-white/80 lg:text-slate-600 lg:ring-1 lg:ring-inset lg:ring-slate-300/70'
                     }">${count}</span>
                 `;
                 btn.onclick = () => {
@@ -1334,7 +1343,7 @@
                 badge.className = `inline-flex items-center px-2.5 py-1 text-[12px] font-medium rounded-md cursor-pointer transition ${
                     isSelected
                         ? 'bg-brand-500 text-white shadow-sm'
-                        : 'bg-slate-700 text-slate-200 ring-1 ring-inset ring-slate-600 hover:bg-slate-600 hover:text-white'
+                        : 'bg-slate-700 text-slate-200 ring-1 ring-inset ring-slate-600 hover:bg-slate-600 hover:text-white lg:bg-white lg:text-slate-700 lg:ring-slate-300 lg:hover:bg-slate-100 lg:hover:text-slate-900'
                 }`;
                 badge.textContent = `# ${t}`;
                 badge.onclick = () => {
@@ -1832,7 +1841,6 @@
             window.addEventListener('mouseup', (e) => {
                 if (!isDraggingImg) return;
                 isDraggingImg = false;
-                // 未发生明显位移且未超时 → 视为单击，关闭查看器
                 if (shouldCloseByTap(e.clientX, e.clientY)) closeModal();
             });
 
@@ -1846,7 +1854,7 @@
                     pinchActive = false;
                 } else if (e.touches.length === 2) {
                     isDraggingImg = false;
-                    pointerMoved = true; // 双指操作一律不算单击
+                    pointerMoved = true;
                     pinchActive = true;
                     initialPinchDistance = Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
