@@ -51,7 +51,7 @@
         /* ===== 自定义滚动条：深色侧边栏（Firefox） ===== */
         #sidebarScrollContainer {
             scrollbar-width: thin;
-            scrollbar-color: #334155 transparent;
+            scrollbar-color: #475569 transparent;
         }
 
         /* ===== 列表滚动条 ===== */
@@ -64,8 +64,8 @@
         /* ===== 深色侧边栏滚动条 ===== */
         #sidebarScrollContainer::-webkit-scrollbar { width: 6px; height: 6px; }
         #sidebarScrollContainer::-webkit-scrollbar-track { background: transparent; }
-        #sidebarScrollContainer::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
-        #sidebarScrollContainer::-webkit-scrollbar-thumb:hover { background: #475569; }
+        #sidebarScrollContainer::-webkit-scrollbar-thumb { background: #475569; border-radius: 999px; }
+        #sidebarScrollContainer::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
         /* ===== 右侧内容区 / 编辑器滚动条 ===== */
         #viewScrollContainer::-webkit-scrollbar,
@@ -258,7 +258,7 @@
     <div id="appShell" class="hidden flex flex-col flex-1 min-h-0 w-full">
         <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/50 backdrop-blur-md z-[100] hidden lg:hidden transition-opacity"></div>
 
-        <!-- 顶栏：Logo 与文字垂直居中对齐，品牌字体，版本号胶囊 -->
+        <!-- 顶栏 -->
         <header class="h-14 w-full bg-slate-900 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 lg:pl-2 lg:pr-3 z-50 shadow-md relative">
             <div class="flex items-center space-x-2 flex-shrink-0">
                 <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
@@ -328,9 +328,9 @@
         </header>
 
         <div class="flex-1 flex overflow-hidden relative w-full min-h-0">
-            <!-- 侧边栏：PC 实色深底 / 移动端近乎实色深底（轻微模糊） -->
-            <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-slate-900/95 backdrop-blur-xl lg:bg-slate-900 lg:backdrop-blur-none z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
-                <!-- 移动端 logo 区：透明，继承背景。Logo 与文字垂直居中对齐，品牌字体，版本号胶囊 -->
+            <!-- 侧边栏：PC 使用 slate-800 深灰，与顶栏区分；移动端保持原样 -->
+            <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-slate-900/95 backdrop-blur-xl lg:bg-slate-800 lg:border-r lg:border-slate-700/60 lg:backdrop-blur-none z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
+                <!-- 移动端 logo 区 -->
                 <div class="lg:hidden flex items-center space-x-3 px-4 h-14 bg-transparent flex-shrink-0">
                     <svg class="w-8 h-8 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
@@ -369,7 +369,7 @@
                 </div>
             </aside>
 
-            <!-- 列表面板：浅灰底 + 白卡片（中间层） -->
+            <!-- 列表面板 -->
             <div id="listPanel" class="w-full md:w-80 lg:w-96 bg-[#f5f7fa] border-r border-slate-200/80 flex flex-col flex-shrink-0 h-full relative">
                 <div class="h-12 px-4 border-b border-slate-200/70 flex items-center justify-between gap-2 flex-shrink-0 bg-[#f5f7fa]">
                     <span id="listTitle" class="font-semibold text-[14px] text-slate-800 truncate min-w-0">所有条目</span>
@@ -479,7 +479,7 @@
         <i class="ri-arrow-up-line text-lg pointer-events-none"></i>
     </button>
 
-    <!-- 图片查看器：顶部按钮区与顶栏右侧按钮对齐 -->
+    <!-- 图片查看器 -->
     <div id="imageModal" class="fixed inset-0 w-screen h-screen bg-slate-950/90 backdrop-blur-md z-[130] flex items-center justify-center hidden select-none">
         <div class="fixed top-0 right-0 h-14 flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 lg:pl-2 lg:pr-3 z-[135] pointer-events-auto">
             <button id="downloadImageBtn" title="下载图片" class="w-9 h-9 no-sticky-hover flex items-center justify-center rounded-xl text-slate-300 hover:text-white transition-colors">
@@ -1263,7 +1263,7 @@
 
         function generateDocCode() { return 'CM-' + Math.floor(1000 + Math.random() * 9000); }
 
-        /* ==================== 渲染（深色侧边栏，选中项浅蓝白文字） ==================== */
+        /* ==================== 渲染（深灰侧边栏） ==================== */
         function renderCategoryList() {
             const categories = {};
             docs.forEach(d => {
@@ -1334,7 +1334,7 @@
                 badge.className = `inline-flex items-center px-2.5 py-1 text-[12px] font-medium rounded-md cursor-pointer transition ${
                     isSelected
                         ? 'bg-brand-500 text-white shadow-sm'
-                        : 'bg-slate-800 text-slate-300 ring-1 ring-inset ring-slate-700 hover:bg-slate-700 hover:text-white'
+                        : 'bg-slate-700 text-slate-200 ring-1 ring-inset ring-slate-600 hover:bg-slate-600 hover:text-white'
                 }`;
                 badge.textContent = `# ${t}`;
                 badge.onclick = () => {
