@@ -203,6 +203,10 @@
         #imageModal > .fixed.top-0.right-0 { padding-right: 12px; }
         @media (min-width: 640px) { #imageModal > .fixed.top-0.right-0 { padding-right: 24px; } }
         @media (min-width: 1024px) { #imageModal > .fixed.top-0.right-0 { padding-right: 12px; } }
+        /* 移动端用左右滑动换图，隐藏上一张/下一张按钮 */
+        @media (max-width: 767px) {
+            #prevImageBtn, #nextImageBtn { display: none !important; }
+        }
 
         /* ===== 编辑预览 ===== */
         #editPreview { scrollbar-width: thin; scrollbar-color: #dbe2ea transparent; }
@@ -2463,6 +2467,9 @@
         let startDragX = 0, startDragY = 0;
         let initialPinchDistance = null;
         let initialPinchScale = 1;
+        // 移动端左右滑动换图
+        let swipeOffsetX = 0;
+        let swipeIntent = null; // null | 'swipe' | 'pan'
 
         function setupImageViewerModal() {
             const modal = document.getElementById('imageModal');
@@ -2551,6 +2558,10 @@
             container.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 1) {
                     isDraggingImg = true;
+                    swipeOffsetX = 0;
+                    swipeIntent = null;
+                    // 若上一次滑入动画尚未结束，先取消，避免手势冲突
+                    if (imgView.getAnimations) imgView.getAnimations().forEach(a => a.cancel());
                     startDragX = e.touches[0].clientX - imgTranslateX;
                     startDragY = e.touches[0].clientY - imgTranslateY;
                     beginPointer(e.touches[0].clientX, e.touches[0].clientY);
@@ -2559,6 +2570,9 @@
                     isDraggingImg = false;
                     pointerMoved = true;
                     pinchActive = true;
+                    swipeOffsetX = 0;
+                    swipeIntent = null;
+                    updateImageTransform();
                     initialPinchDistance = Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
                         e.touches[0].clientY - e.touches[1].clientY
@@ -2569,9 +2583,25 @@
 
             container.addEventListener('touchmove', (e) => {
                 if (isDraggingImg && e.touches.length === 1) {
-                    imgTranslateX = e.touches[0].clientX - startDragX;
-                    imgTranslateY = e.touches[0].clientY - startDragY;
-                    if (movedBeyondThreshold(e.touches[0].clientX, e.touches[0].clientY)) pointerMoved = true;
+                    const t = e.touches[0];
+                    const dx = t.clientX - pointerDownX;
+                    const dy = t.clientY - pointerDownY;
+                    if (!swipeIntent && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+                        const canSwipe = window.innerWidth < 768
+                            && galleryImages.length > 1
+                            && currentScale <= minScale * 1.01;
+                        swipeIntent = (canSwipe && Math.abs(dx) > Math.abs(dy) * 1.15) ? 'swipe' : 'pan';
+                    }
+                    if (swipeIntent === 'swipe') {
+                        // 未放大时横向拖动 = 换图，跟手移动
+                        swipeOffsetX = dx;
+                        pointerMoved = true;
+                        updateImageTransform();
+                        return;
+                    }
+                    imgTranslateX = t.clientX - startDragX;
+                    imgTranslateY = t.clientY - startDragY;
+                    if (movedBeyondThreshold(t.clientX, t.clientY)) pointerMoved = true;
                     clampTranslation();
                     updateImageTransform();
                 } else if (e.touches.length === 2 && initialPinchDistance) {
@@ -2594,16 +2624,20 @@
                     isDraggingImg = false;
                     if (wasDragging && !pinchActive && e.changedTouches && e.changedTouches[0]) {
                         const t = e.changedTouches[0];
-                        const dx = t.clientX - pointerDownX;
-                        const dy = t.clientY - pointerDownY;
-                        const isSwipe = Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.2 && (Date.now() - pointerDownTime) < 500;
-                        if (galleryImages.length > 1 && currentScale <= minScale * 1.01 && isSwipe) {
-                            // 未放大时左右滑动切换图片，和图片预览应用的手感一致
-                            showGalleryImage(galleryIndex + (dx < 0 ? 1 : -1));
+                        if (swipeIntent === 'swipe') {
+                            const dx = swipeOffsetX;
+                            const elapsed = Date.now() - pointerDownTime;
+                            const shouldSwitch = Math.abs(dx) > 56 || (Math.abs(dx) > 30 && elapsed < 260);
+                            if (shouldSwitch && galleryImages.length > 1) {
+                                animateGallerySwipeOut(dx < 0 ? 1 : -1);
+                            } else {
+                                springBackGallerySwipe();
+                            }
                         } else if (shouldCloseByTap(t.clientX, t.clientY)) {
                             closeModal();
                         }
                     }
+                    swipeIntent = null;
                     pinchActive = false;
                 }
                 if (e.touches.length < 2) initialPinchDistance = null;
@@ -2678,7 +2712,35 @@
             showGalleryImage(idx);
         }
 
-        function showGalleryImage(index) {
+        // 移动端滑动切图：旧图滑出
+        function animateGallerySwipeOut(dir) {
+            const imgView = document.getElementById('modalImageView');
+            const startX = swipeOffsetX;
+            const exitX = (dir > 0 ? -1 : 1) * window.innerWidth * 0.55;
+            if (imgView.animate) {
+                imgView.animate([
+                    { transform: `translate3d(${startX}px, ${imgTranslateY}px, 0px) scale(${currentScale})`, opacity: 1 },
+                    { transform: `translate3d(${exitX}px, ${imgTranslateY}px, 0px) scale(${currentScale})`, opacity: 0.15 }
+                ], { duration: 160, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' });
+            }
+            setTimeout(() => showGalleryImage(galleryIndex + dir, dir), 150);
+        }
+
+        // 移动端滑动未达阈值：回弹
+        function springBackGallerySwipe() {
+            const imgView = document.getElementById('modalImageView');
+            const from = swipeOffsetX;
+            swipeOffsetX = 0;
+            updateImageTransform();
+            if (imgView.animate) {
+                imgView.animate([
+                    { transform: `translate3d(${from}px, ${imgTranslateY}px, 0px) scale(${currentScale})` },
+                    { transform: `translate3d(0px, ${imgTranslateY}px, 0px) scale(${currentScale})` }
+                ], { duration: 200, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)' });
+            }
+        }
+
+        function showGalleryImage(index, slideFrom = 0) {
             if (!galleryImages.length) return;
             galleryIndex = (index + galleryImages.length) % galleryImages.length;
             const src = galleryImages[galleryIndex];
@@ -2686,9 +2748,20 @@
 
             const modal = document.getElementById('imageModal');
             const imgView = document.getElementById('modalImageView');
-            imgView.classList.add('opacity-0');
+            const slideSwitch = !!slideFrom;
+            if (imgView.getAnimations) imgView.getAnimations().forEach(a => a.cancel());
+            if (slideSwitch) {
+                // 滑动切图：旧图立即隐藏，避免回弹闪烁，新图由滑入动画接管
+                imgView.style.transition = 'none';
+                imgView.style.opacity = '0';
+                imgView.classList.remove('opacity-0');
+            } else {
+                imgView.classList.add('opacity-0');
+            }
             imgTranslateX = 0;
             imgTranslateY = 0;
+            swipeOffsetX = 0;
+            swipeIntent = null;
             isDraggingImg = false;
 
             const fit = () => {
@@ -2704,10 +2777,26 @@
                 imgView.style.width = natW + 'px';
                 imgView.style.height = natH + 'px';
                 updateImageTransform();
-                imgView.classList.remove('opacity-0');
+                if (slideSwitch) {
+                    imgView.style.transition = '';
+                    imgView.style.opacity = '';
+                } else {
+                    imgView.classList.remove('opacity-0');
+                }
+                if (slideFrom && imgView.animate) {
+                    // 新图从手势方向滑入，和滑动动作衔接
+                    const offset = slideFrom * Math.min(window.innerWidth * 0.42, 320);
+                    imgView.animate([
+                        { transform: `translate3d(${offset}px, 0px, 0px) scale(${currentScale})`, opacity: 0.35 },
+                        { transform: `translate3d(0px, 0px, 0px) scale(${currentScale})`, opacity: 1 }
+                    ], { duration: 260, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)' });
+                }
             };
             imgView.onload = fit;
-            imgView.onerror = () => imgView.classList.remove('opacity-0');
+            imgView.onerror = () => {
+                if (slideSwitch) { imgView.style.transition = ''; imgView.style.opacity = ''; }
+                imgView.classList.remove('opacity-0');
+            };
             imgView.src = src;
             if (imgView.complete && imgView.naturalWidth > 0) fit();
 
@@ -2766,7 +2855,7 @@
         }
         function updateImageTransform() {
             const imgView = document.getElementById('modalImageView');
-            imgView.style.transform = `translate3d(${imgTranslateX}px, ${imgTranslateY}px, 0px) scale(${currentScale})`;
+            imgView.style.transform = `translate3d(${imgTranslateX + swipeOffsetX}px, ${imgTranslateY}px, 0px) scale(${currentScale})`;
         }
 
         function setupImageHandling() {
