@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>椿沐智库</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='g1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='100%' stop-color='%230072ff'/></linearGradient><linearGradient id='g2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%230052d4'/><stop offset='100%' stop-color='%234364f7'/></linearGradient><linearGradient id='g3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='50%' stop-color='%230072ff'/><stop offset='100%' stop-color='%230052d4'/></linearGradient></defs><g><path d='M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z' fill='url(%23g2)'/><path d='M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z' fill='url(%23g1)' opacity='0.9'/><path d='M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z' fill='url(%23g3)'/><path d='M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z' fill='%23ffffff'/></g></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: { brand: { 50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a' } } } } };
@@ -30,6 +33,15 @@
         .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.8rem; }
         .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.8rem; }
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
+
+        /* ===== 品牌字体：椿沐智库 ===== */
+        .brand-title {
+            font-family: 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            line-height: 1;
+            display: inline-block;
+        }
 
         /* ===== 自定义滚动条：浅色区域（Firefox） ===== */
         #docList, #viewScrollContainer, #editScrollContainer, #editContentInput {
@@ -151,7 +163,7 @@
         <div class="relative min-h-full flex flex-col sm:flex-row">
             <div class="flex-1 flex flex-col items-center justify-center px-6 py-14 sm:items-start sm:justify-center sm:px-12 sm:py-0 lg:px-20 xl:px-28">
                 <div class="w-full max-w-lg">
-                    <!-- 登录页 Logo 放大：w-16 h-16 (64px) / sm:w-14 sm:h-14 (56px)，间距 sm:space-x-4 -->
+                    <!-- 登录页 Logo 与文字：flex items-center 垂直居中，文字用品牌字体，版本号胶囊包裹 -->
                     <div class="flex flex-col items-center sm:flex-row sm:items-center sm:space-x-4">
                         <svg class="w-16 h-16 sm:w-14 sm:h-14 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
@@ -166,7 +178,10 @@
                                 <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
                             </g>
                         </svg>
-                        <span class="mt-4 text-xl sm:mt-0 sm:text-2xl font-extrabold tracking-tight text-white whitespace-nowrap">椿沐智库 v3.2.1</span>
+                        <div class="mt-4 sm:mt-0 flex items-center space-x-2">
+                            <span class="brand-title text-xl sm:text-2xl text-white whitespace-nowrap">椿沐智库</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-semibold text-slate-300 ring-1 ring-inset ring-white/15 tracking-widest leading-none">v3.2.1</span>
+                        </div>
                     </div>
                     <p class="sm:hidden text-center text-xs text-slate-400 leading-relaxed mt-4">云端知识库 · 安全可控 · 随时访问</p>
                     <div class="hidden sm:block">
@@ -243,7 +258,7 @@
     <div id="appShell" class="hidden flex flex-col flex-1 min-h-0 w-full">
         <div id="sidebarOverlay" class="fixed inset-0 w-screen h-screen bg-slate-900/50 backdrop-blur-md z-[100] hidden lg:hidden transition-opacity"></div>
 
-        <!-- 顶栏：Logo 放大到 32px (w-8 h-8)，间距 space-x-3 -->
+        <!-- 顶栏：Logo 与文字垂直居中对齐，品牌字体，版本号胶囊 -->
         <header class="h-14 w-full bg-slate-900 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 lg:pl-2 lg:pr-3 z-50 shadow-md relative">
             <div class="flex items-center space-x-2 flex-shrink-0">
                 <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
@@ -263,7 +278,10 @@
                             <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
                         </g>
                     </svg>
-                    <span class="font-extrabold text-base tracking-tight text-white whitespace-nowrap">椿沐智库 v3.2.1</span>
+                    <div class="flex items-center space-x-2">
+                        <span class="brand-title text-base text-white whitespace-nowrap">椿沐智库</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-semibold text-slate-300 ring-1 ring-inset ring-white/15 tracking-widest leading-none">v3.2.1</span>
+                    </div>
                 </div>
             </div>
             <div class="flex-1 min-w-0 max-w-lg mx-2 sm:mx-5">
@@ -312,7 +330,7 @@
         <div class="flex-1 flex overflow-hidden relative w-full min-h-0">
             <!-- 侧边栏：PC 实色深底 / 移动端近乎实色深底（轻微模糊） -->
             <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-64 bg-slate-900/95 backdrop-blur-xl lg:bg-slate-900 lg:backdrop-blur-none z-[105] transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none h-full">
-                <!-- 移动端 logo 区：透明，继承背景。Logo 放大到 32px (w-8 h-8)，间距 space-x-3 -->
+                <!-- 移动端 logo 区：透明，继承背景。Logo 与文字垂直居中对齐，品牌字体，版本号胶囊 -->
                 <div class="lg:hidden flex items-center space-x-3 px-4 h-14 bg-transparent flex-shrink-0">
                     <svg class="w-8 h-8 flex-shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
@@ -327,7 +345,10 @@
                             <path d="M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z" fill="#ffffff"/>
                         </g>
                     </svg>
-                    <span class="font-extrabold text-base tracking-tight text-white whitespace-nowrap">椿沐智库 v3.2.1</span>
+                    <div class="flex items-center space-x-2">
+                        <span class="brand-title text-base text-white whitespace-nowrap">椿沐智库</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-semibold text-slate-300 ring-1 ring-inset ring-white/15 tracking-widest leading-none">v3.2.1</span>
+                    </div>
                 </div>
                 <div id="sidebarScrollContainer" class="p-3.5 space-y-6 overflow-y-auto flex-1">
                     <div class="space-y-1">
