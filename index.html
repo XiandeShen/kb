@@ -546,6 +546,12 @@
         let isManualSyncing = false;
         let githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
         let editAttachments = [];
+        // 本次编辑会话中已上传到 GitHub、但尚未保存的文件（取消时需清理）
+        let pendingUploads = [];
+        // 本次编辑会话中移除的原有附件（保存时才真正删除，取消则保留）
+        let pendingDeletedAttachments = [];
+        // 编辑会话标识：取消/保存后递增，用于丢弃迟到的上传结果，避免产生孤儿文件
+        let editSessionId = 0;
 
         const imageJsonCache = {};
         const DEFAULT_LOADING_TEXT = '正在加载知识库...';
@@ -702,7 +708,15 @@
                     </div>
                 </div>
             `;
-            wrapper.onclick = () => openDocView(d.id);
+            wrapper.onclick = async () => {
+                // 编辑中直接切换文档等同于放弃编辑：先清理本次会话未保存的上传
+                if (isEditing) {
+                    await discardEditSessionUploads(true);
+                    editAttachments = [];
+                    isEditing = false;
+                }
+                openDocView(d.id);
+            };
             return wrapper;
         }
 
@@ -1483,6 +1497,7 @@
                 }
                 const tipEl = document.getElementById('uploadStatusTip');
                 if (tipEl) tipEl.textContent = '正在压缩图片并打包为独立 JSON 上传...';
+                const sessionId = editSessionId;
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const img = new Image();
@@ -1508,6 +1523,14 @@
                                 body: JSON.stringify({ message: `kb: upload image json ${filename}`, content: contentEncoded })
                             });
                             if (res.ok) {
+                                if (sessionId !== editSessionId) {
+                                    // 编辑已取消/已保存：这是迟到的上传结果，立即清理，避免留下孤儿文件
+                                    await deleteGithubFileByPath(filename);
+                                    if (tipEl) tipEl.textContent = 'Markdown 源码（支持粘贴截图）';
+                                    resolve();
+                                    return;
+                                }
+                                pendingUploads.push({ path: filename, name: filename, type: 'image' });
                                 insertAtCursor(document.getElementById('editContentInput'), `\n![图片](${filename})\n`);
                                 if (tipEl) tipEl.textContent = 'Markdown 源码（图片已上传并插入）';
                                 showToast('图片上传成功', 'success');
@@ -1531,6 +1554,7 @@
             const safeName = sanitizeFileName(file.name);
             const path = `attachments/${folder}/${Date.now()}_${safeName}`;
             const apiPath = encodeRepoPath(path);
+            const sessionId = editSessionId;
             showLoading(total > 1 ? `正在上传附件 ${currentIdx}/${total}...` : '正在上传附件...');
             try {
                 const base64 = await fileToBase64(file);
@@ -1540,9 +1564,15 @@
                     body: JSON.stringify({ message: `kb: upload attachment ${file.name}`, content: base64 })
                 });
                 if (res.ok) {
-                    editAttachments.push({ name: file.name, path, size: file.size, type, uploadedAt: new Date().toLocaleString() });
-                    renderEditAttachments();
-                    showToast(`「${file.name}」上传成功`, 'success');
+                    if (sessionId !== editSessionId) {
+                        // 编辑已取消/已保存：这是迟到的上传结果，立即清理，避免留下孤儿文件
+                        await deleteGithubFileByPath(path);
+                    } else {
+                        pendingUploads.push({ name: file.name, path, size: file.size, type });
+                        editAttachments.push({ name: file.name, path, size: file.size, type, uploadedAt: new Date().toLocaleString() });
+                        renderEditAttachments();
+                        showToast(`「${file.name}」上传成功`, 'success');
+                    }
                 } else {
                     const errJson = await res.json().catch(() => ({}));
                     showToast(`「${file.name}」上传失败：${errJson.message || '未知错误'}`, 'error');
@@ -1566,33 +1596,28 @@
         async function deleteEditAttachment(index) {
             const att = editAttachments[index];
             if (!att) return;
+            const isPendingUpload = pendingUploads.some(u => u.path === att.path);
             const ok = await showConfirm({
                 title: '删除附件',
-                desc: `确定要删除附件「${att.name}」吗？文件也会从 GitHub 中清理。`,
+                desc: isPendingUpload
+                    ? `确定要删除附件「${att.name}」吗？该文件会立即从 GitHub 中清理。`
+                    : `确定要从当前编辑中移除附件「${att.name}」吗？保存后才会从 GitHub 中清理，取消编辑则保留原文件。`,
                 okText: '确定删除', cancelText: '取消', type: 'danger'
             });
             if (!ok) return;
-            showLoading('正在删除附件...');
-            try {
-                if (githubConfig.token && githubConfig.repo) {
-                    const apiPath = encodeRepoPath(att.path);
-                    const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                        headers: { 'Authorization': `token ${githubConfig.token}` }
-                    });
-                    if (getRes.ok) {
-                        const fileData = await getRes.json();
-                        await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                            method: 'DELETE',
-                            headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: `kb: delete attachment ${att.name}`, sha: fileData.sha })
-                        });
-                    }
-                }
-                editAttachments.splice(index, 1);
-                renderEditAttachments();
+            editAttachments.splice(index, 1);
+            renderEditAttachments();
+            if (isPendingUpload) {
+                // 本次编辑刚上传的附件：立即删除，避免取消编辑后残留在仓库
+                pendingUploads = pendingUploads.filter(u => u.path !== att.path);
+                showLoading('正在删除附件...');
+                try { await deleteGithubFileByPath(att.path); } finally { hideLoading(); }
                 showToast('附件已删除', 'success');
-            } catch (e) { showToast('删除失败', 'error'); }
-            finally { hideLoading(); }
+            } else {
+                // 原有附件：先从编辑列表移除，保存时才真正删除；取消编辑不会破坏已有文件
+                pendingDeletedAttachments.push(att);
+                showToast('已移除，保存后生效', 'success');
+            }
         }
 
         async function downloadAttachment(index) {
@@ -1606,24 +1631,47 @@
             });
         }
 
+        async function deleteGithubFileByPath(path) {
+            if (!githubConfig.token || !githubConfig.repo || !path) return false;
+            try {
+                const apiPath = encodeRepoPath(path);
+                const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                    headers: { 'Authorization': `token ${githubConfig.token}` }
+                });
+                if (!getRes.ok) return false;
+                const fileData = await getRes.json();
+                const delRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `kb: cleanup ${path}`, sha: fileData.sha })
+                });
+                return delRes.ok;
+            } catch (e) { return false; }
+        }
+
         async function deleteGithubAttachments(attachments) {
             if (!githubConfig.token || !githubConfig.repo || !attachments || !attachments.length) return;
-            await Promise.allSettled(attachments.map(async (att) => {
-                try {
-                    const apiPath = encodeRepoPath(att.path);
-                    const getRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                        headers: { 'Authorization': `token ${githubConfig.token}` }
-                    });
-                    if (getRes.ok) {
-                        const fileData = await getRes.json();
-                        await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
-                            method: 'DELETE',
-                            headers: { 'Authorization': `token ${githubConfig.token}`, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: `kb: delete attachment ${att.name}`, sha: fileData.sha })
-                        });
-                    }
-                } catch (e) {}
-            }));
+            await Promise.allSettled(attachments.map(att => deleteGithubFileByPath(att.path)));
+        }
+
+        /* ==================== 编辑会话：未保存上传的追踪与清理 ==================== */
+        function beginEditSession() {
+            editSessionId += 1;
+            pendingUploads = [];
+            pendingDeletedAttachments = [];
+            return editSessionId;
+        }
+
+        // 作废当前编辑会话，并清理其中已上传但尚未保存的文件
+        async function discardEditSessionUploads(showTip = false) {
+            const abandoned = pendingUploads.slice();
+            beginEditSession();
+            if (!abandoned.length) return;
+            showLoading('正在清理未保存的上传文件...');
+            try {
+                await Promise.allSettled(abandoned.map(u => deleteGithubFileByPath(u.path)));
+                if (showTip) showToast('已清理未保存的图片与附件', 'success');
+            } finally { hideLoading(); }
         }
 
         /* ==================== 查看文档 ==================== */
@@ -2055,7 +2103,10 @@
                 syncRefreshBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); manualSyncRefresh(); });
             }
 
-            document.getElementById('newDocBtn').onclick = () => {
+            document.getElementById('newDocBtn').onclick = async () => {
+                // 若当前正处于编辑中，先作废该会话并清理已上传但未保存的文件，避免遗留孤儿文件
+                if (isEditing) await discardEditSessionUploads(true);
+                else beginEditSession();
                 previousDocId = currentDocId || null;
                 currentDocId = null;
                 isEditing = true;
@@ -2080,6 +2131,7 @@
             document.getElementById('editDocBtn').onclick = async () => {
                 const doc = docs.find(d => d.id === currentDocId);
                 if (!doc) return;
+                beginEditSession();
                 isEditing = true;
                 editAttachments = (doc.attachments || []).map(a => ({...a}));
                 let content = docContentCache[currentDocId];
@@ -2097,8 +2149,12 @@
                 checkBackToTopBtnVisibility();
             };
 
-            const handleCancelEdit = () => {
+            const handleCancelEdit = async () => {
+                // 取消 = 放弃本次编辑：删除本次会话已上传但未保存的图片/附件，
+                // 并作废仍在进行中的上传（迟到结果会自动清理），已保存的内容不受影响
+                await discardEditSessionUploads(true);
                 editAttachments = [];
+                isEditing = false;
                 if (previousDocId && docs.some(d => d.id === previousDocId)) {
                     openDocView(previousDocId);
                 } else {
@@ -2158,6 +2214,20 @@
                     updateLoadingText('正在同步索引...');
                     await uploadMainIndex(docs);
 
+                    // 保存成功后再真正清理：编辑中移除的旧附件，以及上传后未被正文引用的图片
+                    const removedAttachments = pendingDeletedAttachments.slice();
+                    const uploadedThisSession = pendingUploads.slice();
+                    beginEditSession();
+                    if (removedAttachments.length) {
+                        updateLoadingText('正在清理已移除的附件...');
+                        await deleteGithubAttachments(removedAttachments);
+                    }
+                    const orphanImages = uploadedThisSession.filter(u => u.type === 'image' && !content.includes(u.path));
+                    if (orphanImages.length) {
+                        updateLoadingText('正在清理未引用的图片...');
+                        await Promise.allSettled(orphanImages.map(u => deleteGithubFileByPath(u.path)));
+                    }
+
                     editAttachments = [];
                     await openDocView(docId, { skipOverlay: true });
                     showToast('保存成功并已同步', 'success');
@@ -2195,6 +2265,7 @@
                     docs = docs.filter(d => d.id !== docIdToDelete);
                     currentDocId = null;
                     previousDocId = null;
+                    beginEditSession();
                     editAttachments = [];
                     saveLocalDocs();
 
@@ -2301,6 +2372,7 @@
             docContentCache = {};
             currentDocId = null;
             previousDocId = null;
+            beginEditSession();
             editAttachments = [];
             searchQuery = '';
             githubConfig = { token: '', repo: 'XiandeShen/Xiande-kb', path: 'kb_docs.json', sha: '' };
