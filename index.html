@@ -2912,31 +2912,12 @@
             });
         }
 
-        // 统计除指定文档外，其他文档仍在引用的图片/附件路径，删除时跳过，避免误删共享文件
-        async function collectReferencedPathsExcluding(excludeDocId) {
-            const used = new Set();
-            for (const d of docs) {
-                if (!d || d.id === excludeDocId) continue;
-                (d.attachments || []).forEach(a => {
-                    if (!a) return;
-                    if (a.path) used.add(a.path);
-                    (a.parts || []).forEach(p => { if (p && p.path) used.add(p.path); });
-                });
-                let c = docContentCache.get(d.id);
-                if (c === undefined) {
-                    try { c = await fetchDocContent(d.id); } catch (e) { c = ''; }
-                }
-                (String(c).match(/images\/img_\d+(?:_\d+)?\.json/g) || []).forEach(p => used.add(p));
-            }
-            return used;
-        }
-
-        async function deleteGithubImageJsonsInContent(content, protectedPaths = null) {
+        async function deleteGithubImageJsonsInContent(content) {
             if (!githubConfig.token || !githubConfig.repo || !content) return;
             const regex = /images\/img_\d+(?:_\d+)?\.json/g;
             const matches = content.match(regex);
             if (!matches) return;
-            const uniquePaths = [...new Set(matches)].filter(p => !(protectedPaths && protectedPaths.has(p)));
+            const uniquePaths = [...new Set(matches)];
             uniquePaths.forEach(p => imageJsonCache.delete(p));
             await Promise.allSettled(uniquePaths.map(jsonPath => deleteGithubFileByPath(jsonPath)));
         }
@@ -3179,36 +3160,28 @@
                 if (!ok) return;
                 const docToDelete = docs.find(d => d.id === currentDocId);
                 const docIdToDelete = currentDocId;
+                if (!docToDelete || !docIdToDelete) return;
                 showLoading('正在删除并同步...');
+                let indexUpdated = false;
                 try {
-                    updateLoadingText('正在检查共享引用...');
+                    // 1. 先读取正文（只读），用于稍后清理内嵌图片
                     let content = docContentCache.get(docIdToDelete);
                     if (content === undefined) {
                         try { content = await fetchDocContent(docIdToDelete); } catch (e) { content = ''; }
                     }
-                    // 其他文档仍在引用的图片/附件先保护起来，避免误删
-                    const protectedPaths = await collectReferencedPathsExcluding(docIdToDelete);
+                    const attachmentsToDelete = (docToDelete.attachments || [])
+                        .filter(a => a && getAttachmentPaths(a).length > 0);
 
-                    updateLoadingText('正在清理关联图片...');
-                    if (content) await deleteGithubImageJsonsInContent(content, protectedPaths);
+                    // 2. 先更新远端索引，让列表不再引用这篇文档；
+                    //    失败时直接退出，不删除任何文件，远端与本地都保持原样
+                    updateLoadingText('正在更新索引...');
+                    const nextDocs = docs.filter(d => d.id !== docIdToDelete);
+                    await uploadMainIndex(nextDocs);
+                    indexUpdated = true;
 
-                    if (docToDelete && docToDelete.attachments && docToDelete.attachments.length) {
-                        const attachmentsToDelete = docToDelete.attachments.filter(a => {
-                            if (!a) return false;
-                            const paths = getAttachmentPaths(a);
-                            return paths.length > 0 && !paths.some(p => protectedPaths.has(p));
-                        });
-                        if (attachmentsToDelete.length) {
-                            updateLoadingText('正在清理附件...');
-                            await deleteGithubAttachments(attachmentsToDelete);
-                        }
-                    }
-
-                    updateLoadingText('正在删除正文...');
-                    await deleteDocContentFile(docIdToDelete);
+                    // 3. 索引成功后才落地本地状态
+                    docs = nextDocs;
                     docContentCache.delete(docIdToDelete);
-
-                    docs = docs.filter(d => d.id !== docIdToDelete);
                     currentDocId = null;
                     previousDocId = null;
                     localStorage.removeItem(LAST_DOC_KEY);
@@ -3217,17 +3190,31 @@
                     setPreviewMode(false);
                     saveLocalDocs();
 
-                    updateLoadingText('正在同步索引...');
-                    await uploadMainIndex(docs);
+                    // 4. 最后清理文件。即使清理失败也只会留下孤儿文件，
+                    //    不会再出现“索引里有、正文 404”的不一致状态
+                    updateLoadingText('正在清理关联文件...');
+                    await Promise.allSettled([
+                        deleteGithubImageJsonsInContent(content),
+                        deleteGithubAttachments(attachmentsToDelete),
+                        deleteDocContentFile(docIdToDelete)
+                    ]);
 
                     document.getElementById('viewPanel').classList.add('hidden');
                     document.getElementById('editPanel').classList.add('hidden');
                     if (window.innerWidth < 768) document.getElementById('mainPanel').classList.add('hidden');
                     else document.getElementById('emptyState').classList.remove('hidden');
                     if (virtualList.container) virtualList.container.scrollTop = 0;
-                    showToast('删除成功', 'success');
                     checkBackToTopBtnVisibility();
-                } catch (err) { showToast('删除失败，请重试', 'error'); }
+                    showToast('删除成功', 'success');
+                } catch (err) {
+                    if (indexUpdated) {
+                        // 索引已更新，文档已从列表移除，只是文件清理出现异常
+                        showToast('文档已删除，但部分关联文件清理失败，可稍后在 GitHub 中手动清理', 'error');
+                    } else {
+                        // 索引未更新：没有删除任何文件，也没有改动本地列表
+                        showToast('删除失败，文档未删除，请检查网络或 Token 后重试', 'error');
+                    }
+                }
                 finally { hideLoading(); }
             };
 
