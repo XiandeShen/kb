@@ -3,10 +3,10 @@
  * 策略：
  *  - 页面导航：网络优先，失败时回退到缓存的 index.html
  *  - 同源静态资源（CSS/JS/图标/manifest）：网络优先并回写缓存，保证更新及时、离线也能用
- *  - 已知 CDN（Tailwind、marked、DOMPurify、Remixicon、字体）：stale-while-revalidate
+ *  - 第三方库已本地化到 vendor/，不再依赖 CDN
  *  - GitHub API 一律不缓存（带鉴权、必须实时）
  */
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const SHELL_CACHE = 'chunmu-shell-' + CACHE_VERSION;
 const RUNTIME_CACHE = 'chunmu-runtime-' + CACHE_VERSION;
 const SHELL_FILES = [
@@ -27,6 +27,13 @@ const SHELL_FILES = [
     './js/events.js',
     './js/auth-sync.js',
     './js/pwa.js',
+    './vendor/tailwind.js',
+    './vendor/marked.min.js',
+    './vendor/purify.min.js',
+    './vendor/remixicon/remixicon.css',
+    './vendor/remixicon/remixicon.woff2',
+    './vendor/remixicon/remixicon.woff',
+    './vendor/remixicon/remixicon.ttf',
     './icons/icon-192.png',
     './icons/icon-512.png',
     './icons/icon-maskable-512.png',
