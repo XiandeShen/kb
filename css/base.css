@@ -7,81 +7,26 @@
         /* 只给加载层兜底，避免误伤 Tailwind 的响应式 hidden/block */
         #loadingOverlay.hidden { display: none !important; }
 
-        /* ===== 加载页：纯色背景 + Logo/品牌文字动效 ===== */
+        /* ===== 网页内统一加载弹窗 ===== */
         #loadingOverlay {
             height: 100vh;
             height: var(--app-vh, 100vh);
-            background: #0f172a;
-            transition: opacity 0.24s ease;
-        }
-        /* 文档加载：透明/轻微模糊，保留当前页面作为过渡 */
-        #loadingOverlay.loading-transparent {
-            background: rgba(15, 23, 42, 0.55);
-            -webkit-backdrop-filter: blur(3px);
-            backdrop-filter: blur(3px);
-        }
-        #loadingOverlay.loading-transparent .loading-logo {
-            width: 42px;
-            height: 42px;
-        }
-        #loadingOverlay.loading-transparent .loading-brand-title {
-            margin-top: 0;
-            font-size: 22px;
-        }
-        #loadingOverlay.loading-transparent .loading-status {
-            margin-top: 8px;
-            font-size: 11px;
+            transition: opacity 0.2s ease;
         }
         #loadingOverlay.is-fading { opacity: 0; pointer-events: none; }
-        .loading-logo {
-            width: 60px;
-            height: 60px;
-            animation: loadingLogoPulse 2.6s ease-in-out infinite;
+        .loading-card { border: 1px solid rgba(15, 23, 42, 0.06); }
+        .loading-spinner {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+            border: 2.5px solid #dbe3ec;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: loadingSpin 0.8s linear infinite;
         }
-        .loading-brand-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .loading-brand-title {
-            margin-top: 0;
-            font-family: 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
-            font-size: 30px;
-            font-weight: 900;
-            letter-spacing: 0.14em;
-            line-height: 1.2;
-            color: #f8fafc;
-        }
-        @supports ((-webkit-background-clip: text) or (background-clip: text)) {
-            .loading-brand-title {
-                background: linear-gradient(90deg, #94a3b8 0%, #f8fafc 35%, #7dd3fc 50%, #f8fafc 65%, #94a3b8 100%);
-                background-size: 200% 100%;
-                -webkit-background-clip: text;
-                background-clip: text;
-                -webkit-text-fill-color: transparent;
-                color: transparent;
-                animation: loadingTextShimmer 3.2s linear infinite;
-            }
-        }
-        .loading-status {
-            margin-top: 12px;
-            font-size: 12px;
-            line-height: 1.4;
-            letter-spacing: 0.04em;
-            color: #94a3b8;
-        }
-        /* 文档/保存等操作共用品牌加载层，不再单独做小弹窗 */
-        @keyframes loadingLogoPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.04); }
-        }
-        @keyframes loadingTextShimmer {
-            0% { background-position: 100% 0; }
-            100% { background-position: -100% 0; }
-        }
+        @keyframes loadingSpin { to { transform: rotate(360deg); } }
         @media (prefers-reduced-motion: reduce) {
-            .loading-logo, .loading-brand-title { animation: none; }
+            .loading-spinner { animation: none; }
         }
         /* 底部提示：避开全面屏手机的手势条/安全区（不支持 max() 的旧内核用上一行） */
         #toast { bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)); }
@@ -158,28 +103,8 @@
         .md-img-frame.is-error .md-img-error { display: flex; }
         @keyframes skeletonPulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
 
-        /* 文档正文加载：只显示转圈，加载完整后再一次性显示正文 */
-        .doc-loading-state {
-            min-height: 220px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            color: #94a3b8;
-            font-size: 13px;
-            letter-spacing: 0.04em;
-        }
-        .doc-loading-spinner {
-            width: 26px;
-            height: 26px;
-            border: 2.5px solid #e2e8f0;
-            border-top-color: #2563eb;
-            border-radius: 50%;
-            animation: docLoadingSpin 0.8s linear infinite;
-        }
+        /* 正文加载失败提示；加载过程统一使用顶部弹窗 */
         .doc-loading-error { padding: 28px 0; text-align: center; color: #94a3b8; font-size: 13px; }
-        @keyframes docLoadingSpin { to { transform: rotate(360deg); } }
         #viewContent.doc-content-enter { animation: docContentIn 0.22s ease both; }
         @keyframes docContentIn {
             from { opacity: 0; transform: translateY(3px); }
