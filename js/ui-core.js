@@ -106,10 +106,10 @@
             const decor = document.getElementById('loadingDecor');
             if (mode === 'auth') {
                 overlay.classList.remove('bg-slate-900/60', 'backdrop-blur-sm');
-                overlay.classList.add('bg-slate-950');
+                overlay.classList.add('bg-slate-900');
                 decor.classList.remove('hidden');
             } else {
-                overlay.classList.remove('bg-slate-950');
+                overlay.classList.remove('bg-slate-900');
                 overlay.classList.add('bg-slate-900/60', 'backdrop-blur-sm');
                 decor.classList.add('hidden');
             }
