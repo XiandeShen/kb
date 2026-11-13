@@ -183,15 +183,14 @@
             setLoadingMode('auth');
             document.getElementById('loadingOverlay').classList.remove('hidden');
             updateLoadingText(DEFAULT_LOADING_TEXT);
-            // 网络/接口异常时不能无限停在加载层
+            // 网络/接口异常时不能无限停在加载层，但也不要因为一次超时就弹回登录页
             setTimeout(() => {
                 const overlay = document.getElementById('loadingOverlay');
                 if (!overlay.classList.contains('hidden')) {
                     hideLoading();
-                    hideApp();
-                    fillAdvancedOptions();
-                    showAuth();
-                    showToast('加载超时，请检查网络后重试', 'error');
+                    try { showApp(); } catch (e) { console.warn('显示本地界面失败', e); }
+                    updateSyncStatus('error', '网络较慢');
+                    showToast('网络较慢，已显示本地缓存，请稍后点刷新重试', 'error');
                 }
             }, 20000);
 
@@ -203,13 +202,11 @@
             pullFromGithub();
             setTimeout(regainWindowFocus, 0);
             } catch (e) {
-                // 任何初始化异常都不能把加载层留在页面上
+                // 任何初始化异常都不能把加载层留在页面上；保留本地缓存界面，不弹回登录页
                 console.error('初始化失败', e);
                 hideLoading();
-                hideApp();
-                fillAdvancedOptions();
-                showAuth();
-                showToast('初始化失败：' + (e.message || '未知错误'), 'error');
+                try { showApp(); } catch (err) { console.warn('显示本地界面失败', err); }
+                showToast('初始化失败：' + (e.message || '未知错误') + '，请检查网络后重试', 'error');
             }
         }
 
@@ -265,15 +262,18 @@
                         try {
                             await uploadMainIndex([]);
                         } catch (initErr) {
-                            // 空索引初始化失败（常见于 Token 无写权限），给出明确提示并退回登录页
+                            // 网络/写入失败时不把用户弹回登录页，保留当前界面并提示重试
                             console.warn('初始化空索引失败', initErr);
                             updateSyncStatus('error', '初始化失败');
-                            showToast('空索引初始化失败：请确认 Token 拥有该仓库的写入权限', 'error');
                             hideLoading();
-                            if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
-                            hideApp();
-                            fillAdvancedOptions();
-                            showAuth();
+                            if (isLoggingIn) {
+                                isLoggingIn = false;
+                                setLoginButtonLoading(false);
+                                showToast('空索引初始化失败：请检查网络后重试', 'error');
+                            } else {
+                                try { showApp(); } catch (e) { console.warn('显示本地界面失败', e); }
+                                showToast('空索引初始化失败：请检查网络后重试', 'error');
+                            }
                             return false;
                         }
                         hideLoading();
@@ -318,23 +318,21 @@
                 return true;
             } catch (e) {
                 const status = e.status;
+                // 不因为一次 401/403 或网络失败清空本地数据、弹回登录页：
+                // 多数情况只是网络慢/代理不稳定，保留当前内容让用户稍后重试即可。
                 if (status === 401 || status === 403) {
-                    docs = [];
-                    clearAllCaches();
-                    await idbDel('kb_docs_index');
-                    renderCategoryList();
-                    renderTagList();
-                    renderDocList();
-                    updateSyncStatus('error', 'Token 错误');
-                    showToast('访问令牌认证失败，请重新输入', 'error');
-                    hideLoading();
-                    if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
-                    else { hideApp(); fillAdvancedOptions(); showAuth(); }
+                    updateSyncStatus('error', '同步失败');
                 } else {
                     updateSyncStatus('error', '网络异常');
-                    hideLoading();
-                    if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
-                    else { hideApp(); fillAdvancedOptions(); showAuth(); }
+                }
+                hideLoading();
+                if (isLoggingIn) {
+                    isLoggingIn = false;
+                    setLoginButtonLoading(false);
+                    showToast('登录失败：网络或 GitHub 暂时不可用，请稍后重试', 'error');
+                } else {
+                    try { showApp(); } catch (err) { console.warn('显示本地界面失败', err); }
+                    showToast('同步失败，已保留当前内容，请检查网络后重试', 'error');
                 }
                 return false;
             }
