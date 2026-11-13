@@ -31,3 +31,17 @@
         @media (hover: hover) {
             #editUrgentInput:not(:checked) + .urgent-toggle:hover { color: #ef4444; background-color: #fef2f2; border-color: #fecaca; }
         }
+
+        /* ===== 列表卡片：跟随系统字号（≤1.2 倍）时自适应高度，避免文字被裁切 ===== */
+        #docList .doc-card h4 {
+            line-height: calc(20px * var(--tscale, 1));
+        }
+        #docList .doc-card .doc-summary {
+            height: auto !important;
+            min-height: calc(36px * var(--tscale, 1));
+            line-height: calc(18px * var(--tscale, 1));
+        }
+        #docList .doc-card .doc-meta {
+            height: auto !important;
+            min-height: calc(18px * var(--tscale, 1));
+        }
