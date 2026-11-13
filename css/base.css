@@ -1,14 +1,5 @@
 /* 椿沐智库 · 基础样式：重置、Markdown、品牌、滚动条、加载/确认弹窗 */
 
-        /* 品牌四个字使用圆润字体子集（只包含“椿沐智库”），离线可用 */
-        @font-face {
-            font-family: 'Chunmu Rounded';
-            src: url('../vendor/fonts/zcool-kuaile-brand.woff2') format('woff2');
-            font-weight: 400;
-            font-style: normal;
-            font-display: swap;
-            unicode-range: U+693F, U+6C90, U+667A, U+5E93;
-        }
 
 * { box-sizing: border-box; }
         :root { --app-vh: 100vh; }
@@ -128,11 +119,14 @@
 
         /* ===== 品牌字体：圆润，和 Logo 的蓝团子风格匹配 ===== */
         .brand-title {
-            font-family: 'Chunmu Rounded', 'YouYuan', 'Yuanti SC', 'Arial Rounded MT Bold', 'Varela Round', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            font-weight: 400;
-            letter-spacing: 0.04em;
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'MiSans', 'HarmonyOS Sans SC', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.01em;
             line-height: 1.1;
             display: inline-block;
+            /* 汉字视觉中心与左侧 logo 居中对齐（CJK 字面偏上） */
+            position: relative;
+            top: 2px;
         }
 
         /* ===== 自定义滚动条：浅色区域（Firefox） ===== */
