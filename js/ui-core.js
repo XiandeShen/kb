@@ -104,15 +104,10 @@
         function setLoadingMode(mode) {
             const overlay = document.getElementById('loadingOverlay');
             const decor = document.getElementById('loadingDecor');
-            if (mode === 'auth') {
-                overlay.classList.remove('bg-slate-900/60', 'backdrop-blur-sm');
-                overlay.classList.add('bg-slate-900');
-                decor.classList.remove('hidden');
-            } else {
-                overlay.classList.remove('bg-slate-900');
-                overlay.classList.add('bg-slate-900/60', 'backdrop-blur-sm');
-                decor.classList.add('hidden');
-            }
+            // 加载层始终使用与顶栏一致的纯色，不再使用渐变/毛玻璃，避免顶部色差
+            overlay.classList.remove('bg-slate-900/60', 'backdrop-blur-sm');
+            overlay.classList.add('bg-slate-900');
+            if (decor) decor.classList.add('hidden');
         }
         function showLoading(text) {
             setLoadingMode('app');
@@ -123,7 +118,11 @@
         }
         function updateLoadingText(text) {
             const loadingText = document.getElementById('loadingText');
-            if (loadingText) loadingText.textContent = text || DEFAULT_LOADING_TEXT;
+            if (!loadingText) return;
+            const value = text || DEFAULT_LOADING_TEXT;
+            loadingText.textContent = value;
+            // 默认文案不显示，加载页只保留 Logo + 品牌名 + 底部动画
+            loadingText.classList.toggle('hidden', value === DEFAULT_LOADING_TEXT);
         }
         // percent 传 null 收起进度条；stageText 显示当前阶段（如“正在上传 42%”）
         function setLoadingProgress(percent, stageText) {
@@ -131,15 +130,18 @@
             const bar = document.getElementById('loadingProgressBar');
             const stage = document.getElementById('loadingProgressStage');
             const pctEl = document.getElementById('loadingProgressPercent');
+            const line = document.getElementById('loadingLine');
             if (!wrap || !bar) return;
             if (percent === null || percent === undefined) {
                 wrap.classList.add('hidden');
                 bar.style.width = '0%';
                 if (pctEl) pctEl.textContent = '0%';
+                if (line) line.classList.remove('hidden');
                 return;
             }
             const p = Math.max(0, Math.min(100, Number(percent) || 0));
             wrap.classList.remove('hidden');
+            if (line) line.classList.add('hidden');
             bar.style.width = p.toFixed(1) + '%';
             if (stage) stage.textContent = stageText || '正在处理...';
             if (pctEl) pctEl.textContent = Math.round(p) + '%';
