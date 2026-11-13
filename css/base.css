@@ -213,3 +213,16 @@
         #syncRefreshBtn:active { transform: scale(0.9); }
         #confirmModal .confirm-card { animation: confirmPop 0.18s ease-out; }
         @keyframes confirmPop { 0% { opacity: 0; transform: scale(0.96) translateY(6px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+
+        /* ===== 移动端：全屏遮罩不做背景模糊 =====
+           加载/弹窗遮罩会盖住顶栏，backdrop-filter 会把顶栏和状态栏区域糊成一片，
+           移动端统一用半透明底色压暗，去掉模糊。 */
+        @media (max-width: 1023.98px) {
+            #loadingOverlay,
+            #confirmModalOverlay,
+            #sidebarOverlay,
+            #githubModal {
+                -webkit-backdrop-filter: none !important;
+                backdrop-filter: none !important;
+            }
+        }
