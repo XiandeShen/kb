@@ -348,6 +348,11 @@
         function initVirtualList() {
             const container = document.getElementById('docList');
             if (!container) return;
+            // 行高随系统字号（上限 1.2 倍）等比放大，避免卡片内容被裁切
+            let ts = parseFloat(window.__CHUNMU_TEXT_SCALE__ || 1);
+            if (!isFinite(ts) || ts < 1) ts = 1;
+            if (ts > 1.2) ts = 1.2;
+            virtualList.itemHeight = Math.round(116 * ts);
             container.innerHTML = '';
             container.style.position = 'relative';
             container.style.overflowY = 'auto';
@@ -401,8 +406,8 @@
                             <h4 class="flex-1 min-w-0 text-[14.5px] font-semibold leading-[20px] tracking-[-0.01em] truncate ${isSelected ? 'text-brand-700' : 'text-slate-800'}">${escapeHtml(d.title || '无标题')}</h4>
                             <span class="flex-shrink-0 text-[11px] leading-none tabular-nums ${isSelected ? 'text-brand-400' : 'text-slate-400'}">${dateStr}</span>
                         </div>
-                        <p class="mt-1.5 text-[12.5px] leading-[18px] text-slate-500 line-clamp-2 h-[36px] overflow-hidden">${summaryHtml}</p>
-                        <div class="mt-2 h-[18px] flex items-center gap-1.5 overflow-hidden">
+                        <p class="doc-summary mt-1.5 text-[12.5px] leading-[18px] text-slate-500 line-clamp-2 overflow-hidden">${summaryHtml}</p>
+                        <div class="doc-meta mt-2 flex items-center gap-1.5 overflow-hidden">
                             <span class="inline-block px-2 py-[1px] rounded-md bg-slate-100 text-slate-600 text-[12px] font-medium leading-[16px] truncate max-w-[120px] flex-shrink">${escapeHtml(catName)}</span>
                             ${d.code ? `<span class="inline-block px-2 py-[1px] rounded-md bg-slate-100 text-slate-500 text-[12px] font-mono leading-[16px] tracking-tight flex-shrink-0">${escapeHtml(d.code)}</span>` : ''}
                             ${d.urgent ? '<span class="inline-flex items-center gap-0.5 px-1.5 py-[1px] rounded-md bg-red-50 text-red-600 text-[12px] font-medium leading-[16px] flex-shrink-0"><i class="ri-alarm-warning-line text-[12px]"></i>紧急</span>' : ''}
@@ -479,7 +484,40 @@
             if (virtualList.spacer) virtualList.spacer.innerHTML = '';
             virtualList.nodes.clear();
             renderVirtualItems();
+            refreshItemHeight();
         }
+
+        // 用真实渲染出来的卡片高度修正行高：系统字号/字体渲染差异下都不会裁切
+        function refreshItemHeight() {
+            const card = document.querySelector('#docList [data-doc-id] .doc-card');
+            if (!card) return;
+            const scale = Math.min(Math.max(Number(window.__CHUNMU_TEXT_SCALE__) || 1, 1), 1.2);
+            const base = Math.round(116 * scale);
+            const measured = Math.ceil(card.getBoundingClientRect().height) + 12; // 上下各 6px 内边距
+            const target = Math.max(base, measured);
+            if (Math.abs(target - virtualList.itemHeight) > 1) {
+                virtualList.itemHeight = target;
+                if (virtualList.spacer) {
+                    virtualList.spacer.innerHTML = '';
+                    virtualList.nodes.clear();
+                    renderVirtualItems();
+                }
+            }
+        }
+
+        // 供 App 原生桥接调用：按系统字号比例（≤1.2）重算行高并重绘列表
+        window.__chunmuApplyTextScale = function (ts) {
+            const scale = Math.min(Math.max(Number(ts) || 1, 1), 1.2);
+            window.__CHUNMU_TEXT_SCALE__ = scale;
+            document.documentElement.style.setProperty('--tscale', scale);
+            virtualList.itemHeight = Math.round(116 * scale);
+            if (virtualList.spacer) {
+                virtualList.spacer.innerHTML = '';
+                virtualList.nodes.clear();
+                renderVirtualItems();
+                refreshItemHeight();
+            }
+        };
 
         /* ==================== 工具 ==================== */
         function encodeRepoPath(path) { return path.split('/').map(encodeURIComponent).join('/'); }
