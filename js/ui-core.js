@@ -426,25 +426,16 @@
             }
         }
 
-        function performSearch(options = {}) {
-            const withOverlay = options.withOverlay !== false;
+        function performSearch() {
             searchQuery = (document.getElementById('searchInput').value || '').trim();
-            const apply = () => {
-                // 编辑中不要因为搜索而把编辑面板收起来，避免未保存内容“凭空消失”
-                if (window.innerWidth < 768 && !isEditing) {
-                    currentDocId = null;
-                    previousDocId = null;
-                    document.getElementById('mainPanel').classList.add('hidden');
-                }
-                renderDocList();
-                if (virtualList.container) virtualList.container.scrollTop = 0;
-            };
-            if (!withOverlay) { apply(); return; }
-            showLoading(searchQuery ? '正在搜索...' : '正在加载列表...');
-            setTimeout(() => {
-                apply();
-                hideLoading();
-            }, 60);
+            // 编辑中不要因为搜索而把编辑面板收起来，避免未保存内容“凭空消失”
+            if (window.innerWidth < 768 && !isEditing) {
+                currentDocId = null;
+                previousDocId = null;
+                document.getElementById('mainPanel').classList.add('hidden');
+            }
+            renderDocList();
+            if (virtualList.container) virtualList.container.scrollTop = 0;
         }
 
         function renderEditAttachments() {
