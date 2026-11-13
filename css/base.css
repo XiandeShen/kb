@@ -118,16 +118,7 @@
         }
 
         /* ===== 品牌字体：圆润，和 Logo 的蓝团子风格匹配 ===== */
-        .brand-title {
-            font-family: 'Microsoft YaHei', 'PingFang SC', 'MiSans', 'HarmonyOS Sans SC', system-ui, -apple-system, 'Segoe UI', sans-serif;
-            font-weight: 700;
-            letter-spacing: 0.01em;
-            line-height: 1.1;
-            display: inline-block;
-            /* 汉字视觉中心与左侧 logo 居中对齐（CJK 字面偏上） */
-            position: relative;
-            top: 2px;
-        }
+
 
         /* ===== 自定义滚动条：浅色区域（Firefox） ===== */
         #docList, #viewScrollContainer, #editScrollContainer, #editContentInput {
