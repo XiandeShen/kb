@@ -2,7 +2,7 @@
 
 * { box-sizing: border-box; }
         :root { --app-vh: 100vh; }
-        html, body { width: 100%; height: 100vh; height: var(--app-vh, 100vh); margin: 0; padding: 0; overflow: hidden; background: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        html, body { width: 100%; height: 100vh; height: var(--app-vh, 100vh); margin: 0; padding: 0; overflow: hidden; background: #0f172a; font-family: system-ui, -apple-system, sans-serif; }
         body:focus { outline: none; }
         /* 只给加载层兜底，避免误伤 Tailwind 的响应式 hidden/block */
         #loadingOverlay.hidden { display: none !important; }
