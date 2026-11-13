@@ -30,6 +30,7 @@
         const docContentStamp = new Map();
         const imageJsonCache = new SimpleLRU(30);
         let currentDocId = null;
+        let docViewRenderToken = 0;
         let previousDocId = null;
         // 手动刷新期间置为 true：同步完成后强制重新拉取当前正文
         let forceReloadDocOnSync = false;
@@ -183,41 +184,69 @@
             return true;
         }
 
-        async function renderMarkdownInto(container, content) {
-            // 先在离屏节点里解析并挂好加载态，再整体搬进页面：
-            // 这样浏览器始终看不到 "images/*.json" 这种无效 src，不会出现原生破图
+        function createImageFrame(img) {
+            const frame = document.createElement('span');
+            frame.className = 'md-img-frame is-loading';
+            const errBox = document.createElement('span');
+            errBox.className = 'md-img-error';
+            errBox.innerHTML = '<i class="ri-image-2-line"></i><span>图片加载失败，点击重试</span>';
+            frame.appendChild(errBox);
+            img.classList.add('md-img');
+            const parent = img.parentNode;
+            if (!parent) return null;
+            parent.insertBefore(frame, img);
+            frame.appendChild(img);
+            return frame;
+        }
+
+        // 普通外链/dataURL 图片也套同一套骨架，不阻塞正文渲染
+        function setupExternalImage(img, frame, src) {
+            const ready = () => {
+                frame.onclick = null;
+                frame.classList.remove('is-loading', 'is-error');
+                frame.classList.add('is-ready');
+                img.onclick = () => openGalleryFromImage(img);
+            };
+            const fail = () => {
+                frame.classList.remove('is-loading');
+                frame.classList.add('is-error');
+                frame.onclick = (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    frame.onclick = null;
+                    frame.classList.remove('is-error');
+                    frame.classList.add('is-loading');
+                    img.removeAttribute('src');
+                    requestAnimationFrame(() => { img.src = src; });
+                };
+            };
+            img.onload = ready;
+            img.onerror = fail;
+            if (img.complete) {
+                if (img.naturalWidth > 0) ready();
+                else if (src) fail();
+            }
+        }
+
+        function renderMarkdownInto(container, content) {
+            // 先把正文放进页面，图片各自用骨架异步加载，不再等所有图片加载完才显示文章
             const staging = document.createElement('div');
             staging.innerHTML = sanitizeHtml(marked.parse(content || ''));
-            const tasks = [];
             staging.querySelectorAll('img').forEach(img => {
                 const src = img.getAttribute('src') || '';
-                if (!src.startsWith('images/') || !src.endsWith('.json')) return;
-
-                const frame = document.createElement('span');
-                frame.className = 'md-img-frame is-loading';
-                const spinner = document.createElement('span');
-                spinner.className = 'md-img-spinner';
-                const errBox = document.createElement('span');
-                errBox.className = 'md-img-error';
-                errBox.innerHTML = '<i class="ri-image-2-line"></i><span>图片加载失败，点击重试</span>';
-                frame.appendChild(spinner);
-                frame.appendChild(errBox);
-
-                // 关键：先把无效的 json 路径从 src 上摘掉，浏览器就不会画破图
-                img.removeAttribute('src');
-                img.classList.add('md-img');
-
-                const parent = img.parentNode;
-                if (!parent) return;
-                parent.insertBefore(frame, img);
-                frame.appendChild(img);
-                tasks.push(loadImageIntoFrame(img, src, frame));
-            });
-            await Promise.all(tasks);
-
-            // 外部图片（非 images/*.json）保持原有行为
-            staging.querySelectorAll('img:not(.md-img)').forEach(imgEl => {
-                imgEl.onclick = () => openGalleryFromImage(imgEl);
+                if (!src) return;
+                if (src.startsWith('images/') && src.endsWith('.json')) {
+                    const frame = createImageFrame(img);
+                    if (!frame) return;
+                    // 关键：先把无效的 json 路径从 src 上摘掉，浏览器就不会画破图
+                    img.removeAttribute('src');
+                    // 不 await，让正文先渲染，图片在骨架里慢慢加载
+                    loadImageIntoFrame(img, src, frame).catch(() => {});
+                } else {
+                    const frame = createImageFrame(img);
+                    if (!frame) return;
+                    setupExternalImage(img, frame, src);
+                }
             });
 
             container.replaceChildren(...Array.from(staging.childNodes));

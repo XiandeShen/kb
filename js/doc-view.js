@@ -2,7 +2,6 @@
 
 /* ==================== 查看文档 ==================== */
         async function openDocView(id, options = {}) {
-            const skipOverlay = !!options.skipOverlay;
             // 手动同步后强制重新拉取当前正文，即使索引里的时间戳没有变化
             const skipCache = !!options.skipCache;
             currentDocId = id;
@@ -10,33 +9,13 @@
             isEditing = false;
             localStorage.setItem(LAST_DOC_KEY, id);
             const doc = docs.find(d => d.id === id);
-            if (!doc) {
-                // 文档不存在时也要收起遮罩，避免界面卡在加载态
-                if (!skipOverlay) hideLoading();
-                return;
-            }
+            if (!doc) return;
+
+            const renderToken = ++docViewRenderToken;
             const viewScrollEl = document.getElementById('viewScrollContainer');
             if (viewScrollEl) viewScrollEl.scrollTop = 0;
-            if (!skipOverlay) showLoading('', { transparent: true });
 
-            let content = skipCache ? undefined : docContentCache.get(id);
-            if (!skipCache && content !== undefined && docContentStamp.get(id) !== String(doc.updatedAt || '')) {
-                content = undefined;
-            }
-            const tempDiv = document.createElement('div');
-            try {
-                if (content === undefined) {
-                    try { content = await fetchDocContent(id, doc.updatedAt, skipCache); }
-                    catch (e) { content = ''; showToast('正文加载失败：' + (e.message || '未知错误'), 'error'); }
-                }
-                await renderMarkdownInto(tempDiv, content);
-            } catch (e) {
-                console.warn('正文渲染失败', e);
-                showToast('正文渲染失败', 'error');
-            } finally {
-                if (!skipOverlay) hideLoading();
-            }
-
+            // 先立即显示文章框架，不再等待正文/图片，避免整屏加载遮罩
             const mainPanel = document.getElementById('mainPanel');
             mainPanel.classList.remove('hidden');
             document.getElementById('emptyState').classList.add('hidden');
@@ -62,10 +41,6 @@
             // 仅绑定 click：移动端浏览器会在 touchend 后补发 click，同时绑定会导致复制两次
             codeBtn.onclick = handleCodeCopy;
 
-            // 直接搬移 DOM 节点，保留图片加载态、事件（含失败重试），也避免把巨型 dataURL 再解析一遍
-            const viewContentEl = document.getElementById('viewContent');
-            viewContentEl.replaceChildren(...Array.from(tempDiv.childNodes));
-
             const tagsContainer = document.getElementById('viewTags');
             tagsContainer.innerHTML = '';
             (doc.tags || []).forEach(t => {
@@ -77,9 +52,46 @@
             });
 
             renderViewAttachments();
+            renderDocList();
+
+            // 正文未命中缓存时先显示正文骨架；图片全部走图片骨架，不阻塞文章出现
+            const viewContentEl = document.getElementById('viewContent');
+            viewContentEl.innerHTML = `
+                <div class="doc-content-skeleton" aria-hidden="true">
+                    <span class="sk-line sk-title"></span>
+                    <span class="sk-line" style="width:96%"></span>
+                    <span class="sk-line" style="width:90%"></span>
+                    <span class="sk-line" style="width:94%"></span>
+                    <span class="sk-line" style="width:72%"></span>
+                    <span class="sk-line sk-block"></span>
+                    <span class="sk-line" style="width:95%"></span>
+                    <span class="sk-line" style="width:88%"></span>
+                    <span class="sk-line" style="width:64%"></span>
+                </div>`;
+
+            let content = skipCache ? undefined : docContentCache.get(id);
+            if (!skipCache && content !== undefined && docContentStamp.get(id) !== String(doc.updatedAt || '')) {
+                content = undefined;
+            }
+            try {
+                if (content === undefined) {
+                    try { content = await fetchDocContent(id, doc.updatedAt, skipCache); }
+                    catch (e) { content = ''; showToast('正文加载失败：' + (e.message || '未知错误'), 'error'); }
+                }
+                // 用户可能已经切到别的文档，旧请求结果直接丢弃
+                if (renderToken !== docViewRenderToken || currentDocId !== id) return;
+
+                const tempDiv = document.createElement('div');
+                renderMarkdownInto(tempDiv, content || '');
+                if (renderToken !== docViewRenderToken || currentDocId !== id) return;
+                // 直接搬移 DOM 节点，保留图片加载骨架/事件，避免整屏加载遮罩
+                viewContentEl.replaceChildren(...Array.from(tempDiv.childNodes));
+            } catch (e) {
+                console.warn('正文渲染失败', e);
+                showToast('正文渲染失败', 'error');
+            }
 
             if (viewScrollEl) viewScrollEl.scrollTop = 0;
-            renderDocList();
             checkBackToTopBtnVisibility();
         }
 
