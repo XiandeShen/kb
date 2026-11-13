@@ -250,3 +250,10 @@
                 z-index: 1;
             }
         }
+
+        /* ===== 加载中禁止点击顶栏（移动端网页与 App 统一） ===== */
+        @media (max-width: 1023.98px) {
+            body:has(#loadingOverlay:not(.hidden)) header {
+                pointer-events: none !important;
+            }
+        }
