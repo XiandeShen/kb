@@ -218,11 +218,18 @@
            加载/弹窗遮罩会盖住顶栏，backdrop-filter 会把顶栏和状态栏区域糊成一片，
            移动端统一用半透明底色压暗，去掉模糊。 */
         @media (max-width: 1023.98px) {
+            /* 1) 遮罩不再使用背景模糊 */
             #loadingOverlay,
             #confirmModalOverlay,
             #sidebarOverlay,
             #githubModal {
                 -webkit-backdrop-filter: none !important;
                 backdrop-filter: none !important;
+            }
+            /* 2) 遮罩从顶栏下沿开始，顶栏（及状态栏）完全不被压暗，颜色始终是 #0f172a */
+            #loadingOverlay,
+            #confirmModal,
+            #githubModal {
+                top: 3.5rem !important;
             }
         }
