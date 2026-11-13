@@ -9,6 +9,7 @@
             height: 100vh;
             height: var(--app-vh, 100vh);
             overflow: hidden;
+            background: #0f172a;
         }
         /* 现代内核优先用动态视口高度，避免地址栏/键盘导致查看器只占半屏 */
         @supports (height: 100dvh) {
@@ -36,10 +37,10 @@
             bottom: calc(12px + max(env(safe-area-inset-bottom, 0px), 12px));
             padding: 8px 10px;
             border-radius: 16px;
-            background: linear-gradient(180deg, rgba(51, 65, 85, 0.94), rgba(30, 41, 59, 0.94));
+            background: linear-gradient(180deg, rgba(71, 85, 105, 0.78), rgba(51, 65, 85, 0.78));
             -webkit-backdrop-filter: blur(12px) saturate(120%);
             backdrop-filter: blur(12px) saturate(120%);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.10);
             scrollbar-width: none;
         }
         #galleryThumbs::-webkit-scrollbar { height: 0; }
