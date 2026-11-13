@@ -9,6 +9,8 @@
 
         /* ===== 加载页：纯色背景 + Logo/品牌文字动效 ===== */
         #loadingOverlay {
+            height: 100vh;
+            height: var(--app-vh, 100vh);
             background: #0f172a;
             transition: opacity 0.24s ease;
         }
@@ -156,18 +158,28 @@
         .md-img-frame.is-error .md-img-error { display: flex; }
         @keyframes skeletonPulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
 
-        /* 文档正文加载骨架（无整屏遮罩，打开文章立即显示） */
-        .doc-content-skeleton { padding: 6px 0 24px; }
-        .doc-content-skeleton .sk-line {
-            display: block;
-            height: 14px;
-            border-radius: 8px;
-            margin-bottom: 14px;
-            background: #eef2f7;
-            animation: skeletonPulse 1.5s ease-in-out infinite;
+        /* 文档正文加载：只显示转圈，加载完整后再一次性显示正文 */
+        .doc-loading-state {
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #94a3b8;
+            font-size: 13px;
+            letter-spacing: 0.04em;
         }
-        .doc-content-skeleton .sk-title { height: 22px; width: 52%; margin-bottom: 24px; }
-        .doc-content-skeleton .sk-block { height: 140px; border-radius: 12px; margin: 18px 0; }
+        .doc-loading-spinner {
+            width: 26px;
+            height: 26px;
+            border: 2.5px solid #e2e8f0;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: docLoadingSpin 0.8s linear infinite;
+        }
+        .doc-loading-error { padding: 28px 0; text-align: center; color: #94a3b8; font-size: 13px; }
+        @keyframes docLoadingSpin { to { transform: rotate(360deg); } }
         #viewContent.doc-content-enter { animation: docContentIn 0.22s ease both; }
         @keyframes docContentIn {
             from { opacity: 0; transform: translateY(3px); }
