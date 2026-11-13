@@ -16,16 +16,16 @@
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='g1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='100%' stop-color='%230072ff'/></linearGradient><linearGradient id='g2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%230052d4'/><stop offset='100%' stop-color='%234364f7'/></linearGradient><linearGradient id='g3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2300c6ff'/><stop offset='50%' stop-color='%230072ff'/><stop offset='100%' stop-color='%230052d4'/></linearGradient></defs><g><path d='M256,100 C370,100 440,180 440,290 C440,390 350,450 256,450 C160,450 70,370 70,260 C70,160 160,100 256,100 Z' fill='url(%23g2)'/><path d='M120,280 C120,170 200,110 310,110 C390,110 430,170 420,250 C410,330 310,400 210,400 C140,400 120,340 120,280 Z' fill='url(%23g1)' opacity='0.9'/><path d='M256,110 C330,110 390,160 390,230 C390,320 290,380 200,350 C260,330 320,280 320,220 C320,160 270,120 256,110 Z' fill='url(%23g3)'/><path d='M235 240 C220 230 200 220 185 240 C170 260 185 285 205 280 C225 275 235 255 235 240 Z M277 240 C292 230 312 220 327 240 C342 260 327 285 307 280 C287 275 277 255 277 240 Z M256 265 C240 280 235 305 256 320 C277 305 272 280 256 265 Z' fill='%23ffffff'/></g></svg>">
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-    <script src="vendor/tailwind.js?v=20261113k"></script>
-    <script src="js/tailwind-config.js?v=20261113k"></script>
-    <script src="vendor/marked.min.js?v=20261113k"></script>
-    <script src="vendor/purify.min.js?v=20261113k"></script>
-    <link href="vendor/remixicon/remixicon.css?v=20261113k" rel="stylesheet">
+    <script src="vendor/tailwind.js?v=20261113l"></script>
+    <script src="js/tailwind-config.js?v=20261113l"></script>
+    <script src="vendor/marked.min.js?v=20261113l"></script>
+    <script src="vendor/purify.min.js?v=20261113l"></script>
+    <link href="vendor/remixicon/remixicon.css?v=20261113l" rel="stylesheet">
     <!-- 样式：按原顺序加载，保证级联结果一致 -->
-    <link rel="stylesheet" href="css/base.css?v=20261113k">
-    <link rel="stylesheet" href="css/components.css?v=20261113k">
-    <link rel="stylesheet" href="css/viewer.css?v=20261113k">
-    <link rel="stylesheet" href="css/editor.css?v=20261113k">
+    <link rel="stylesheet" href="css/base.css?v=20261113l">
+    <link rel="stylesheet" href="css/components.css?v=20261113l">
+    <link rel="stylesheet" href="css/viewer.css?v=20261113l">
+    <link rel="stylesheet" href="css/editor.css?v=20261113l">
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
 
@@ -197,17 +197,8 @@
                 </div>
             </div>
             <div id="headerActions" class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-                <div class="hidden sm:block relative w-[120px] h-7">
-                    <div id="syncStatus" class="absolute right-0 top-0 flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 transition-colors">
-                        <span class="w-2 h-2 rounded-full bg-slate-400 flex-shrink-0" id="syncDot"></span>
-                        <span id="syncText" class="truncate">未连接</span>
-                        <button id="syncRefreshBtn" type="button" title="刷新同步" class="flex-shrink-0 w-4 h-4 flex items-center justify-center rounded text-slate-400 hover:text-white active:text-brand-400 transition-colors">
-                            <i id="syncRefreshIcon" class="ri-refresh-line text-[12px] pointer-events-none"></i>
-                        </button>
-                    </div>
-                </div>
                 <button id="mobileRefreshBtn" type="button" title="刷新同步" aria-label="刷新同步"
-                    class="sm:hidden w-9 h-9 no-sticky-hover flex items-center justify-center rounded-xl text-slate-300 transition-colors">
+                    class="w-9 h-9 no-sticky-hover flex items-center justify-center rounded-xl text-slate-300 transition-colors">
                     <i id="mobileRefreshIcon" class="ri-refresh-line text-lg pointer-events-none"></i>
                 </button>
                 <button id="newDocBtn" title="新建知识条目" class="w-9 h-9 no-sticky-hover flex items-center justify-center rounded-xl text-slate-300 transition-colors">
@@ -460,14 +451,14 @@
     </div>
 
     <!-- 应用脚本：经典脚本按顺序加载，共享同一全局作用域，行为与原内联脚本一致 -->
-    <script src="js/core.js?v=20261113k"></script>
-    <script src="js/github.js?v=20261113k"></script>
-    <script src="js/ui-core.js?v=20261113k"></script>
-    <script src="js/attachments.js?v=20261113k"></script>
-    <script src="js/doc-view.js?v=20261113k"></script>
-    <script src="js/viewer.js?v=20261113k"></script>
-    <script src="js/events.js?v=20261113k"></script>
-    <script src="js/auth-sync.js?v=20261113k"></script>
-    <script src="js/pwa.js?v=20261113k"></script>
+    <script src="js/core.js?v=20261113l"></script>
+    <script src="js/github.js?v=20261113l"></script>
+    <script src="js/ui-core.js?v=20261113l"></script>
+    <script src="js/attachments.js?v=20261113l"></script>
+    <script src="js/doc-view.js?v=20261113l"></script>
+    <script src="js/viewer.js?v=20261113l"></script>
+    <script src="js/events.js?v=20261113l"></script>
+    <script src="js/auth-sync.js?v=20261113l"></script>
+    <script src="js/pwa.js?v=20261113l"></script>
 </body>
 </html>
