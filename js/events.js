@@ -159,8 +159,11 @@
                 beginEditSession();
                 isEditing = true;
                 editAttachments = (doc.attachments || []).map(a => ({...a}));
-                let content = '';
-                try { content = await fetchDocContent(currentDocId, doc.updatedAt, true); } catch (e) { content = ''; }
+                // 编辑面板优先使用已缓存的正文，避免每次点击编辑都重新请求 GitHub
+                let content = docContentCache.get(currentDocId);
+                if (content === undefined) {
+                    try { content = await fetchDocContent(currentDocId, doc.updatedAt); } catch (e) { content = ''; }
+                }
                 document.getElementById('viewPanel').classList.add('hidden');
                 document.getElementById('editPanel').classList.remove('hidden');
                 document.getElementById('editorModeTitle').textContent = '编辑文章';
