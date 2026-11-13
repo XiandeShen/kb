@@ -20,15 +20,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="js/tailwind-config.js"></script>
+    <script src="js/tailwind-config.js?v=20261113b"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <!-- 样式：按原顺序加载，保证级联结果一致 -->
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/viewer.css">
-    <link rel="stylesheet" href="css/editor.css">
+    <link rel="stylesheet" href="css/base.css?v=20261113b">
+    <link rel="stylesheet" href="css/components.css?v=20261113b">
+    <link rel="stylesheet" href="css/viewer.css?v=20261113b">
+    <link rel="stylesheet" href="css/editor.css?v=20261113b">
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
 
@@ -205,6 +205,10 @@
                         </button>
                     </div>
                 </div>
+                <button id="mobileRefreshBtn" type="button" title="刷新同步" aria-label="刷新同步"
+                    class="sm:hidden h-8 px-3 flex items-center justify-center rounded-full bg-slate-800 text-slate-300 border border-slate-700 active:bg-slate-700 transition-colors">
+                    <i id="mobileRefreshIcon" class="ri-refresh-line text-[15px] pointer-events-none"></i>
+                </button>
                 <button id="newDocBtn" title="新建知识条目" class="w-9 h-9 no-sticky-hover flex items-center justify-center rounded-xl text-slate-300 transition-colors">
                     <i class="ri-add-line text-lg pointer-events-none"></i>
                 </button>
@@ -224,10 +228,6 @@
                         </button>
                     </div>
                 </div>
-                <button id="mobileRefreshBtn" type="button" title="刷新同步" aria-label="刷新同步"
-                    class="sm:hidden w-9 h-9 no-sticky-hover flex items-center justify-center rounded-xl text-slate-300 transition-colors">
-                    <i id="mobileRefreshIcon" class="ri-refresh-line text-lg pointer-events-none"></i>
-                </button>
             </div>
         </header>
 
@@ -459,14 +459,14 @@
     </div>
 
     <!-- 应用脚本：经典脚本按顺序加载，共享同一全局作用域，行为与原内联脚本一致 -->
-    <script src="js/core.js"></script>
-    <script src="js/github.js"></script>
-    <script src="js/ui-core.js"></script>
-    <script src="js/attachments.js"></script>
-    <script src="js/doc-view.js"></script>
-    <script src="js/viewer.js"></script>
-    <script src="js/events.js"></script>
-    <script src="js/auth-sync.js"></script>
-    <script src="js/pwa.js"></script>
+    <script src="js/core.js?v=20261113b"></script>
+    <script src="js/github.js?v=20261113b"></script>
+    <script src="js/ui-core.js?v=20261113b"></script>
+    <script src="js/attachments.js?v=20261113b"></script>
+    <script src="js/doc-view.js?v=20261113b"></script>
+    <script src="js/viewer.js?v=20261113b"></script>
+    <script src="js/events.js?v=20261113b"></script>
+    <script src="js/auth-sync.js?v=20261113b"></script>
+    <script src="js/pwa.js?v=20261113b"></script>
 </body>
 </html>
