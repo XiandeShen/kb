@@ -14,7 +14,12 @@
             transition: opacity 0.2s ease;
         }
         #loadingOverlay.is-fading { opacity: 0; pointer-events: none; }
-        .loading-card { border: 1px solid rgba(15, 23, 42, 0.06); }
+        .loading-card {
+            width: fit-content;
+            min-width: 150px;
+            max-width: min(360px, 86vw);
+            border: 1px solid rgba(15, 23, 42, 0.06);
+        }
         .loading-spinner {
             width: 22px;
             height: 22px;
