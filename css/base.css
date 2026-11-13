@@ -213,23 +213,40 @@
         #syncRefreshBtn:active { transform: scale(0.9); }
         #confirmModal .confirm-card { animation: confirmPop 0.18s ease-out; }
         @keyframes confirmPop { 0% { opacity: 0; transform: scale(0.96) translateY(6px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
-
-        /* ===== 移动端：全屏遮罩不做背景模糊 =====
-           加载/弹窗遮罩会盖住顶栏，backdrop-filter 会把顶栏和状态栏区域糊成一片，
-           移动端统一用半透明底色压暗，去掉模糊。 */
+        /* ===== 移动端：遮罩层行为 =====
+           顶栏（及状态栏区域）不磨砂、不被压暗，颜色恒为 #0f172a；
+           顶栏以下保持磨砂（backdrop blur）+ 压暗。 */
         @media (max-width: 1023.98px) {
-            /* 1) 遮罩不再使用背景模糊 */
-            #loadingOverlay,
-            #confirmModalOverlay,
-            #sidebarOverlay,
-            #githubModal {
-                -webkit-backdrop-filter: none !important;
-                backdrop-filter: none !important;
-            }
-            /* 2) 遮罩从顶栏下沿开始，顶栏（及状态栏）完全不被压暗，颜色始终是 #0f172a */
-            #loadingOverlay,
+            /* 确认框 / GitHub 设置：整体从顶栏下沿开始 → 顶栏不被模糊 */
             #confirmModal,
             #githubModal {
                 top: 3.5rem !important;
+            }
+
+            /* 加载遮罩：整屏覆盖以拦截点击，但自身透明、不磨砂 */
+            #loadingOverlay {
+                top: 0 !important;
+                background-color: transparent !important;
+                -webkit-backdrop-filter: none !important;
+                backdrop-filter: none !important;
+            }
+
+            /* 磨砂只作用在顶栏以下 */
+            #loadingOverlay::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 3.5rem;
+                bottom: 0;
+                background-color: rgba(2, 6, 23, 0.35);
+                -webkit-backdrop-filter: blur(4px);
+                backdrop-filter: blur(4px);
+                pointer-events: none;
+            }
+
+            #loadingOverlay > * {
+                position: relative;
+                z-index: 1;
             }
         }
