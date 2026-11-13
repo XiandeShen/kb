@@ -30,15 +30,16 @@
         @media (min-width: 640px) { #imageToolbar { padding-right: 24px; } }
         @media (min-width: 1024px) { #imageToolbar { padding-right: 12px; } }
         #galleryCounter { top: calc(12px + env(safe-area-inset-top, 0px)); }
-        /* 缩略图 dock：深色半透明底，不加外层边框；选中项只保留呼吸动画 */
+        /* 缩略图 dock：提高底色对比度，避免在黑色背景上看不见；不加外层边框 */
         #galleryThumbs {
             bottom: calc(12px + env(safe-area-inset-bottom, 0px));
             bottom: calc(12px + max(env(safe-area-inset-bottom, 0px), 12px));
-            padding: 7px 9px;
+            padding: 8px 10px;
             border-radius: 16px;
-            background: rgba(15, 23, 42, 0.55);
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
+            background: linear-gradient(180deg, rgba(51, 65, 85, 0.94), rgba(30, 41, 59, 0.94));
+            -webkit-backdrop-filter: blur(12px) saturate(120%);
+            backdrop-filter: blur(12px) saturate(120%);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
             scrollbar-width: none;
         }
         #galleryThumbs::-webkit-scrollbar { height: 0; }
