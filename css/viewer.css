@@ -27,6 +27,7 @@
         @media (min-width: 1024px) { #imageToolbar { padding-right: 12px; } }
         #galleryCounter { top: calc(12px + env(safe-area-inset-top, 0px)); }
         #galleryThumbs { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+        #galleryThumbs { bottom: calc(12px + max(env(safe-area-inset-bottom, 0px), 12px)); }
         /* 移动端用左右滑动换图，隐藏上一张/下一张按钮 */
         @media (max-width: 767px) {
             #prevImageBtn, #nextImageBtn { display: none !important; }

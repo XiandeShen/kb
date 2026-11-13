@@ -4,8 +4,9 @@
         :root { --app-vh: 100vh; }
         html, body { width: 100%; height: 100vh; height: var(--app-vh, 100vh); margin: 0; padding: 0; overflow: hidden; background: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
         body:focus { outline: none; }
-        /* 底部提示：避开全面屏手机的手势条/安全区 */
+        /* 底部提示：避开全面屏手机的手势条/安全区（不支持 max() 的旧内核用上一行） */
         #toast { bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)); }
+        #toast { bottom: calc(1.5rem + max(env(safe-area-inset-bottom, 0px), 12px)); }
         button, a, input { -webkit-tap-highlight-color: transparent; }
         @media (hover: hover) { .no-sticky-hover:hover { background-color: rgb(30 41 59); } }
         .no-sticky-hover:active { background-color: rgb(30 41 59) !important; }
@@ -156,7 +157,12 @@
         @media (max-width: 767px) {
             #docList { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); }
             #viewAttachments { padding-right: 4.5rem; }
-            #viewScrollContainer > div { padding-bottom: 5rem; }
+            /* 安卓全面屏底部手势条/小白条：所有可滚动内容都留出手势区高度 */
+            #viewScrollContainer > div { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); }
+            #editScrollContainer > div { padding-bottom: calc(3rem + env(safe-area-inset-bottom, 0px)); }
+            #sidebarScrollContainer { padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
+            #backToTopBtn { bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)); }
+            #backToTopBtn { bottom: calc(1.5rem + max(env(safe-area-inset-bottom, 0px), 12px)); }
         }
         #backToTopBtn { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; outline: none; }
         #backToTopBtn:active, #backToTopBtn:focus, #backToTopBtn:focus-visible, #backToTopBtn:hover {
