@@ -17,7 +17,7 @@
             }
             const viewScrollEl = document.getElementById('viewScrollContainer');
             if (viewScrollEl) viewScrollEl.scrollTop = 0;
-            if (!skipOverlay) showLoading('正在加载文章...');
+            if (!skipOverlay) showLoading('', { transparent: true });
 
             let content = skipCache ? undefined : docContentCache.get(id);
             if (!skipCache && content !== undefined && docContentStamp.get(id) !== String(doc.updatedAt || '')) {

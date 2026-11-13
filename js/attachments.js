@@ -76,7 +76,7 @@
             const isAuthFailure = (err) => /\((401|403|404)\)/.test(err.message || '') || /bad credentials/i.test(err.message || '');
             const cleanupPaths = async (paths) => { if (paths.length) await Promise.allSettled(paths.map(p => deleteGithubFileByPath(p))); };
 
-            showLoading('正在读取文件...');
+            showLoading('正在读取文件...', { transparent: true });
             try {
                 let path = '';
                 let parts = null;
@@ -242,7 +242,7 @@
             if (isPendingUpload) {
                 // 本次编辑刚上传的附件：立即删除，避免取消编辑后残留在仓库
                 pendingUploads = pendingUploads.filter(u => !attPaths.includes(u.path));
-                showLoading('正在删除附件...');
+                showLoading('正在删除附件...', { transparent: true });
                 try { await Promise.allSettled(attPaths.map(p => deleteGithubFileByPath(p))); } finally { hideLoading(); }
                 showToast('附件已删除', 'success');
             } else {
@@ -326,7 +326,7 @@
             abandoned.forEach(u => imageJsonCache.delete(u.path));
             beginEditSession();
             if (!abandoned.length) return;
-            showLoading('正在清理未保存的上传文件...');
+            showLoading('正在清理未保存的上传文件...', { transparent: true });
             try {
                 await Promise.allSettled(abandoned.map(u => deleteGithubFileByPath(u.path)));
                 if (showTip) showToast('已清理未保存的图片与附件', 'success');

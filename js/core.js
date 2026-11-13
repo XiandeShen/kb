@@ -508,7 +508,7 @@
         }
 
         async function prepareAndDownload(filename, getBlob) {
-            showLoading('正在准备下载...');
+            showLoading('正在准备下载...', { transparent: true });
             try {
                 const blob = await getBlob();
                 if (!blob || blob.size === 0) throw new Error('文件内容为空');

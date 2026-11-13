@@ -227,7 +227,7 @@
                 if (!docId) docId = 'doc-' + Date.now();
 
                 isSavingDoc = true;
-                showLoading('正在保存并同步...');
+                showLoading('正在保存并同步...', { transparent: true });
                 try {
                     const existingDoc = !isNewDoc ? docs.find(d => d.id === docId) : null;
 
@@ -299,7 +299,7 @@
                 const docToDelete = docs.find(d => d.id === currentDocId);
                 const docIdToDelete = currentDocId;
                 if (!docToDelete || !docIdToDelete) return;
-                showLoading('正在删除并同步...');
+                showLoading('正在删除并同步...', { transparent: true });
                 let indexUpdated = false;
                 try {
                     // 1. 先读取正文（只读），用于稍后清理内嵌图片

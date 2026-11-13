@@ -101,6 +101,7 @@
         }
 
         /* ==================== 加载显隐 ==================== */
+        let loadingHideTimer = null;
         function setLoadingMode(mode) {
             const overlay = document.getElementById('loadingOverlay');
             const decor = document.getElementById('loadingDecor');
@@ -109,48 +110,38 @@
             overlay.classList.add('bg-slate-900');
             if (decor) decor.classList.add('hidden');
         }
-        function showLoading(text) {
-            setLoadingMode('app');
+        function showLoading(text, options = {}) {
             const overlay = document.getElementById('loadingOverlay');
-            updateLoadingText(text || DEFAULT_LOADING_TEXT);
+            if (loadingHideTimer) { clearTimeout(loadingHideTimer); loadingHideTimer = null; }
+            overlay.classList.remove('hidden', 'is-fading');
+            overlay.classList.toggle('loading-transparent', !!options.transparent);
+            if (!options.transparent) setLoadingMode('app');
+            updateLoadingText(text || (options.transparent ? '' : DEFAULT_LOADING_TEXT));
             setLoadingProgress(null);
-            overlay.classList.remove('hidden');
         }
         function updateLoadingText(text) {
             const loadingText = document.getElementById('loadingText');
             if (!loadingText) return;
             const value = text || DEFAULT_LOADING_TEXT;
             loadingText.textContent = value;
-            // 默认文案不显示，加载页只保留 Logo + 品牌名 + 底部动画
+            // 默认文案不显示，加载页只保留 Logo + 品牌名
             loadingText.classList.toggle('hidden', value === DEFAULT_LOADING_TEXT);
         }
-        // percent 传 null 收起进度条；stageText 显示当前阶段（如“正在上传 42%”）
         function setLoadingProgress(percent, stageText) {
-            const wrap = document.getElementById('loadingProgressWrap');
-            const bar = document.getElementById('loadingProgressBar');
-            const stage = document.getElementById('loadingProgressStage');
-            const pctEl = document.getElementById('loadingProgressPercent');
-            const line = document.getElementById('loadingLine');
-            if (!wrap || !bar) return;
-            if (percent === null || percent === undefined) {
-                wrap.classList.add('hidden');
-                bar.style.width = '0%';
-                if (pctEl) pctEl.textContent = '0%';
-                if (line) line.classList.remove('hidden');
-                return;
-            }
-            const p = Math.max(0, Math.min(100, Number(percent) || 0));
-            wrap.classList.remove('hidden');
-            if (line) line.classList.add('hidden');
-            bar.style.width = p.toFixed(1) + '%';
-            if (stage) stage.textContent = stageText || '正在处理...';
-            if (pctEl) pctEl.textContent = Math.round(p) + '%';
+            // 已取消底部进度条；上传等阶段只更新文字，不再显示百分比/进度条
+            if (stageText) updateLoadingText(stageText);
         }
         function hideLoading() {
             const overlay = document.getElementById('loadingOverlay');
             updateLoadingText(DEFAULT_LOADING_TEXT);
             setLoadingProgress(null);
-            overlay.classList.add('hidden');
+            overlay.classList.add('is-fading');
+            if (loadingHideTimer) clearTimeout(loadingHideTimer);
+            loadingHideTimer = setTimeout(() => {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('is-fading');
+                loadingHideTimer = null;
+            }, 240);
         }
         function setLoginButtonLoading(loading) {
             const btn = document.getElementById('authSubmitBtn');
