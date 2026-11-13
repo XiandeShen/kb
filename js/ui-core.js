@@ -403,7 +403,7 @@
             if (searchQuery) listTitleEl.textContent = `搜索: "${searchQuery}"`;
             else if (activeTag) listTitleEl.textContent = `# ${activeTag}`;
             else if (activeCategory !== 'ALL') listTitleEl.textContent = activeCategory;
-            else listTitleEl.textContent = '所有条目';
+            else listTitleEl.textContent = '全部条目';
             document.getElementById('docCountText').textContent = `${filtered.length} 个文档`;
             renderVirtualList(filtered);
 
