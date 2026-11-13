@@ -62,15 +62,37 @@
                 if (window.innerWidth >= 640) closeMobileSearch(false);
             });
 
-            searchInput.oninput = (e) => {
-                if (searchInput.value.length > 0) clearSearchBtn.classList.remove('hidden');
-                else clearSearchBtn.classList.add('hidden');
-                // 输入法组词期间不触发搜索
-                if (e && e.isComposing) return;
-                // 150ms 防抖，避免每次按键都重建列表
-                clearTimeout(searchDebounceTimer);
-                searchDebounceTimer = setTimeout(() => performSearch({ withOverlay: false }), 150);
+            let searchComposing = false;
+            const syncClearSearchBtn = () => {
+                clearSearchBtn.classList.toggle('hidden', !searchInput.value);
             };
+            const scheduleSearch = (delay = 150) => {
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(() => performSearch({ withOverlay: false }), delay);
+            };
+
+            searchInput.addEventListener('input', (e) => {
+                syncClearSearchBtn();
+                // 输入法组词期间先不检索，等 compositionend 再触发
+                if (searchComposing || (e && e.isComposing)) return;
+                scheduleSearch();
+            });
+            // PC 端部分输入法在组词结束后不会再补发可用的 input 事件，这里兜底
+            searchInput.addEventListener('compositionstart', () => { searchComposing = true; });
+            searchInput.addEventListener('compositionend', () => {
+                searchComposing = false;
+                syncClearSearchBtn();
+                scheduleSearch(30);
+            });
+            // 极少数浏览器/输入法组合下 input 不触发，keyup 再兜一层
+            searchInput.addEventListener('keyup', (e) => {
+                if (searchComposing || e.isComposing) return;
+                if (e.key === 'Enter' || e.key === 'Escape' || e.key === 'Tab') return;
+                if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
+                    syncClearSearchBtn();
+                    scheduleSearch();
+                }
+            });
             searchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
