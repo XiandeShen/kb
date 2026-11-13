@@ -104,6 +104,7 @@
             if (isManualSyncing) return;
             if (!githubConfig.token || !githubConfig.repo) { showToast('请先配置访问令牌', 'error'); return; }
             isManualSyncing = true;
+            forceReloadDocOnSync = true;
             const mobileBtn = document.getElementById('mobileRefreshBtn');
             const mobileIcon = document.getElementById('mobileRefreshIcon');
             if (mobileBtn) mobileBtn.classList.add('opacity-50', 'pointer-events-none');
@@ -116,6 +117,7 @@
                 .catch(() => {})
                 .finally(() => {
                     isManualSyncing = false;
+                    forceReloadDocOnSync = false;
                     if (mobileBtn) mobileBtn.classList.remove('opacity-50', 'pointer-events-none');
                     if (mobileIcon) mobileIcon.classList.remove('animate-spin');
                 });
