@@ -601,7 +601,7 @@
             galleryImages.forEach((src, i) => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = 'gallery-thumb relative flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden ring-1 ring-white/25 opacity-55 transition';
+                btn.className = 'gallery-thumb relative flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden ring-1 ring-white/25 opacity-55 shadow-lg shadow-black/40 transition';
                 btn.dataset.index = String(i);
                 const thumbImg = document.createElement('img');
                 thumbImg.src = src;
