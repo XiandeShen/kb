@@ -104,7 +104,21 @@
             if (isManualSyncing) return;
             if (!githubConfig.token || !githubConfig.repo) { showToast('请先配置访问令牌', 'error'); return; }
             isManualSyncing = true;
-            pullFromGithub().finally(() => { isManualSyncing = false; });
+            const mobileBtn = document.getElementById('mobileRefreshBtn');
+            const mobileIcon = document.getElementById('mobileRefreshIcon');
+            if (mobileBtn) mobileBtn.classList.add('opacity-50', 'pointer-events-none');
+            if (mobileIcon) mobileIcon.classList.add('animate-spin');
+            pullFromGithub()
+                .then((ok) => {
+                    // 失败时 pullFromGithub 已给出错误提示，这里只在成功时提示同步完成
+                    if (ok) showToast('同步完成', 'success');
+                })
+                .catch(() => {})
+                .finally(() => {
+                    isManualSyncing = false;
+                    if (mobileBtn) mobileBtn.classList.remove('opacity-50', 'pointer-events-none');
+                    if (mobileIcon) mobileIcon.classList.remove('animate-spin');
+                });
         }
 
         async function handleResetBinding() {
@@ -205,7 +219,7 @@
             if (!githubConfig.token || !githubConfig.repo) {
                 if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
                 else { hideLoading(); hideApp(); fillAdvancedOptions(); showAuth(); }
-                return;
+                return false;
             }
             updateSyncStatus('loading', '同步中');
 
@@ -233,14 +247,14 @@
                             hideApp();
                             fillAdvancedOptions();
                             showAuth();
-                            return;
+                            return false;
                         }
                         hideLoading();
                         hideAuth();
                         showApp();
                         saveLocalDocs();
                         if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
-                        return;
+                        return true;
                     }
                     throw metaErr;
                 }
@@ -274,6 +288,7 @@
                 if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
                 // 刷新/同步后自动恢复或刷新当前文档，无需再次点击列表
                 await maybeRestoreDocView();
+                return true;
             } catch (e) {
                 const status = e.status;
                 if (status === 401 || status === 403) {
@@ -294,5 +309,6 @@
                     if (isLoggingIn) { isLoggingIn = false; setLoginButtonLoading(false); }
                     else { hideApp(); fillAdvancedOptions(); showAuth(); }
                 }
+                return false;
             }
         }

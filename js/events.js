@@ -40,6 +40,11 @@
             if (syncRefreshBtn) {
                 syncRefreshBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); manualSyncRefresh(); });
             }
+            // 移动端/已安装 PWA 没有浏览器刷新按钮，用顶栏图标手动同步
+            const mobileRefreshBtn = document.getElementById('mobileRefreshBtn');
+            if (mobileRefreshBtn) {
+                mobileRefreshBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); manualSyncRefresh(); });
+            }
 
             const togglePreviewBtn = document.getElementById('togglePreviewBtn');
             if (togglePreviewBtn) togglePreviewBtn.onclick = () => setPreviewMode(!isPreviewMode);
