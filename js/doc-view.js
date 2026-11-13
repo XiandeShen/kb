@@ -1,24 +1,6 @@
 /* 椿沐智库 · 文档查看：正文渲染、回到顶部、粘贴上传、图片 Markdown 插入、侧栏收起 */
 
 /* ==================== 查看文档 ==================== */
-        // 根据摘要/附件生成更接近正文结构的骨架，减少骨架切到正文时的跳动
-        function buildDocSkeleton(doc) {
-            const summary = String(doc.summary || '').replace(/\s+/g, '');
-            const count = Math.max(3, Math.min(7, Math.ceil(summary.length / 30) + 2));
-            const widths = [96, 88, 94, 76, 90, 84, 68];
-            let html = '<div class="doc-content-skeleton" aria-hidden="true">';
-            html += '<span class="sk-line sk-title"></span>';
-            for (let i = 0; i < count; i++) {
-                html += `<span class="sk-line" style="width:${widths[i % widths.length]}%"></span>`;
-            }
-            const hasImageHint = (doc.attachments || []).length > 0 || /图|截图|image|!\[/i.test(doc.summary || '');
-            if (hasImageHint) html += '<span class="sk-line sk-block"></span>';
-            html += '<span class="sk-line" style="width:92%"></span>';
-            html += '<span class="sk-line" style="width:78%"></span>';
-            html += '</div>';
-            return html;
-        }
-
         async function openDocView(id, options = {}) {
             // 手动同步后强制重新拉取当前正文，即使索引里的时间戳没有变化
             const skipCache = !!options.skipCache;
@@ -69,34 +51,46 @@
                 tagsContainer.appendChild(tagEl);
             });
 
-            renderViewAttachments();
+            // 附件等正文加载完整后再显示，避免附件先于正文出现
+            document.getElementById('viewAttachments').innerHTML = '';
             renderDocList();
 
-            // 正文未命中缓存时先显示按摘要生成的骨架；图片全部走图片骨架，不阻塞文章出现
+            // 正文区域先转圈，等正文和图片都加载完整后再一次性显示
             const viewContentEl = document.getElementById('viewContent');
             viewContentEl.classList.remove('doc-content-enter');
-            viewContentEl.innerHTML = buildDocSkeleton(doc);
+            viewContentEl.innerHTML = '<div class="doc-loading-state"><span class="doc-loading-spinner"></span><span>加载中...</span></div>';
 
             let content = skipCache ? undefined : docContentCache.get(id);
             if (!skipCache && content !== undefined && docContentStamp.get(id) !== String(doc.updatedAt || '')) {
                 content = undefined;
             }
+            let loadError = false;
             try {
                 if (content === undefined) {
                     try { content = await fetchDocContent(id, doc.updatedAt, skipCache); }
-                    catch (e) { content = ''; showToast('正文加载失败：' + (e.message || '未知错误'), 'error'); }
+                    catch (e) {
+                        loadError = true;
+                        content = '';
+                        showToast('正文加载失败：' + (e.message || '未知错误'), 'error');
+                    }
                 }
                 // 用户可能已经切到别的文档，旧请求结果直接丢弃
                 if (renderToken !== docViewRenderToken || currentDocId !== id) return;
-
-                const tempDiv = document.createElement('div');
-                renderMarkdownInto(tempDiv, content || '');
-                if (renderToken !== docViewRenderToken || currentDocId !== id) return;
-                // 直接搬移 DOM 节点，保留图片加载骨架/事件，避免整屏加载遮罩
-                viewContentEl.replaceChildren(...Array.from(tempDiv.childNodes));
-                viewContentEl.classList.add('doc-content-enter');
+                if (loadError) {
+                    viewContentEl.innerHTML = '<div class="doc-loading-error">正文加载失败，请检查网络后重试</div>';
+                } else {
+                    const tempDiv = document.createElement('div');
+                    // 等图片也加载完（或失败/超时）再显示，保证用户看到的是完整文档
+                    await renderMarkdownInto(tempDiv, content || '', { awaitImages: true });
+                    if (renderToken !== docViewRenderToken || currentDocId !== id) return;
+                    viewContentEl.replaceChildren(...Array.from(tempDiv.childNodes));
+                    viewContentEl.classList.add('doc-content-enter');
+                }
+                renderViewAttachments();
             } catch (e) {
                 console.warn('正文渲染失败', e);
+                viewContentEl.innerHTML = '<div class="doc-loading-error">正文渲染失败，请稍后重试</div>';
+                renderViewAttachments();
                 showToast('正文渲染失败', 'error');
             }
 

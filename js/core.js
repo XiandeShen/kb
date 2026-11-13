@@ -199,39 +199,50 @@
             return frame;
         }
 
-        // 普通外链/dataURL 图片也套同一套骨架，不阻塞正文渲染
+        // 普通外链/dataURL 图片也套同一套骨架，加载完成后 resolve，便于正文等待完整文档
         function setupExternalImage(img, frame, src) {
-            const ready = () => {
-                frame.onclick = null;
-                frame.classList.remove('is-loading', 'is-error');
-                frame.classList.add('is-ready');
-                img.onclick = () => openGalleryFromImage(img);
-            };
-            const fail = () => {
-                frame.classList.remove('is-loading');
-                frame.classList.add('is-error');
-                frame.onclick = (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    frame.onclick = null;
-                    frame.classList.remove('is-error');
-                    frame.classList.add('is-loading');
-                    img.removeAttribute('src');
-                    requestAnimationFrame(() => { img.src = src; });
+            return new Promise((resolve) => {
+                let settled = false;
+                const settle = (ok) => {
+                    if (settled) return;
+                    settled = true;
+                    resolve(ok);
                 };
-            };
-            img.onload = ready;
-            img.onerror = fail;
-            if (img.complete) {
-                if (img.naturalWidth > 0) ready();
-                else if (src) fail();
-            }
+                const ready = () => {
+                    frame.onclick = null;
+                    frame.classList.remove('is-loading', 'is-error');
+                    frame.classList.add('is-ready');
+                    img.onclick = () => openGalleryFromImage(img);
+                    settle(true);
+                };
+                const fail = () => {
+                    frame.classList.remove('is-loading');
+                    frame.classList.add('is-error');
+                    frame.onclick = (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        frame.onclick = null;
+                        frame.classList.remove('is-error');
+                        frame.classList.add('is-loading');
+                        img.removeAttribute('src');
+                        requestAnimationFrame(() => { img.src = src; });
+                    };
+                    settle(false);
+                };
+                img.onload = ready;
+                img.onerror = fail;
+                if (img.complete) {
+                    if (img.naturalWidth > 0) ready();
+                    else if (src) fail();
+                }
+            });
         }
 
-        function renderMarkdownInto(container, content) {
-            // 先把正文放进页面，图片各自用骨架异步加载，不再等所有图片加载完才显示文章
+        async function renderMarkdownInto(container, content, options = {}) {
+            // 图片各自用骨架异步加载；文档查看时通过 awaitImages 等图片完成后再一次性展示
             const staging = document.createElement('div');
             staging.innerHTML = sanitizeHtml(marked.parse(content || ''));
+            const tasks = [];
             staging.querySelectorAll('img').forEach(img => {
                 const src = img.getAttribute('src') || '';
                 if (!src) return;
@@ -240,14 +251,20 @@
                     if (!frame) return;
                     // 关键：先把无效的 json 路径从 src 上摘掉，浏览器就不会画破图
                     img.removeAttribute('src');
-                    // 不 await，让正文先渲染，图片在骨架里慢慢加载
-                    loadImageIntoFrame(img, src, frame).catch(() => {});
+                    tasks.push(loadImageIntoFrame(img, src, frame).catch(() => false));
                 } else {
                     const frame = createImageFrame(img);
                     if (!frame) return;
-                    setupExternalImage(img, frame, src);
+                    tasks.push(setupExternalImage(img, frame, src));
                 }
             });
+
+            if (options.awaitImages && tasks.length) {
+                let timer = null;
+                const timeout = new Promise(resolve => { timer = setTimeout(resolve, 10000); });
+                await Promise.race([Promise.allSettled(tasks), timeout]);
+                if (timer) clearTimeout(timer);
+            }
 
             container.replaceChildren(...Array.from(staging.childNodes));
         }

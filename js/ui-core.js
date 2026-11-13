@@ -477,8 +477,7 @@
                 if (btnText) btnText.textContent = '编辑';
                 if (icon) icon.className = 'ri-edit-line';
                 if (tipEl) tipEl.textContent = 'Markdown 预览';
-                try { renderMarkdownInto(preview, textarea.value); }
-                catch (e) { console.warn('预览渲染失败', e); }
+                renderMarkdownInto(preview, textarea.value).catch(e => console.warn('预览渲染失败', e));
             } else {
                 preview.classList.add('hidden');
                 preview.innerHTML = '';
