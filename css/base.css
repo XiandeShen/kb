@@ -8,7 +8,30 @@
         #loadingOverlay.hidden { display: none !important; }
 
         /* ===== 加载页：纯色背景 + Logo/品牌文字动效 ===== */
-        #loadingOverlay { background: #0f172a; }
+        #loadingOverlay {
+            background: #0f172a;
+            transition: opacity 0.24s ease;
+        }
+        /* 文档加载：透明/轻微模糊，保留当前页面作为过渡 */
+        #loadingOverlay.loading-transparent {
+            background: rgba(15, 23, 42, 0.55);
+            -webkit-backdrop-filter: blur(3px);
+            backdrop-filter: blur(3px);
+        }
+        #loadingOverlay.loading-transparent .loading-logo {
+            width: 56px;
+            height: 56px;
+            filter: drop-shadow(0 6px 18px rgba(0, 114, 255, 0.25));
+        }
+        #loadingOverlay.loading-transparent .loading-brand-title {
+            margin-top: 12px;
+            font-size: 20px;
+        }
+        #loadingOverlay.loading-transparent .loading-status {
+            margin-top: 8px;
+            font-size: 11px;
+        }
+        #loadingOverlay.is-fading { opacity: 0; pointer-events: none; }
         .loading-logo {
             width: 88px;
             height: 88px;
@@ -42,26 +65,7 @@
             letter-spacing: 0.04em;
             color: #94a3b8;
         }
-        .loading-line {
-            position: relative;
-            margin-top: 24px;
-            width: 132px;
-            height: 3px;
-            border-radius: 999px;
-            overflow: hidden;
-            background: rgba(148, 163, 184, 0.18);
-        }
-        .loading-line::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: -45%;
-            width: 45%;
-            border-radius: 999px;
-            background: linear-gradient(90deg, transparent, #38bdf8, transparent);
-            animation: loadingLineMove 1.4s ease-in-out infinite;
-        }
+        /* 文档/保存等操作共用品牌加载层，不再单独做小弹窗 */
         @keyframes loadingLogoPulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.04); }
@@ -70,13 +74,8 @@
             0% { background-position: 100% 0; }
             100% { background-position: -100% 0; }
         }
-        @keyframes loadingLineMove {
-            0% { left: -45%; }
-            100% { left: 100%; }
-        }
         @media (prefers-reduced-motion: reduce) {
-            .loading-logo, .loading-brand-title, .loading-line::after { animation: none; }
-            .loading-line::after { left: 0; width: 100%; opacity: 0.55; }
+            .loading-logo, .loading-brand-title { animation: none; }
         }
         /* 底部提示：避开全面屏手机的手势条/安全区（不支持 max() 的旧内核用上一行） */
         #toast { bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)); }
