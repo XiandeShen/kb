@@ -68,7 +68,7 @@
             };
             const scheduleSearch = (delay = 150) => {
                 clearTimeout(searchDebounceTimer);
-                searchDebounceTimer = setTimeout(() => performSearch({ withOverlay: false }), delay);
+                searchDebounceTimer = setTimeout(() => performSearch(), delay);
             };
 
             searchInput.addEventListener('input', (e) => {
