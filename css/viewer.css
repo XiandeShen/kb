@@ -19,10 +19,6 @@
             padding-top: calc(56px + env(safe-area-inset-top, 0px));
             padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
         }
-        /* 多图模式：给底部缩略图留出安全空间 */
-        #imageModal.has-gallery #imageContainer {
-            padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
-        }
         #imageToolbar {
             padding-top: env(safe-area-inset-top, 0px);
             padding-right: 12px;
@@ -30,8 +26,6 @@
         @media (min-width: 640px) { #imageToolbar { padding-right: 24px; } }
         @media (min-width: 1024px) { #imageToolbar { padding-right: 12px; } }
         #galleryCounter { top: calc(12px + env(safe-area-inset-top, 0px)); }
-        #galleryThumbs { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
-        #galleryThumbs { bottom: calc(12px + max(env(safe-area-inset-bottom, 0px), 12px)); }
         /* 移动端用左右滑动换图，隐藏上一张/下一张按钮 */
         @media (max-width: 767px) {
             #prevImageBtn, #nextImageBtn { display: none !important; }
