@@ -20,15 +20,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="js/tailwind-config.js?v=20261113c"></script>
+    <script src="js/tailwind-config.js?v=20261113g"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <!-- 样式：按原顺序加载，保证级联结果一致 -->
-    <link rel="stylesheet" href="css/base.css?v=20261113c">
-    <link rel="stylesheet" href="css/components.css?v=20261113c">
-    <link rel="stylesheet" href="css/viewer.css?v=20261113c">
-    <link rel="stylesheet" href="css/editor.css?v=20261113c">
+    <link rel="stylesheet" href="css/base.css?v=20261113g">
+    <link rel="stylesheet" href="css/components.css?v=20261113g">
+    <link rel="stylesheet" href="css/viewer.css?v=20261113g">
+    <link rel="stylesheet" href="css/editor.css?v=20261113g">
 </head>
 <body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white relative">
 
@@ -160,9 +160,13 @@
 
         <!-- 顶栏 -->
         <header class="h-14 w-full bg-slate-900 flex-shrink-0 flex items-center justify-between px-3 sm:px-6 lg:pl-2 lg:pr-3 z-50 shadow-md relative">
-            <div class="flex items-center space-x-2 flex-shrink-0">
+            <div id="headerLeft" class="flex items-center space-x-2 flex-shrink-0">
                 <button id="mobileMenuBtn" class="lg:hidden p-1.5 text-slate-300 hover:text-white focus:outline-none rounded-lg hover:bg-slate-800 transition">
                     <i class="ri-menu-line text-xl"></i>
+                </button>
+                <button id="mobileSearchBtn" type="button" title="搜索" aria-label="搜索"
+                    class="sm:hidden w-9 h-9 no-sticky-hover flex items-center justify-center rounded-xl text-slate-300 transition-colors">
+                    <i class="ri-search-line text-lg pointer-events-none"></i>
                 </button>
                 <div class="hidden lg:flex items-end space-x-1.5 -translate-y-[3px]">
                     <svg class="w-8 h-8 flex-shrink-0 -mb-[3px]" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -181,21 +185,21 @@
                     <span class="brand-title text-base text-white whitespace-nowrap">椿沐智库</span>
                 </div>
             </div>
-            <div class="flex-1 min-w-0 max-w-[165px] sm:max-w-lg mx-2 sm:mx-5">
-                <div class="flex items-center w-full h-9 rounded-full bg-slate-800/60 border border-slate-700/50 focus-within:ring-1 focus-within:ring-brand-500/60 focus-within:border-brand-500/40 focus-within:bg-slate-800/90 transition-all duration-200 pl-3 sm:pl-4 pr-1">
-                    <i class="ri-search-line text-slate-500 text-[13px] flex-shrink-0"></i>
+            <div id="searchWrap" class="flex-1 min-w-0 max-w-[165px] sm:max-w-lg mx-2 sm:mx-5">
+                <div class="flex items-center w-full h-9 rounded-full bg-slate-800/60 border border-slate-700/50 focus-within:ring-1 focus-within:ring-brand-500/60 focus-within:border-brand-500/40 focus-within:bg-slate-800/90 transition-all duration-200 pl-1 sm:pl-4 pr-1">
+                    <button id="mobileSearchBackBtn" type="button" title="退出搜索" aria-label="退出搜索"
+                        class="hidden flex-shrink-0 w-7 h-7 items-center justify-center rounded-full text-slate-400 hover:text-white transition">
+                        <i class="ri-arrow-left-s-line text-lg pointer-events-none"></i>
+                    </button>
+                    <i id="searchDecoIcon" class="ri-search-line text-slate-500 text-[13px] flex-shrink-0 hidden sm:block"></i>
                     <input type="text" id="searchInput" placeholder="搜索标题、摘要、编码或标签..."
                         class="flex-1 min-w-0 bg-transparent border-0 outline-none px-2 sm:px-2.5 py-0 text-[13px] text-white placeholder-slate-500 leading-none">
                     <button id="clearSearchBtn" title="清空搜索" class="hidden w-5 h-5 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-slate-700/60 transition text-[11px] flex-shrink-0 mr-0.5">
                         <i class="ri-close-line"></i>
                     </button>
-                    <button id="searchSubmitBtn" type="button" title="搜索"
-                        class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white transition shadow-sm">
-                        <i class="ri-arrow-right-line text-[13px]"></i>
-                    </button>
                 </div>
             </div>
-            <div class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+            <div id="headerActions" class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
                 <div class="hidden sm:block relative w-[120px] h-7">
                     <div id="syncStatus" class="absolute right-0 top-0 flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 transition-colors">
                         <span class="w-2 h-2 rounded-full bg-slate-400 flex-shrink-0" id="syncDot"></span>
@@ -399,7 +403,7 @@
     </button>
 
     <!-- 图片查看器 -->
-    <div id="imageModal" class="fixed inset-0 w-screen bg-slate-950/90 backdrop-blur-md z-[130] flex items-center justify-center overflow-hidden hidden select-none">
+    <div id="imageModal" class="fixed inset-0 w-screen bg-slate-950 z-[300] flex items-center justify-center overflow-hidden hidden select-none">
         <div id="imageToolbar" class="absolute top-0 right-0 h-14 flex items-center space-x-1 sm:space-x-2 px-3 sm:px-6 lg:pl-2 lg:pr-3 z-[135] pointer-events-auto">
             <button id="downloadImageBtn" title="下载图片" class="w-9 h-9 no-sticky-hover flex items-center justify-center rounded-xl text-slate-300 hover:text-white transition-colors">
                 <i class="ri-download-line text-lg pointer-events-none"></i>
@@ -459,14 +463,14 @@
     </div>
 
     <!-- 应用脚本：经典脚本按顺序加载，共享同一全局作用域，行为与原内联脚本一致 -->
-    <script src="js/core.js?v=20261113c"></script>
-    <script src="js/github.js?v=20261113c"></script>
-    <script src="js/ui-core.js?v=20261113c"></script>
-    <script src="js/attachments.js?v=20261113c"></script>
-    <script src="js/doc-view.js?v=20261113c"></script>
-    <script src="js/viewer.js?v=20261113c"></script>
-    <script src="js/events.js?v=20261113c"></script>
-    <script src="js/auth-sync.js?v=20261113c"></script>
-    <script src="js/pwa.js?v=20261113c"></script>
+    <script src="js/core.js?v=20261113g"></script>
+    <script src="js/github.js?v=20261113g"></script>
+    <script src="js/ui-core.js?v=20261113g"></script>
+    <script src="js/attachments.js?v=20261113g"></script>
+    <script src="js/doc-view.js?v=20261113g"></script>
+    <script src="js/viewer.js?v=20261113g"></script>
+    <script src="js/events.js?v=20261113g"></script>
+    <script src="js/auth-sync.js?v=20261113g"></script>
+    <script src="js/pwa.js?v=20261113g"></script>
 </body>
 </html>

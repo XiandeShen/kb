@@ -6,7 +6,7 @@
  *  - 已知 CDN（Tailwind、marked、DOMPurify、Remixicon、字体）：stale-while-revalidate
  *  - GitHub API 一律不缓存（带鉴权、必须实时）
  */
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const SHELL_CACHE = 'chunmu-shell-' + CACHE_VERSION;
 const RUNTIME_CACHE = 'chunmu-runtime-' + CACHE_VERSION;
 const SHELL_FILES = [
@@ -111,7 +111,8 @@ async function networkFirstAsset(req) {
         }
         return res;
     } catch (e) {
-        const cached = await caches.match(req);
+        // 页面里的 CSS/JS 带 ?v= 版本号，离线时按忽略查询参数匹配安装时缓存的同名文件
+        const cached = await caches.match(req, { ignoreSearch: true });
         if (cached) return cached;
         return new Response('', { status: 504, statusText: 'Offline' });
     }
