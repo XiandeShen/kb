@@ -6,7 +6,7 @@
  *  - 第三方库已本地化到 vendor/，不再依赖 CDN
  *  - GitHub API 一律不缓存（带鉴权、必须实时）
  */
-const CACHE_VERSION = 'v5';
+const CACHE_VERSION = 'v6';
 const SHELL_CACHE = 'chunmu-shell-' + CACHE_VERSION;
 const RUNTIME_CACHE = 'chunmu-runtime-' + CACHE_VERSION;
 const SHELL_FILES = [
