@@ -82,10 +82,8 @@
                 beginEditSession();
                 isEditing = true;
                 editAttachments = (doc.attachments || []).map(a => ({...a}));
-                let content = docContentCache.get(currentDocId);
-                if (content === undefined) {
-                    try { content = await fetchDocContent(currentDocId); } catch (e) { content = ''; }
-                }
+                let content = '';
+                try { content = await fetchDocContent(currentDocId, doc.updatedAt, true); } catch (e) { content = ''; }
                 document.getElementById('viewPanel').classList.add('hidden');
                 document.getElementById('editPanel').classList.remove('hidden');
                 document.getElementById('editorModeTitle').textContent = '编辑文章';
@@ -177,6 +175,7 @@
                     // 远端全部成功后再落地本地状态
                     docs = nextDocs;
                     docContentCache.set(docId, content);
+                    docContentStamp.set(docId, now);
                     currentDocId = docId;
                     previousDocId = docId;
                     saveLocalDocs();
@@ -204,6 +203,7 @@
                     if (isNewDoc && contentUploaded) {
                         try { await deleteDocContentFile(docId); } catch (e) {}
                         docContentCache.delete(docId);
+                        docContentStamp.delete(docId);
                     }
                     showToast('保存失败，请重试', 'error');
                 } finally { isSavingDoc = false; hideLoading(); }
@@ -223,10 +223,8 @@
                 let indexUpdated = false;
                 try {
                     // 1. 先读取正文（只读），用于稍后清理内嵌图片
-                    let content = docContentCache.get(docIdToDelete);
-                    if (content === undefined) {
-                        try { content = await fetchDocContent(docIdToDelete); } catch (e) { content = ''; }
-                    }
+                    let content = '';
+                    try { content = await fetchDocContent(docIdToDelete, docToDelete.updatedAt, true); } catch (e) { content = ''; }
                     const attachmentsToDelete = (docToDelete.attachments || [])
                         .filter(a => a && getAttachmentPaths(a).length > 0);
 
@@ -240,6 +238,7 @@
                     // 3. 索引成功后才落地本地状态
                     docs = nextDocs;
                     docContentCache.delete(docIdToDelete);
+                    docContentStamp.delete(docIdToDelete);
                     currentDocId = null;
                     previousDocId = null;
                     localStorage.removeItem(LAST_DOC_KEY);

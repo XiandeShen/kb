@@ -172,10 +172,18 @@
             });
         }
 
+        // 读取正文/索引时必须绕开浏览器和 GitHub CDN 的短时缓存，
+        // 否则刚在别的设备保存后，这里可能拿到 60 秒内的旧文件。
+        function githubContentsUrl(apiPath) {
+            return `https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}?t=${Date.now()}`;
+        }
+
         async function fetchGithubJSONWithMeta(path) {
             if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
             const apiPath = encodeRepoPath(path);
-            const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+            const url = githubContentsUrl(apiPath);
+            const metaRes = await fetch(url, {
+                cache: 'no-store',
                 headers: { 'Authorization': `Bearer ${githubConfig.token}` }
             });
             if (!metaRes.ok) {
@@ -189,7 +197,8 @@
             if (meta.content && meta.encoding === 'base64') {
                 text = base64ToUtf8(meta.content);
             } else {
-                const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                const rawRes = await fetch(url, {
+                    cache: 'no-store',
                     headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
                 });
                 if (!rawRes.ok) throw new Error(`获取内容失败 (${rawRes.status})`);
@@ -201,7 +210,9 @@
         async function fetchGithubJSONFile(path) {
             if (!githubConfig.token || !githubConfig.repo) throw new Error('未配置仓库');
             const apiPath = encodeRepoPath(path);
-            const metaRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+            const url = githubContentsUrl(apiPath);
+            const metaRes = await fetch(url, {
+                cache: 'no-store',
                 headers: { 'Authorization': `Bearer ${githubConfig.token}` }
             });
             if (!metaRes.ok) throw new Error(`获取文件失败 (${metaRes.status})`);
@@ -210,7 +221,8 @@
             if (meta.content && meta.encoding === 'base64') {
                 text = base64ToUtf8(meta.content);
             } else {
-                const rawRes = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${apiPath}`, {
+                const rawRes = await fetch(url, {
+                    cache: 'no-store',
                     headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Accept': 'application/vnd.github.v3.raw' }
                 });
                 if (!rawRes.ok) throw new Error(`获取内容失败 (${rawRes.status})`);
@@ -274,12 +286,17 @@
             throw new Error(errJson.message || '上传正文失败');
         }
 
-        async function fetchDocContent(id) {
+        async function fetchDocContent(id, expectedUpdatedAt = null, force = false) {
+            const expected = expectedUpdatedAt == null
+                ? String((docs.find(d => d.id === id) || {}).updatedAt || '')
+                : String(expectedUpdatedAt);
             const cached = docContentCache.get(id);
-            if (cached !== undefined) return cached;
+            // 索引里的更新时间变了，说明正文可能已被其他设备修改，旧缓存直接作废
+            if (!force && cached !== undefined && docContentStamp.get(id) === expected) return cached;
             const obj = await fetchGithubJSONFile(`${DOCS_FOLDER}/${id}.json`);
             const content = obj.content || '';
             docContentCache.set(id, content);
+            docContentStamp.set(id, expected);
             return content;
         }
 

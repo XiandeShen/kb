@@ -3,6 +3,8 @@
 /* ==================== 查看文档 ==================== */
         async function openDocView(id, options = {}) {
             const skipOverlay = !!options.skipOverlay;
+            // 手动同步后强制重新拉取当前正文，即使索引里的时间戳没有变化
+            const skipCache = !!options.skipCache;
             currentDocId = id;
             previousDocId = id;
             isEditing = false;
@@ -17,11 +19,14 @@
             if (viewScrollEl) viewScrollEl.scrollTop = 0;
             if (!skipOverlay) showLoading('正在加载文章...');
 
-            let content = docContentCache.get(id);
+            let content = skipCache ? undefined : docContentCache.get(id);
+            if (!skipCache && content !== undefined && docContentStamp.get(id) !== String(doc.updatedAt || '')) {
+                content = undefined;
+            }
             const tempDiv = document.createElement('div');
             try {
                 if (content === undefined) {
-                    try { content = await fetchDocContent(id); }
+                    try { content = await fetchDocContent(id, doc.updatedAt, skipCache); }
                     catch (e) { content = ''; showToast('正文加载失败：' + (e.message || '未知错误'), 'error'); }
                 }
                 await renderMarkdownInto(tempDiv, content);
@@ -100,7 +105,7 @@
                 }
                 return;
             }
-            await openDocView(targetId);
+            await openDocView(targetId, { skipCache: forceReloadDocOnSync });
         }
 
         function setupGlobalBackToTop() {

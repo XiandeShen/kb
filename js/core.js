@@ -26,9 +26,13 @@
         let docs = [];
         // 正文缓存最多保留 25 篇；图片 JSON（base64）最多保留 30 张
         const docContentCache = new SimpleLRU(25);
+        // 正文缓存对应的索引更新时间：索引变了就强制重新拉取正文，避免同步后仍显示旧内容
+        const docContentStamp = new Map();
         const imageJsonCache = new SimpleLRU(30);
         let currentDocId = null;
         let previousDocId = null;
+        // 手动刷新期间置为 true：同步完成后强制重新拉取当前正文
+        let forceReloadDocOnSync = false;
         let activeCategory = 'ALL';
         let activeTag = null;
         let searchQuery = '';
@@ -221,6 +225,7 @@
 
         function clearAllCaches() {
             docContentCache.clear();
+            docContentStamp.clear();
             imageJsonCache.clear();
         }
 
