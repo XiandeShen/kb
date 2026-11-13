@@ -58,7 +58,8 @@
             // 正文区域先转圈，等正文和图片都加载完整后再一次性显示
             const viewContentEl = document.getElementById('viewContent');
             viewContentEl.classList.remove('doc-content-enter');
-            viewContentEl.innerHTML = '<div class="doc-loading-state"><span class="doc-loading-spinner"></span><span>加载中...</span></div>';
+            viewContentEl.innerHTML = '';
+            showLoading('正在加载文章...');
 
             let content = skipCache ? undefined : docContentCache.get(id);
             if (!skipCache && content !== undefined && docContentStamp.get(id) !== String(doc.updatedAt || '')) {
@@ -92,6 +93,8 @@
                 viewContentEl.innerHTML = '<div class="doc-loading-error">正文渲染失败，请稍后重试</div>';
                 renderViewAttachments();
                 showToast('正文渲染失败', 'error');
+            } finally {
+                if (renderToken === docViewRenderToken && (currentDocId === id || !currentDocId)) hideLoading();
             }
 
             if (viewScrollEl) viewScrollEl.scrollTop = 0;

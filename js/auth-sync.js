@@ -180,20 +180,8 @@
             }
 
             hideAuth();
-            setLoadingMode('auth');
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-            updateLoadingText(DEFAULT_LOADING_TEXT);
-            // 网络/接口异常时不能无限停在加载层，但也不要因为一次超时就弹回登录页
-            setTimeout(() => {
-                const overlay = document.getElementById('loadingOverlay');
-                if (!overlay.classList.contains('hidden')) {
-                    hideLoading();
-                    try { showApp(); } catch (e) { console.warn('显示本地界面失败', e); }
-                    updateSyncStatus('error', '网络较慢');
-                    showToast('网络较慢，已显示本地缓存，请稍后点刷新重试', 'error');
-                }
-            }, 20000);
-
+            // 进入网页不再显示等待动画：先直接显示界面，本地文档稍后渲染，网络同步在后台进行
+            showApp();
             await loadLocalDocs();
             renderCategoryList();
             renderTagList();
@@ -255,8 +243,6 @@
                     text = result.text;
                 } catch (metaErr) {
                     if (metaErr.status === 404) {
-                        setLoadingMode('auth');
-                        showLoading('正在初始化知识库...');
                         docs = [];
                         clearAllCaches();
                         try {
