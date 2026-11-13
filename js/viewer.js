@@ -153,8 +153,6 @@
                 imgView.style.transform = '';
                 imgView.removeAttribute('src');
             }
-            const modal = document.getElementById('imageModal');
-            if (modal) modal.classList.remove('has-gallery');
         }
 
         // 浏览器地址栏收起/展开或横竖屏切换后，重新适配图片，避免按旧视口尺寸计算导致偏位
@@ -610,29 +608,24 @@
             galleryImages.forEach((src, i) => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = 'gallery-thumb relative flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden ring-1 ring-white/25 opacity-55 shadow-lg shadow-black/40 transition';
+                btn.className = 'gallery-thumb';
                 btn.dataset.index = String(i);
+                btn.setAttribute('aria-label', `查看第 ${i + 1} 张图片`);
                 const thumbImg = document.createElement('img');
                 thumbImg.src = src;
                 thumbImg.alt = '';
-                thumbImg.className = 'w-full h-full object-cover';
                 btn.appendChild(thumbImg);
                 btn.onclick = (e) => { e.stopPropagation(); showGalleryImage(i); };
                 thumbs.appendChild(btn);
             });
+            updateGalleryThumbsActive();
         }
 
         function updateGalleryThumbsActive() {
             const thumbs = document.getElementById('galleryThumbs');
             if (!thumbs) return;
-            thumbs.querySelectorAll('.gallery-thumb').forEach(btn => {
-                const active = Number(btn.dataset.index) === galleryIndex;
-                btn.classList.toggle('opacity-100', active);
-                btn.classList.toggle('ring-2', active);
-                btn.classList.toggle('ring-brand-400', active);
-                btn.classList.toggle('opacity-55', !active);
-                btn.classList.toggle('ring-1', !active);
-                btn.classList.toggle('ring-white/25', !active);
+            thumbs.querySelectorAll('.gallery-thumb').forEach((btn) => {
+                btn.classList.toggle('is-active', Number(btn.dataset.index) === galleryIndex);
             });
         }
 

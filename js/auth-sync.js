@@ -154,7 +154,8 @@
             renderDocList();
         }
 
-        window.onload = async function() {
+        async function bootApp() {
+            try {
             loadGithubConfig();
             setupConfirmModal();
             setupAdvancedToggle();
@@ -182,6 +183,17 @@
             setLoadingMode('auth');
             document.getElementById('loadingOverlay').classList.remove('hidden');
             updateLoadingText(DEFAULT_LOADING_TEXT);
+            // 网络/接口异常时不能无限停在加载层
+            setTimeout(() => {
+                const overlay = document.getElementById('loadingOverlay');
+                if (!overlay.classList.contains('hidden')) {
+                    hideLoading();
+                    hideApp();
+                    fillAdvancedOptions();
+                    showAuth();
+                    showToast('加载超时，请检查网络后重试', 'error');
+                }
+            }, 20000);
 
             await loadLocalDocs();
             renderCategoryList();
@@ -190,7 +202,16 @@
 
             pullFromGithub();
             setTimeout(regainWindowFocus, 0);
-        };
+            } catch (e) {
+                // 任何初始化异常都不能把加载层留在页面上
+                console.error('初始化失败', e);
+                hideLoading();
+                hideApp();
+                fillAdvancedOptions();
+                showAuth();
+                showToast('初始化失败：' + (e.message || '未知错误'), 'error');
+            }
+        }
 
         document.getElementById('toggleTokenVisibility').addEventListener('click', () => {
             const input = document.getElementById('authTokInput');
@@ -216,6 +237,10 @@
             setLoginButtonLoading(true);
             pullFromGithub();
         });
+
+        // 脚本位于 body 末尾，DOM 已就绪，直接启动；不再依赖 window.load，
+        // 避免外部字体/CDN 请求卡住时页面一直停在“正在加载知识库”
+        bootApp();
 
         async function pullFromGithub() {
             if (!githubConfig.token || !githubConfig.repo) {
