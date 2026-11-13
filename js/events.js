@@ -117,7 +117,7 @@
             if (syncRefreshBtn) {
                 syncRefreshBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); manualSyncRefresh(); });
             }
-            // 移动端/已安装 PWA 没有浏览器刷新按钮，用顶栏图标手动同步
+            // 移动端浏览器没有明显的刷新按钮，用顶栏图标手动同步
             const mobileRefreshBtn = document.getElementById('mobileRefreshBtn');
             if (mobileRefreshBtn) {
                 mobileRefreshBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); manualSyncRefresh(); });
@@ -362,20 +362,6 @@
                 if (!githubBtn.contains(e.target) && !githubDropdown.contains(e.target)) githubDropdown.classList.add('hidden');
             });
             document.getElementById('menuConfigBtn').onclick = () => openGithubConfigModal();
-            const installAppBtn = document.getElementById('installAppBtn');
-            if (installAppBtn) {
-                installAppBtn.onclick = async () => {
-                    githubDropdown.classList.add('hidden');
-                    if (!deferredInstallPrompt) {
-                        showToast('请使用 Chrome，并通过 HTTPS 地址访问；然后在浏览器菜单中选择“安装应用/添加到主屏幕”', 'error');
-                        return;
-                    }
-                    deferredInstallPrompt.prompt();
-                    try { await deferredInstallPrompt.userChoice; } catch (e) {}
-                    deferredInstallPrompt = null;
-                    installAppBtn.classList.add('hidden');
-                };
-            }
             document.getElementById('menuResetBtn').onclick = () => handleResetBinding();
             document.getElementById('closeModalBtn').onclick = () => { document.getElementById('githubModal').classList.add('hidden'); };
             document.getElementById('verifyTokenBtn').onclick = () => verifyGithubToken();
