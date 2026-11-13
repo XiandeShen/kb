@@ -154,6 +154,25 @@
         #authOverlay::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.35); border-radius: 999px; }
         #authOverlay::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.55); }
 
+        /* ===== 移动端搜索：默认收起，点击顶栏放大镜后覆盖整条顶栏 ===== */
+        @media (max-width: 639px) {
+            #searchWrap { display: none; }
+            header.mobile-search-open #searchWrap {
+                display: block;
+                position: absolute;
+                left: 0.75rem;
+                right: 0.75rem;
+                top: 0.625rem;
+                margin: 0;
+                max-width: none;
+                z-index: 60;
+            }
+            header.mobile-search-open #headerLeft,
+            header.mobile-search-open #headerActions { visibility: hidden; }
+            header.mobile-search-open #mobileSearchBackBtn { display: flex; }
+            header.mobile-search-open #searchDecoIcon { display: none; }
+        }
+
         @media (max-width: 767px) {
             #docList { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); }
             #viewAttachments { padding-right: 4.5rem; }

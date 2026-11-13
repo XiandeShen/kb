@@ -10,6 +10,10 @@
             height: var(--app-vh, 100vh);
             overflow: hidden;
         }
+        /* 现代内核优先用动态视口高度，避免地址栏/键盘导致查看器只占半屏 */
+        @supports (height: 100dvh) {
+            #imageModal { height: 100dvh; }
+        }
         #modalImageView { will-change: transform; touch-action: none; -webkit-user-drag: none; }
         #imageContainer {
             padding-top: calc(56px + env(safe-area-inset-top, 0px));
