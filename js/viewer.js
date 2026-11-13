@@ -469,10 +469,19 @@
             galleryImages = (Array.isArray(images) && images.length) ? images.slice() : [src];
             let idx = Number.isInteger(index) ? index : galleryImages.indexOf(src);
             if (idx < 0 || idx >= galleryImages.length) idx = 0;
-            // 打开前重新同步视口高度，保证底部缩略图落在可视区域内
+            // 关闭输入法/键盘，避免键盘把可视区压矮，导致查看器只占半屏
+            const active = document.activeElement;
+            if (active && active !== document.body && typeof active.blur === 'function') {
+                try { active.blur(); } catch (e) {}
+            }
+            // 打开前重新同步视口高度，保证查看器占满真实可视区
             syncAppViewportHeight();
             renderGalleryThumbs();
             showGalleryImage(idx);
+            setTimeout(() => {
+                syncAppViewportHeight();
+                refitViewerOnResize();
+            }, 260);
         }
 
         // 移动端滑动切图：旧图滑出

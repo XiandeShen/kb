@@ -4,7 +4,63 @@
         function setupEventListeners() {
             const searchInput = document.getElementById('searchInput');
             const clearSearchBtn = document.getElementById('clearSearchBtn');
-            const searchSubmitBtn = document.getElementById('searchSubmitBtn');
+            const headerEl = document.querySelector('header');
+            const searchWrap = document.getElementById('searchWrap');
+            const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+            const mobileSearchBackBtn = document.getElementById('mobileSearchBackBtn');
+
+            const openMobileSearch = () => {
+                if (!searchWrap) return;
+                headerEl.classList.add('mobile-search-open');
+                // 保留/恢复当前搜索词，避免收起后丢失
+                if (searchQuery && !searchInput.value) searchInput.value = searchQuery;
+                clearSearchBtn.classList.toggle('hidden', !searchInput.value);
+                // 必须在点击手势内同步聚焦，否则 iOS/部分 WebView 不会弹出键盘
+                try { searchInput.focus({ preventScroll: true }); } catch (e) { searchInput.focus(); }
+                requestAnimationFrame(() => {
+                    if (document.activeElement !== searchInput) {
+                        try { searchInput.focus({ preventScroll: true }); } catch (e) {}
+                    }
+                });
+            };
+            const closeMobileSearch = (clear = false) => {
+                headerEl.classList.remove('mobile-search-open');
+                searchInput.blur();
+                if (clear) {
+                    // 退出搜索即恢复完整列表，避免搜索框隐藏后还残留筛选状态
+                    clearTimeout(searchDebounceTimer);
+                    searchInput.value = '';
+                    clearSearchBtn.classList.add('hidden');
+                    if (searchQuery) {
+                        searchQuery = '';
+                        renderDocList();
+                        if (virtualList.container) virtualList.container.scrollTop = 0;
+                    }
+                }
+            };
+            if (mobileSearchBtn) {
+                mobileSearchBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openMobileSearch();
+                });
+            }
+            if (mobileSearchBackBtn) {
+                mobileSearchBackBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeMobileSearch(true);
+                });
+            }
+            // 点击搜索框外的区域（如列表卡片）时自动收起移动端搜索
+            document.addEventListener('click', (e) => {
+                if (!headerEl.classList.contains('mobile-search-open')) return;
+                if (searchWrap && searchWrap.contains(e.target)) return;
+                closeMobileSearch(true);
+            });
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 640) closeMobileSearch(false);
+            });
 
             searchInput.oninput = (e) => {
                 if (searchInput.value.length > 0) clearSearchBtn.classList.remove('hidden');
@@ -20,12 +76,11 @@
                     e.preventDefault();
                     clearTimeout(searchDebounceTimer);
                     performSearch();
+                } else if (e.key === 'Escape' && headerEl.classList.contains('mobile-search-open')) {
+                    e.preventDefault();
+                    closeMobileSearch(true);
                 }
             });
-            searchSubmitBtn.onclick = () => {
-                clearTimeout(searchDebounceTimer);
-                performSearch();
-            };
             clearSearchBtn.onclick = () => {
                 clearTimeout(searchDebounceTimer);
                 searchInput.value = '';
