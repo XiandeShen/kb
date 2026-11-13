@@ -1,0 +1,7 @@
+/* 椿沐智库 · 编辑器/预览样式 */
+
+/* ===== 编辑预览 ===== */
+        #editPreview { scrollbar-width: thin; scrollbar-color: #dbe2ea transparent; }
+        #editPreview::-webkit-scrollbar { width: 6px; height: 6px; }
+        #editPreview::-webkit-scrollbar-track { background: transparent; }
+        #editPreview::-webkit-scrollbar-thumb { background: #dbe2ea; border-radius: 999px; }

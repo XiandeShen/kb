@@ -1,0 +1,33 @@
+/* 椿沐智库 · 组件样式：列表卡片、紧急通知标记 */
+
+/* ===== 列表卡片 ===== */
+        .doc-card {
+            background: #fff;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+            -webkit-tap-highlight-color: transparent;
+            transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+        }
+        .doc-card:hover {
+            border-color: #cbd5e1;
+            background: #fdfefe;
+            box-shadow: 0 4px 10px -4px rgba(15, 23, 42, 0.14);
+        }
+        .doc-card:active { transform: scale(0.992); }
+        .doc-card.is-selected {
+            background: linear-gradient(180deg, #eef5ff 0%, #ffffff 88%);
+            border-color: #bfdbfe;
+            box-shadow: 0 3px 12px -6px rgba(37, 99, 235, 0.35);
+        }
+        .doc-card.is-selected:hover { border-color: #93c5fd; }
+
+        /* ===== 编辑器“紧急通知”图标按钮 ===== */
+        .urgent-label { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .urgent-toggle { transition: color .18s ease, background-color .18s ease, border-color .18s ease, transform .12s ease; }
+        .urgent-label:active .urgent-toggle { transform: scale(0.94); }
+        #editUrgentInput:checked + .urgent-toggle { color: #ef4444; background-color: #fef2f2; border-color: #fecaca; }
+        #editUrgentInput:focus-visible + .urgent-toggle { outline: 2px solid #fca5a5; outline-offset: 2px; }
+        /* 只在支持真实悬停的设备上做 hover，避免移动端点击后颜色残留 */
+        @media (hover: hover) {
+            #editUrgentInput:not(:checked) + .urgent-toggle:hover { color: #ef4444; background-color: #fef2f2; border-color: #fecaca; }
+        }

@@ -1,0 +1,33 @@
+/* 椿沐智库 · 图片查看器样式：视口高度、缩略图、安全区、手势 */
+
+/* ===== 图片查看器 ===== */
+        /* 用 JS 同步的 --app-vh 作为高度，兼容不支持 dvh 的旧内核（小米/Via 等），
+           避免浏览器底部工具栏把固定定位的缩略图挡在屏幕外 */
+        #imageModal {
+            top: 0;
+            bottom: auto;
+            height: 100vh;
+            height: var(--app-vh, 100vh);
+            overflow: hidden;
+        }
+        #modalImageView { will-change: transform; touch-action: none; -webkit-user-drag: none; }
+        #imageContainer {
+            padding-top: calc(56px + env(safe-area-inset-top, 0px));
+            padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+        }
+        /* 多图模式：给底部缩略图留出安全空间 */
+        #imageModal.has-gallery #imageContainer {
+            padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+        }
+        #imageToolbar {
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-right: 12px;
+        }
+        @media (min-width: 640px) { #imageToolbar { padding-right: 24px; } }
+        @media (min-width: 1024px) { #imageToolbar { padding-right: 12px; } }
+        #galleryCounter { top: calc(12px + env(safe-area-inset-top, 0px)); }
+        #galleryThumbs { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+        /* 移动端用左右滑动换图，隐藏上一张/下一张按钮 */
+        @media (max-width: 767px) {
+            #prevImageBtn, #nextImageBtn { display: none !important; }
+        }
