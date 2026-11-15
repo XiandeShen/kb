@@ -28,19 +28,37 @@
 
         // 用多个来源取最小值同步真实可视高度：旧内核（小米/Via）不支持 100dvh 时，
         // 也不会把浏览器底部工具栏算进页面高度
-        function syncAppViewportHeight() {
+        let appVh = 0;
+        let vhRaf = 0;
+
+        function applyAppViewportHeight(force) {
             const candidates = [window.innerHeight, document.documentElement.clientHeight];
             const vv = window.visualViewport;
             // 页面被双指缩放时 visualViewport.height 会变小，此时不参与计算
             if (vv && (vv.scale || 1) <= 1.05 && vv.height) candidates.push(vv.height);
             const heights = candidates.filter((n) => n > 0);
             const h = Math.round(heights.length ? Math.min(...heights) : 0);
-            if (h > 0) document.documentElement.style.setProperty('--app-vh', h + 'px');
+            if (!h) return;
+            // 键盘弹出会让可视高度骤降；这里不改 --app-vh，
+            // 否则整页会跟着重排，表现为"键盘一弹出来屏幕卡一下、底色闪一下"。
+            if (!force && appVh && h < appVh - 120) return;
+            if (h === appVh) return;
+            appVh = h;
+            document.documentElement.style.setProperty('--app-vh', h + 'px');
         }
-        syncAppViewportHeight();
-        window.addEventListener('resize', syncAppViewportHeight);
-        window.addEventListener('orientationchange', () => setTimeout(syncAppViewportHeight, 120));
-        if (window.visualViewport) window.visualViewport.addEventListener('resize', syncAppViewportHeight);
+
+        function syncAppViewportHeight(force) {
+            if (vhRaf) return;
+            vhRaf = window.requestAnimationFrame(() => {
+                vhRaf = 0;
+                applyAppViewportHeight(!!force);
+            });
+        }
+
+        applyAppViewportHeight(true);
+        window.addEventListener('resize', () => syncAppViewportHeight(false));
+        window.addEventListener('orientationchange', () => setTimeout(() => syncAppViewportHeight(true), 120));
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', () => syncAppViewportHeight(false));
 
         // 图片可用的真实区域（扣除 padding 与底部缩略图安全区）
         function getViewerMetrics() {

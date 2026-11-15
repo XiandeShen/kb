@@ -135,6 +135,9 @@ document.getElementById('newDocBtn').onclick = async () => {
                 currentDocId = null;
                 isEditing = true;
                 editAttachments = [];
+                // 先清掉当前焦点（例如文档页的返回按钮）：从"按钮焦点"直接跳到输入框时，
+                // 移动端输入法连接容易建立不起来；先失焦等价于用户"点一下空白处"这条可行路径。
+                blurActiveElement();
                 // 注意：这里不要同步重建列表。整表重绘会占住主线程，
                 // 导致紧随其后的输入法弹出请求被丢弃（表现为第一次点标题键盘不弹）。
                 // 列表重绘挪到编辑器显示之后，见函数末尾。
@@ -167,6 +170,7 @@ document.getElementById('newDocBtn').onclick = async () => {
                 if (!doc) return;
                 beginEditSession();
                 isEditing = true;
+                blurActiveElement();
                 editAttachments = (doc.attachments || []).map(a => ({...a}));
                 // 编辑面板优先使用已缓存的正文，避免每次点击编辑都重新请求 GitHub
                 let content = docContentCache.get(currentDocId);
@@ -208,7 +212,15 @@ document.getElementById('newDocBtn').onclick = async () => {
                 }
                 checkBackToTopBtnVisibility();
             };
-            /** 打开编辑器时把编辑区滚动位置归零 */
+            /** 清掉当前焦点，避免"按钮 → 输入框"的焦点跳转导致输入法连接异常 */
+function blurActiveElement() {
+    try {
+        const el = document.activeElement;
+        if (el && el !== document.body && typeof el.blur === 'function') el.blur();
+    } catch (e) {}
+}
+
+/** 打开编辑器时把编辑区滚动位置归零 */
 function resetEditScroll() {
     const el = document.getElementById('editScrollContainer');
     if (!el) return;
