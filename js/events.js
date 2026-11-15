@@ -135,8 +135,9 @@ document.getElementById('newDocBtn').onclick = async () => {
                 currentDocId = null;
                 isEditing = true;
                 editAttachments = [];
-                renderDocList();
-                if (virtualList.container) virtualList.container.scrollTop = 0;
+                // 注意：这里不要同步重建列表。整表重绘会占住主线程，
+                // 导致紧随其后的输入法弹出请求被丢弃（表现为第一次点标题键盘不弹）。
+                // 列表重绘挪到编辑器显示之后，见函数末尾。
                 const mainPanel = document.getElementById('mainPanel');
                 mainPanel.classList.remove('hidden');
                 document.getElementById('emptyState').classList.add('hidden');
@@ -151,10 +152,14 @@ document.getElementById('newDocBtn').onclick = async () => {
                 renderEditAttachments();
                 // 打开编辑器时回到顶部（修复：上次编辑的滚动位置被保留）
                 resetEditScroll();
-                window.__editorFreshUntil = Date.now() + 3000;   // 编辑器刚打开：标记 3 秒
                 setPreviewMode(false);
                 closeMobileSidebar();
                 checkBackToTopBtnVisibility();
+                // 编辑器已经就位，再做列表重绘（让出主线程给输入法）
+                setTimeout(() => {
+                    try { renderDocList(); } catch (e) {}
+                    if (virtualList.container) virtualList.container.scrollTop = 0;
+                }, 0);
             };
 
             document.getElementById('editDocBtn').onclick = async () => {
@@ -179,7 +184,6 @@ document.getElementById('newDocBtn').onclick = async () => {
                 renderEditAttachments();
                 // 打开编辑器时回到顶部（修复：上次编辑的滚动位置被保留）
                 resetEditScroll();
-                window.__editorFreshUntil = Date.now() + 3000;   // 编辑器刚打开：标记 3 秒
                 setPreviewMode(false);
                 checkBackToTopBtnVisibility();
             };
