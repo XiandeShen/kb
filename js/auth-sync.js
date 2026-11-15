@@ -166,16 +166,12 @@
             initVirtualList();
             updateSearchPlaceholder();
             window.addEventListener('resize', updateSearchPlaceholder);
-            // Via 等 WebView 可能在 load 之后才把窗口焦点还给页面，多次尝试更稳
-            [0, 250, 900].forEach((ms) => setTimeout(regainWindowFocus, ms));
 
             if (!githubConfig.token) {
                 hideApp();
                 document.getElementById('loadingOverlay').classList.add('hidden');
                 fillAdvancedOptions();
                 showAuth();
-                // 登录页同样需要窗口焦点，否则 Via 刷新后第一次点 Token 输入框可能无反应
-                setTimeout(regainWindowFocus, 0);
                 return;
             }
 
@@ -188,7 +184,6 @@
             renderDocList();
 
             pullFromGithub();
-            setTimeout(regainWindowFocus, 0);
             } catch (e) {
                 // 任何初始化异常都不能把加载层留在页面上；保留本地缓存界面，不弹回登录页
                 console.error('初始化失败', e);
