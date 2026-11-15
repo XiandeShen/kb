@@ -86,7 +86,22 @@
             return `${m[1]}/${Number(m[2])}/${Number(m[3])}`;
         }
 
-        function escapeHtml(str) {
+        /** 把 "2026/11/15 13:34:38" / "2026-11-15 13:34" / ISO 统一解析成时间戳 */
+    function docTime(value) {
+        if (!value) return 0;
+        const raw = String(value).trim();
+        const m = raw.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+        if (m) {
+            return new Date(
+                Number(m[1]), Number(m[2]) - 1, Number(m[3]),
+                Number(m[4] || 0), Number(m[5] || 0), Number(m[6] || 0)
+            ).getTime();
+        }
+        const t = Date.parse(raw);
+        return isNaN(t) ? 0 : t;
+    }
+
+    function escapeHtml(str) {
             return String(str == null ? '' : str)
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;').replace(/'/g, '&#39;');

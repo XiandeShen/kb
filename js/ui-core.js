@@ -210,19 +210,7 @@
             }, type === 'error' ? 4000 : 2000);
         }
 
-        /* ==================== 关于输入框聚焦 ==================== */
-// 这里曾经有一整套"WebView 焦点恢复"兼容代码（body.tabIndex=-1 + body.focus()，
-// 并在 pageshow / visibilitychange / 首次触摸时抢焦点），本意是修复旧浏览器壳
-// "刷新后第一下点不动"的问题。
-// 但它会在用户点击输入框的同一时刻把焦点夺回 body，导致移动端出现：
-//   · 第一次点标题，键盘不弹；
-//   · 第二次点，键盘弹了却打不了字（IME 连在了 body 上）。
-// 现在聚焦完全交给浏览器原生手势，页面侧不再做任何 focus/blur 干预。
-
-/* 兼容旧调用点：auth-sync.js 里仍有 3 处调用，现在不再干预焦点，空实现即可 */
-function regainWindowFocus() {}
-
-/* ==================== 本地缓存 ==================== */
+        /* ==================== 本地缓存 ==================== */
         async function loadLocalDocs() {
             let rawDocs = [];
             try {
@@ -353,8 +341,14 @@ function regainWindowFocus() {}
                 const matchTag = !activeTag || (d.tags && d.tags.includes(activeTag));
                 return matchSearch && matchCat && matchTag;
             });
-            // 紧急通知置顶
-            filtered.sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0));
+            // 排序：紧急通知置顶 → 修改时间新的在前（改过就浮上来）→ id 兜底保证稳定
+            filtered.sort((a, b) => {
+                const ua = a.urgent ? 1 : 0, ub = b.urgent ? 1 : 0;
+                if (ua !== ub) return ub - ua;
+                const ta = docTime(a.updatedAt), tb = docTime(b.updatedAt);
+                if (ta !== tb) return tb - ta;
+                return String(b.id || '').localeCompare(String(a.id || ''));
+            });
             const listTitleEl = document.getElementById('listTitle');
             if (searchQuery) listTitleEl.textContent = `搜索: "${searchQuery}"`;
             else if (activeTag) listTitleEl.textContent = `# ${activeTag}`;
