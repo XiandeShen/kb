@@ -45,3 +45,10 @@
             height: auto !important;
             min-height: calc(18px * var(--tscale, 1));
         }
+        /* ===== 预览按钮：触屏设备点击后不保留 hover 底色 ===== */
+        @media (hover: none) {
+            #togglePreviewBtn:hover {
+                background-color: transparent !important;
+                color: rgb(100 116 139) !important;
+            }
+        }
