@@ -151,6 +151,7 @@ document.getElementById('newDocBtn').onclick = async () => {
                 renderEditAttachments();
                 // 打开编辑器时回到顶部（修复：上次编辑的滚动位置被保留）
                 resetEditScroll();
+                window.__editorFreshUntil = Date.now() + 3000;   // 编辑器刚打开：标记 3 秒
                 setPreviewMode(false);
                 closeMobileSidebar();
                 checkBackToTopBtnVisibility();
@@ -178,6 +179,7 @@ document.getElementById('newDocBtn').onclick = async () => {
                 renderEditAttachments();
                 // 打开编辑器时回到顶部（修复：上次编辑的滚动位置被保留）
                 resetEditScroll();
+                window.__editorFreshUntil = Date.now() + 3000;   // 编辑器刚打开：标记 3 秒
                 setPreviewMode(false);
                 checkBackToTopBtnVisibility();
             };

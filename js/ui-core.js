@@ -234,11 +234,19 @@ document.addEventListener('pointerdown', function onFirstPointer() {
 // 原因：这一次触摸的默认聚焦没有真正落到输入框上（不同内核表现不一）。
 // 处理：在 pointerdown（用户真实手势）里对被点到的那个输入框同步聚焦一次。
 // 注意：只聚焦用户点的元素，不做任何自动聚焦，也不碰其它节点。
-document.addEventListener('pointerdown', function (e) {
+// 放在 click 而不是 pointerdown：点击抬起时布局已经稳定，
+// 在按下瞬间聚焦虽然能弹出键盘，但输入法会连到旧布局上，导致能弹键盘却打不了字。
+document.addEventListener('click', function (e) {
     const el = e.target && e.target.closest ? e.target.closest('input, textarea') : null;
     if (!el || el.disabled || el.readOnly) return;
+    // 编辑器刚打开后的第一次点击：做一次 blur+focus 校正，
+    // 让输入法重新连到已经稳定下来的布局（解决能弹键盘却打不了字）
+    if (Date.now() < (window.__editorFreshUntil || 0)) {
+        window.__editorFreshUntil = 0;
+        try { el.blur(); el.focus(); } catch (err) { try { el.focus(); } catch (e2) {} }
+        return;
+    }
     if (document.activeElement === el) return;
-    // 不用 preventScroll：让浏览器把输入框滚进可视区，避免被键盘挡住
     try { el.focus(); } catch (err) {}
 }, true);
 
