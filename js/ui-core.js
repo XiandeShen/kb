@@ -169,8 +169,6 @@
                 if (typeof window.checkBackToTopBtnVisibility === 'function') {
                     window.checkBackToTopBtnVisibility();
                 }
-                // WebView 刷新后窗口焦点可能仍在丢失状态，显示应用后主动恢复一次
-                regainWindowFocus();
             });
         }
         function hideApp() { document.getElementById('appShell').classList.add('hidden'); }
@@ -212,69 +210,19 @@
             }, type === 'error' ? 4000 : 2000);
         }
 
-        /* ==================== 移动端 WebView 焦点恢复 ==================== */
-        // Via 等基于 WebView 的浏览器刷新后，窗口本身可能没有获得焦点，
-        // 表现为页面第一下点不动、输入框不弹键盘，点一下页面/浏览器按钮才恢复。
-        // 页面侧无法调用原生的 requestFocus，但可以在加载完成、切回前台时主动争取焦点，
-        // 并清掉浏览器恢复到隐藏容器里的焦点（如已隐藏的登录框），通常一次即可恢复交互。
-        function regainWindowFocus() {
-            // 当前有可见输入框正在输入时，绝不抢焦点：
-            // 否则会在“刚点中输入框”的瞬间把焦点夺回 body，表现为标题打不了字、键盘不弹
-            const focused = document.activeElement;
-            if (focused) {
-                const t = focused.tagName;
-                const isField = t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT';
-                if (isField && focused.offsetParent !== null) return;
-            }
-            try { window.focus(); } catch (e) {}
-            const active = document.activeElement;
-            if (!active || active === document.body || active === document.documentElement) {
-                // 让 WebView 至少有一个 DOM 节点持有焦点，部分内核会据此把窗口重新激活
-                try {
-                    document.body.tabIndex = -1;
-                    document.body.focus({ preventScroll: true });
-                } catch (e) {}
-                return;
-            }
-            const tag = active.tagName;
-            const isField = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
-            // offsetParent 为 null 说明元素在隐藏容器内（fixed 元素除外，这里只针对输入控件）
-            const inHiddenBox = isField && active.offsetParent === null;
-            if (!isField || inHiddenBox) {
-                try { active.blur(); } catch (e) {}
-                try {
-                    document.body.tabIndex = -1;
-                    document.body.focus({ preventScroll: true });
-                } catch (e) {}
-            }
-        }
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) regainWindowFocus();
-        });
-        window.addEventListener('pageshow', () => {
-            regainWindowFocus();
-        });
-        document.addEventListener('touchstart', function onFirstTouch() {
-            document.removeEventListener('touchstart', onFirstTouch);
-            regainWindowFocus();
-        }, { passive: true });
-        document.addEventListener('pointerdown', function onFirstPointer() {
-            document.removeEventListener('pointerdown', onFirstPointer);
-            if (!document.hasFocus()) regainWindowFocus();
-        }, { capture: true, passive: true });
-        // 个别 WebView 刷新后的第一次点击只用于“唤醒”页面，点击事件到了但输入框没拿到焦点。
-        // 在 click（用户手势）里补一次 focus，键盘即可正常弹出。
-        document.addEventListener('click', (e) => {
-            const el = e.target && e.target.closest ? e.target.closest('input, textarea') : null;
-            if (!el || el.disabled || el.readOnly) return;
-            if (document.activeElement === el) return;
-            setTimeout(() => {
-                if (document.activeElement === el) return;
-                try { el.focus({ preventScroll: true }); } catch (err) { try { el.focus(); } catch (e2) {} }
-            }, 0);
-        });
+        /* ==================== 关于输入框聚焦 ==================== */
+// 这里曾经有一整套"WebView 焦点恢复"兼容代码（body.tabIndex=-1 + body.focus()，
+// 并在 pageshow / visibilitychange / 首次触摸时抢焦点），本意是修复旧浏览器壳
+// "刷新后第一下点不动"的问题。
+// 但它会在用户点击输入框的同一时刻把焦点夺回 body，导致移动端出现：
+//   · 第一次点标题，键盘不弹；
+//   · 第二次点，键盘弹了却打不了字（IME 连在了 body 上）。
+// 现在聚焦完全交给浏览器原生手势，页面侧不再做任何 focus/blur 干预。
 
-        /* ==================== 本地缓存 ==================== */
+/* 兼容旧调用点：auth-sync.js 里仍有 3 处调用，现在不再干预焦点，空实现即可 */
+function regainWindowFocus() {}
+
+/* ==================== 本地缓存 ==================== */
         async function loadLocalDocs() {
             let rawDocs = [];
             try {

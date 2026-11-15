@@ -126,7 +126,8 @@
             const togglePreviewBtn = document.getElementById('togglePreviewBtn');
             if (togglePreviewBtn) togglePreviewBtn.onclick = () => setPreviewMode(!isPreviewMode);
 
-            document.getElementById('newDocBtn').onclick = async () => {
+
+document.getElementById('newDocBtn').onclick = async () => {
                 // 若当前正处于编辑中，先作废该会话并清理已上传但未保存的文件，避免遗留孤儿文件
                 if (isEditing) await discardEditSessionUploads(true);
                 else beginEditSession();
