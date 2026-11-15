@@ -58,6 +58,48 @@
         .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.8rem; }
         .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.8rem; }
         .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; color: #64748b; margin: 1rem 0; }
+        /* ===== 表格（观感对齐 GitHub） ===== */
+        .markdown-body table {
+            display: block;
+            width: max-content;
+            max-width: 100%;
+            overflow-x: auto;
+            border-collapse: collapse;
+            border-spacing: 0;
+            margin: 1rem 0;
+            font-size: 14px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .markdown-body thead { background: #f6f8fa; }
+        .markdown-body th,
+        .markdown-body td {
+            border: 1px solid #d0d7de;
+            padding: 6px 13px;
+            vertical-align: top;
+            text-align: left;
+        }
+        .markdown-body th { font-weight: 600; }
+        .markdown-body table tr { background: #fff; border-top: 1px solid #d0d7de; }
+        .markdown-body table tr:nth-child(2n) { background: #f6f8fa; }
+        .markdown-body table code { font-size: 12px; }
+        .markdown-body table img { max-width: none; box-shadow: none; margin: 0; }
+
+        /* ===== 其它补充 ===== */
+        .markdown-body h4, .markdown-body h5, .markdown-body h6 {
+            font-weight: 700;
+            margin-top: 1rem;
+            margin-bottom: 0.4rem;
+            color: inherit;
+        }
+        .markdown-body h4 { font-size: 1.05rem; }
+        .markdown-body h5 { font-size: 0.98rem; }
+        .markdown-body h6 { font-size: 0.92rem; color: #64748b; }
+        .markdown-body hr { border: 0; border-top: 1px solid #e2e8f0; margin: 1.25rem 0; }
+        .markdown-body del { color: #94a3b8; }
+        .markdown-body > :first-child { margin-top: 0; }
+        .markdown-body pre { position: relative; }
+        .markdown-body blockquote > :last-child { margin-bottom: 0; }
+
 
         /* ===== Markdown 图片加载态（避免浏览器原生的“图片损坏”占位） ===== */
         .markdown-body .md-img-frame {
