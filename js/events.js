@@ -148,6 +148,8 @@
                 document.getElementById('editUrgentInput').checked = false;
                 document.getElementById('editContentInput').value = '';
                 renderEditAttachments();
+                // 打开编辑器时回到顶部（修复：上次编辑的滚动位置被保留）
+                resetEditScroll();
                 setPreviewMode(false);
                 closeMobileSidebar();
                 checkBackToTopBtnVisibility();
@@ -173,6 +175,8 @@
                 document.getElementById('editUrgentInput').checked = !!doc.urgent;
                 document.getElementById('editContentInput').value = content;
                 renderEditAttachments();
+                // 打开编辑器时回到顶部（修复：上次编辑的滚动位置被保留）
+                resetEditScroll();
                 setPreviewMode(false);
                 checkBackToTopBtnVisibility();
             };
@@ -197,7 +201,14 @@
                 }
                 checkBackToTopBtnVisibility();
             };
-            document.getElementById('cancelEditBtn').onclick = handleCancelEdit;
+            /** 打开编辑器时把编辑区滚动位置归零 */
+function resetEditScroll() {
+    const el = document.getElementById('editScrollContainer');
+    if (!el) return;
+    try { el.scrollTo({ top: 0, behavior: 'auto' }); } catch (e) { el.scrollTop = 0; }
+}
+
+document.getElementById('cancelEditBtn').onclick = handleCancelEdit;
             document.getElementById('desktopCancelEditBtn').onclick = handleCancelEdit;
 
             document.getElementById('backToListBtn').onclick = () => {

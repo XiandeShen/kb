@@ -218,6 +218,14 @@
         // 页面侧无法调用原生的 requestFocus，但可以在加载完成、切回前台时主动争取焦点，
         // 并清掉浏览器恢复到隐藏容器里的焦点（如已隐藏的登录框），通常一次即可恢复交互。
         function regainWindowFocus() {
+            // 当前有可见输入框正在输入时，绝不抢焦点：
+            // 否则会在“刚点中输入框”的瞬间把焦点夺回 body，表现为标题打不了字、键盘不弹
+            const focused = document.activeElement;
+            if (focused) {
+                const t = focused.tagName;
+                const isField = t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT';
+                if (isField && focused.offsetParent !== null) return;
+            }
             try { window.focus(); } catch (e) {}
             const active = document.activeElement;
             if (!active || active === document.body || active === document.documentElement) {
