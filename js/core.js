@@ -709,6 +709,15 @@
         hit.style.right = Math.round(window.innerWidth - m.rect.right) + 'px';
     }
 
+    /** 立即隐藏某一条（不等淡出计时） */
+    function hideNow(state) {
+        if (state.timer) { clearTimeout(state.timer); state.timer = 0; }
+        state.hovering = false;
+        state.dragging = false;
+        state.hit.style.opacity = '0';
+        state.hit.style.pointerEvents = 'none';
+    }
+
     function show(state) {
         state.hit.style.opacity = '1';
         state.hit.style.pointerEvents = 'auto';
@@ -729,6 +738,12 @@
     function refresh(state, mode) {
         var m = metrics(state);
         if (!m) {
+            // 容器已不可见（例如侧边栏抽屉滑出屏幕）：立刻隐藏，
+            // 不要等 2 秒计时结束，否则条会停在原位置看着像残留。
+            if (state.timer) { clearTimeout(state.timer); state.timer = 0; }
+            state.hovering = false;
+            state.dragging = false;
+            setBarWidth(state, BAR_W);
             state.hit.style.opacity = '0';
             state.hit.style.pointerEvents = 'none';
             return;
@@ -823,6 +838,29 @@
             refresh(state, 'idle');
         });
     }
+
+    // 侧边栏抽屉是 transform 滑出滑入，不会触发 scroll/resize，
+    // 这里监听过渡结束与 class 变化，动画一结束就重算（不可见则立即隐藏）
+    document.addEventListener('transitionend', function (e) {
+        var t = e.target;
+        if (t && (t.id === 'sidebar' || t.id === 'sidebarOverlay')) updateAll();
+    }, true);
+    (function watchSidebar() {
+        var sb = document.getElementById('sidebar');
+        if (!sb || !window.MutationObserver) return;
+        try {
+            new MutationObserver(function () {
+                // 抽屉开始滑出时立刻隐藏（它是 transform 动画，浮动条不跟随，
+                // 若等动画结束或等 2 秒计时，条会停在原位置看着像残留）
+                if (sb.classList.contains('-translate-x-full')) {
+                    for (var i = 0; i < states.length; i++) {
+                        if (states[i].el === document.getElementById('sidebarScrollContainer')) hideNow(states[i]);
+                    }
+                }
+                updateAll();
+            }).observe(sb, { attributes: true, attributeFilter: ['class', 'style'] });
+        } catch (e) {}
+    })();
 
     window.addEventListener('resize', updateAll, { passive: true });
     window.addEventListener('scroll', updateAll, { passive: true, capture: true });
