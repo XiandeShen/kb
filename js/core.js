@@ -626,15 +626,16 @@
             return map[ext] || 'application/octet-stream';
         }
 
-/* ==================== 浮动滚动条 ====================
-   原生滚动条会占宽导致布局跳动，这里统一隐藏，
-   改为在窗口层画一条固定定位的细条：不占布局、滚动时浮现、停止后淡出。
-   触屏与桌面行为一致（由 scroll 事件驱动，不依赖 hover）。 */
+/* ==================== 浮动滚动条（可拖动） ====================
+   原生滚动条会占宽导致布局跳动，这里隐藏原生滚动条，
+   改为在窗口层画一条细条：不占布局、滚动时浮现、可按住拖动、停止后淡出。
+   视觉宽度 4px，热区 16px，触屏也抓得住。 */
 (function () {
-    var THUMB_W = 4;      // 条宽
+    var BAR_W = 4;        // 视觉宽度
+    var HIT_W = 16;       // 可拖动热区宽度
     var EDGE = 4;         // 距容器右边缘
-    var MIN_H = 26;       // 最小高度，避免内容很长时变成小点
-    var HIDE_DELAY = 700; // 停止滚动后多久淡出
+    var MIN_H = 26;       // 最小高度
+    var HIDE_DELAY = 700; // 停止后淡出延迟
 
     var CONFIGS = [
         { sel: '#sidebarScrollContainer', color: 'rgba(148, 163, 184, 0.55)' },
@@ -647,62 +648,135 @@
     var states = [];
     var started = false;
 
-    function buildThumb(color) {
-        var t = document.createElement('div');
-        t.setAttribute('aria-hidden', 'true');
-        t.style.cssText = [
+    function buildNodes(color) {
+        var hit = document.createElement('div');
+        hit.setAttribute('aria-hidden', 'true');
+        hit.style.cssText = [
             'position:fixed',
             'right:0',
             'top:0',
-            'width:' + THUMB_W + 'px',
-            'border-radius:999px',
+            'width:' + HIT_W + 'px',
+            'height:0',
             'pointer-events:none',
-            'z-index:60',
+            'z-index:120',
             'opacity:0',
             'transition:opacity .22s ease',
-            'background:' + color,
-            'box-shadow:none'
+            'cursor:grab',
+            'touch-action:none'
         ].join(';');
-        document.body.appendChild(t);
-        return t;
+        var bar = document.createElement('div');
+        bar.style.cssText = [
+            'position:absolute',
+            'top:0',
+            'right:' + EDGE + 'px',
+            'width:' + BAR_W + 'px',
+            'height:100%',
+            'border-radius:999px',
+            'background:' + color,
+            'transition:width .12s ease, background-color .12s ease'
+        ].join(';');
+        hit.appendChild(bar);
+        document.body.appendChild(hit);
+        return { hit: hit, bar: bar };
     }
 
-    function update(state, show) {
+    function metrics(state) {
         var el = state.el;
-        var thumb = state.thumb;
         var sh = el.scrollHeight;
         var ch = el.clientHeight;
-        if (sh <= ch + 1) { thumb.style.opacity = '0'; return; }
-
+        if (sh <= ch + 1) return null;
         var rect = el.getBoundingClientRect();
-        if (rect.width <= 0 || rect.bottom <= 0 || rect.top >= window.innerHeight) {
-            thumb.style.opacity = '0';
-            return;
-        }
-
+        if (rect.width <= 0 || rect.bottom <= 0 || rect.top >= window.innerHeight ||
+            rect.right <= 0 || rect.left >= window.innerWidth) return null;
         var h = Math.max(MIN_H, Math.round(ch * ch / sh));
         var maxTop = ch - h;
         var ratio = sh > ch ? el.scrollTop / (sh - ch) : 0;
         var top = rect.top + Math.min(maxTop, Math.max(0, ratio * maxTop));
+        return { sh: sh, ch: ch, h: h, top: top, maxTop: maxTop, rect: rect };
+    }
 
-        thumb.style.height = h + 'px';
-        thumb.style.top = Math.round(top) + 'px';
-        thumb.style.right = Math.round(window.innerWidth - rect.right + EDGE) + 'px';
+    function place(state, m) {
+        var hit = state.hit;
+        hit.style.height = m.h + 'px';
+        hit.style.top = Math.round(m.top) + 'px';
+        hit.style.right = Math.round(window.innerWidth - m.rect.right) + 'px';
+    }
 
-        if (show) {
-            thumb.style.opacity = '1';
-            if (state.timer) clearTimeout(state.timer);
-            state.timer = setTimeout(function () {
-                state.timer = 0;
-                thumb.style.opacity = '0';
-            }, HIDE_DELAY);
-        } else if (!state.timer) {
-            thumb.style.opacity = '0';
+    function show(state) {
+        state.hit.style.opacity = '1';
+        state.hit.style.pointerEvents = 'auto';
+        if (state.timer) clearTimeout(state.timer);
+        state.timer = 0;
+    }
+
+    function scheduleHide(state) {
+        if (state.dragging) return;
+        if (state.timer) clearTimeout(state.timer);
+        state.timer = setTimeout(function () {
+            state.timer = 0;
+            state.hit.style.opacity = '0';
+            state.hit.style.pointerEvents = 'none';
+        }, HIDE_DELAY);
+    }
+
+    function refresh(state, mode) {
+        var m = metrics(state);
+        if (!m) {
+            state.hit.style.opacity = '0';
+            state.hit.style.pointerEvents = 'none';
+            return;
+        }
+        place(state, m);
+        if (mode === 'scroll') {
+            show(state);
+            scheduleHide(state);
+        } else if (!state.dragging && !state.timer) {
+            state.hit.style.opacity = '0';
+            state.hit.style.pointerEvents = 'none';
         }
     }
 
     function updateAll() {
-        for (var i = 0; i < states.length; i++) update(states[i], false);
+        for (var i = 0; i < states.length; i++) refresh(states[i], 'idle');
+    }
+
+    function bindDrag(state) {
+        var hit = state.hit;
+        hit.addEventListener('pointerdown', function (e) {
+            var m = metrics(state);
+            if (!m) return;
+            e.preventDefault();
+            state.dragging = true;
+            state.startY = e.clientY;
+            state.startScroll = state.el.scrollTop;
+            state.metrics = m;
+            state.hit.style.cursor = 'grabbing';
+            state.bar.style.width = (BAR_W + 2) + 'px';
+            show(state);
+            try { hit.setPointerCapture(e.pointerId); } catch (err) {}
+        });
+        hit.addEventListener('pointermove', function (e) {
+            if (!state.dragging) return;
+            var m = state.metrics || metrics(state);
+            if (!m || m.maxTop <= 0) return;
+            var dy = e.clientY - state.startY;
+            var scrollable = m.sh - m.ch;
+            var nextTop = Math.min(scrollable, Math.max(0, state.startScroll + (dy / m.maxTop) * scrollable));
+            state.el.scrollTop = nextTop;
+            var mm = metrics(state);
+            if (mm) place(state, mm);
+        });
+        function endDrag(e) {
+            if (!state.dragging) return;
+            state.dragging = false;
+            state.hit.style.cursor = 'grab';
+            state.bar.style.width = BAR_W + 'px';
+            try { if (e && e.pointerId != null) state.hit.releasePointerCapture(e.pointerId); } catch (err) {}
+            scheduleHide(state);
+        }
+        hit.addEventListener('pointerup', endDrag);
+        hit.addEventListener('pointercancel', endDrag);
+        hit.addEventListener('lostpointercapture', endDrag);
     }
 
     function init() {
@@ -712,15 +786,15 @@
             var el = document.querySelector(cfg.sel);
             if (!el || el.__floatSb) return;
             el.__floatSb = true;
-            var state = { el: el, thumb: buildThumb(cfg.color), timer: 0 };
+            var nodes = buildNodes(cfg.color);
+            var state = { el: el, hit: nodes.hit, bar: nodes.bar, timer: 0, dragging: false };
             states.push(state);
-            el.addEventListener('scroll', function () { update(state, true); }, { passive: true });
+            bindDrag(state);
+            el.addEventListener('scroll', function () { refresh(state, 'scroll'); }, { passive: true });
             if (window.ResizeObserver) {
-                try { new ResizeObserver(function () { update(state, false); }).observe(el); } catch (e) {}
-            } else {
-                el.addEventListener('transitionend', function () { update(state, false); });
+                try { new ResizeObserver(function () { refresh(state, 'idle'); }).observe(el); } catch (e) {}
             }
-            update(state, false);
+            refresh(state, 'idle');
         });
     }
 
