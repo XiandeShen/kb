@@ -639,7 +639,7 @@
     var HIDE_DELAY = 2000; // 停止后淡出延迟（约 2 秒）
 
     var CONFIGS = [
-        { sel: '#sidebarScrollContainer', color: 'rgba(148, 163, 184, 0.55)' },
+        { sel: '#sidebarScrollContainer', color: 'rgba(148, 163, 184, 0.55)', parent: '#sidebar' },
         { sel: '#docList', color: 'rgba(148, 163, 184, 0.55)' },
         { sel: '#viewScrollContainer', color: 'rgba(148, 163, 184, 0.45)' },
         { sel: '#editScrollContainer', color: 'rgba(148, 163, 184, 0.45)' },
@@ -649,11 +649,11 @@
     var states = [];
     var started = false;
 
-    function buildNodes(color) {
+    function buildNodes(color, parentEl) {
         var hit = document.createElement('div');
         hit.setAttribute('aria-hidden', 'true');
         hit.style.cssText = [
-            'position:fixed',
+            parentEl ? 'position:absolute' : 'position:fixed',
             'right:0',
             'top:0',
             'width:' + HIT_W + 'px',
@@ -677,7 +677,7 @@
             'transition:width .12s ease, right .12s ease, background-color .12s ease'
         ].join(';');
         hit.appendChild(bar);
-        document.body.appendChild(hit);
+        (parentEl || document.body).appendChild(hit);
         return { hit: hit, bar: bar };
     }
 
@@ -692,20 +692,31 @@
         var sh = el.scrollHeight;
         var ch = el.clientHeight;
         if (sh <= ch + 1) return null;
-        var rect = el.getBoundingClientRect();
-        if (rect.width <= 0 || rect.bottom <= 0 || rect.top >= window.innerHeight ||
-            rect.right <= 0 || rect.left >= window.innerWidth) return null;
+
         var h = Math.max(MIN_H, Math.round(ch * ch / sh));
         var maxTop = ch - h;
         var ratio = sh > ch ? el.scrollTop / (sh - ch) : 0;
-        var top = rect.top + Math.min(maxTop, Math.max(0, ratio * maxTop));
-        return { sh: sh, ch: ch, h: h, top: top, maxTop: maxTop, rect: rect };
+        var offset = Math.min(maxTop, Math.max(0, ratio * maxTop));
+
+        if (state.parent) {
+            // 挂在抽屉内部：top 相对父容器；抽屉平移时条跟着一起滑走，
+            // 不需要任何“检测关闭→隐藏”的时序逻辑，也就不可能残留。
+            return { sh: sh, ch: ch, h: h, top: el.offsetTop + offset,
+                     maxTop: maxTop, parentMode: true };
+        }
+
+        var rect = el.getBoundingClientRect();
+        if (rect.width <= 0 || rect.bottom <= 0 || rect.top >= window.innerHeight ||
+            rect.right <= 0 || rect.left >= window.innerWidth) return null;
+
+        return { sh: sh, ch: ch, h: h, top: rect.top + offset, maxTop: maxTop, rect: rect };
     }
 
     function place(state, m) {
         var hit = state.hit;
         hit.style.height = m.h + 'px';
         hit.style.top = Math.round(m.top) + 'px';
+        if (m.parentMode) return;   // 抽屉内：右偏移由 setBarWidth 负责
         hit.style.right = Math.round(window.innerWidth - m.rect.right) + 'px';
     }
 
@@ -826,8 +837,9 @@
             var el = document.querySelector(cfg.sel);
             if (!el || el.__floatSb) return;
             el.__floatSb = true;
-            var nodes = buildNodes(cfg.color);
-            var state = { el: el, hit: nodes.hit, bar: nodes.bar, timer: 0, dragging: false, hovering: false };
+            var parentEl = cfg.parent ? document.querySelector(cfg.parent) : null;
+            var nodes = buildNodes(cfg.color, parentEl);
+            var state = { el: el, hit: nodes.hit, bar: nodes.bar, parent: parentEl, timer: 0, dragging: false, hovering: false };
             states.push(state);
             bindHover(state);
             bindDrag(state);
