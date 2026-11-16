@@ -234,9 +234,8 @@ function updatePinButton() {
     if (!btn) return;
     const doc = docs.find(d => d.id === currentDocId);
     const pinned = !!(doc && doc.urgent);
-    btn.classList.toggle('text-brand-600', pinned);
-    btn.classList.toggle('bg-brand-50', pinned);
-    btn.classList.toggle('text-slate-500', !pinned);
+        btn.classList.toggle('is-pinned', pinned);
+        btn.blur();
     if (icon) icon.className = pinned ? 'ri-pushpin-fill' : 'ri-pushpin-line';
     if (text) text.textContent = pinned ? '已置顶' : '置顶';
     btn.title = pinned ? '取消置顶' : '置顶该文档';
