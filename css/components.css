@@ -8,10 +8,13 @@
             -webkit-tap-highlight-color: transparent;
             transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease, transform .16s ease;
         }
-        .doc-card:hover {
-            border-color: #cbd5e1;
-            background: #fdfefe;
-            box-shadow: 0 4px 10px -4px rgba(15, 23, 42, 0.14);
+        /* 仅鼠标设备启用悬停高亮：触屏上点过的卡片不会残留高亮 */
+        @media (hover: hover) {
+            .doc-card:hover {
+                border-color: #cbd5e1;
+                background: #fdfefe;
+                box-shadow: 0 4px 10px -4px rgba(15, 23, 42, 0.14);
+            }
         }
         .doc-card:active { transform: scale(0.992); }
         .doc-card.is-selected {
@@ -19,7 +22,9 @@
             border-color: #bfdbfe;
             box-shadow: 0 3px 12px -6px rgba(37, 99, 235, 0.35);
         }
-        .doc-card.is-selected:hover { border-color: #93c5fd; }
+        @media (hover: hover) {
+            .doc-card.is-selected:hover { border-color: #93c5fd; }
+        }
 
         /* ===== 编辑器“紧急通知”图标按钮 ===== */
         .urgent-label { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
