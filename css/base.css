@@ -301,25 +301,26 @@
         }
 
 /* ==================== 隐藏原生滚动条（改用浮动条） ====================
-   原生滚动条会占宽，导致 PC（10px）与手机（0px）可视宽度不同、
-   内容多少时宽度跳动。统一隐藏，由 JS 画一条浮动条浮在内容上方。 */
-#docList,
-#viewScrollContainer,
-#editScrollContainer,
-#editPreview,
-#editContentInput,
-#sidebarScrollContainer,
-#authOverlay {
+   注意：只有 JS 成功给 <html> 加上 has-float-scrollbar 后才生效。
+   如果浮动条脚本没跑（旧缓存、加载失败），系统滚动条保持不变，
+   避免出现一条滚动条都没有的情况。 */
+html.has-float-scrollbar #docList,
+html.has-float-scrollbar #viewScrollContainer,
+html.has-float-scrollbar #editScrollContainer,
+html.has-float-scrollbar #editPreview,
+html.has-float-scrollbar #editContentInput,
+html.has-float-scrollbar #sidebarScrollContainer,
+html.has-float-scrollbar #authOverlay {
     scrollbar-width: none !important;
     -ms-overflow-style: none;
 }
-#docList::-webkit-scrollbar,
-#viewScrollContainer::-webkit-scrollbar,
-#editScrollContainer::-webkit-scrollbar,
-#editPreview::-webkit-scrollbar,
-#editContentInput::-webkit-scrollbar,
-#sidebarScrollContainer::-webkit-scrollbar,
-#authOverlay::-webkit-scrollbar {
+html.has-float-scrollbar #docList::-webkit-scrollbar,
+html.has-float-scrollbar #viewScrollContainer::-webkit-scrollbar,
+html.has-float-scrollbar #editScrollContainer::-webkit-scrollbar,
+html.has-float-scrollbar #editPreview::-webkit-scrollbar,
+html.has-float-scrollbar #editContentInput::-webkit-scrollbar,
+html.has-float-scrollbar #sidebarScrollContainer::-webkit-scrollbar,
+html.has-float-scrollbar #authOverlay::-webkit-scrollbar {
     width: 0 !important;
     height: 0 !important;
     display: none !important;
