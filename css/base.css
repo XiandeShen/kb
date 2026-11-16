@@ -311,3 +311,11 @@
         #authOverlay {
             scrollbar-gutter: stable;
         }
+
+        /* ===== 滚动条预留造成的左右不对称补偿 =====
+           右侧固定预留了滚动条宽度，卡片会整体偏左；
+           这里给卡片左侧补上同样的宽度，让它重新居中。 */
+        /* 宽度由 JS 实测（列表 offsetWidth - clientWidth）后写入 --sbw */
+        #docList [data-doc-id] {
+            padding-left: calc(10px + var(--sbw, 0px)) !important;
+        }
