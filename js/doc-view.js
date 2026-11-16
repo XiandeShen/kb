@@ -29,6 +29,7 @@
             viewDateEl.appendChild(document.createTextNode(`修改于: ${doc.updatedAt || '未知'}`));
 
             document.getElementById('viewCodeText').textContent = doc.code || 'CM-0000';
+            if (typeof window.updatePinButton === 'function') window.updatePinButton();
             const codeBtn = document.getElementById('viewCodeBtn');
             const handleCodeCopy = (e) => {
                 if (e) e.preventDefault();

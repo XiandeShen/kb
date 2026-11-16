@@ -150,7 +150,6 @@ document.getElementById('newDocBtn').onclick = async () => {
                 document.getElementById('editTitleInput').value = '';
                 document.getElementById('editCategoryInput').value = activeCategory !== 'ALL' ? activeCategory : '通用';
                 document.getElementById('editTagsInput').value = '';
-                document.getElementById('editUrgentInput').checked = false;
                 document.getElementById('editContentInput').value = '';
                 renderEditAttachments();
                 // 打开编辑器时回到顶部（修复：上次编辑的滚动位置被保留）
@@ -183,7 +182,6 @@ document.getElementById('newDocBtn').onclick = async () => {
                 document.getElementById('editTitleInput').value = doc.title || '';
                 document.getElementById('editCategoryInput').value = doc.category || '通用';
                 document.getElementById('editTagsInput').value = (doc.tags || []).join(' ');
-                document.getElementById('editUrgentInput').checked = !!doc.urgent;
                 document.getElementById('editContentInput').value = content;
                 renderEditAttachments();
                 // 打开编辑器时回到顶部（修复：上次编辑的滚动位置被保留）
@@ -227,6 +225,45 @@ function resetEditScroll() {
     try { el.scrollTo({ top: 0, behavior: 'auto' }); } catch (e) { el.scrollTop = 0; }
 }
 
+/* ==================== 置顶（原"紧急"） ==================== */
+// 只切换置顶标记，不修改文档的修改时间
+function updatePinButton() {
+    const btn = document.getElementById('togglePinBtn');
+    const icon = document.getElementById('togglePinIcon');
+    const text = document.getElementById('togglePinText');
+    if (!btn) return;
+    const doc = docs.find(d => d.id === currentDocId);
+    const pinned = !!(doc && doc.urgent);
+    btn.classList.toggle('text-brand-600', pinned);
+    btn.classList.toggle('bg-brand-50', pinned);
+    btn.classList.toggle('text-slate-500', !pinned);
+    if (icon) icon.className = pinned ? 'ri-pushpin-fill' : 'ri-pushpin-line';
+    if (text) text.textContent = pinned ? '已置顶' : '置顶';
+    btn.title = pinned ? '取消置顶' : '置顶该文档';
+}
+window.updatePinButton = updatePinButton;
+
+const togglePinBtn = document.getElementById('togglePinBtn');
+if (togglePinBtn) togglePinBtn.onclick = async () => {
+    const doc = docs.find(d => d.id === currentDocId);
+    if (!doc) return;
+    const nextPinned = !doc.urgent;
+    const nextDocs = docs.map(d => (d.id === doc.id ? Object.assign({}, d, { urgent: nextPinned }) : d));
+    showLoading(nextPinned ? '正在置顶...' : '正在取消置顶...');
+    try {
+        await uploadMainIndex(nextDocs);
+        docs = nextDocs;
+        saveLocalDocs();
+        renderDocList();
+        updatePinButton();
+        showToast(nextPinned ? '已置顶' : '已取消置顶', 'success');
+    } catch (err) {
+        showToast('操作失败：' + (err.message || '未知错误'), 'error');
+    } finally {
+        hideLoading();
+    }
+};
+
 document.getElementById('cancelEditBtn').onclick = handleCancelEdit;
             document.getElementById('desktopCancelEditBtn').onclick = handleCancelEdit;
 
@@ -246,7 +283,6 @@ document.getElementById('cancelEditBtn').onclick = handleCancelEdit;
                 const category = document.getElementById('editCategoryInput').value.trim() || '通用';
                 const tagsStr = document.getElementById('editTagsInput').value.trim();
                 const tags = tagsStr ? tagsStr.split(/[,，\s]+/).filter(Boolean) : [];
-                const urgent = document.getElementById('editUrgentInput').checked;
                 const content = document.getElementById('editContentInput').value;
                 const now = new Date().toLocaleString();
 
@@ -256,23 +292,44 @@ document.getElementById('cancelEditBtn').onclick = handleCancelEdit;
                 let contentUploaded = false;
                 if (!docId) docId = 'doc-' + Date.now();
 
+                const existingDoc = !isNewDoc ? docs.find(d => d.id === docId) : null;
+
+                // 编辑但内容没有任何改动：不写远端、不改修改时间，直接回阅读页
+                const prevContent = !isNewDoc ? docContentCache.get(docId) : undefined;
+                const sameMeta = existingDoc
+                    ? (existingDoc.title === title
+                        && (existingDoc.category || '通用') === category
+                        && JSON.stringify(existingDoc.tags || []) === JSON.stringify(tags))
+                    : false;
+                const sameAtts = existingDoc
+                    ? JSON.stringify((existingDoc.attachments || []).map(a => a.path || a.name))
+                        === JSON.stringify(editAttachments.map(a => a.path || a.name))
+                    : false;
+                if (existingDoc && prevContent !== undefined && prevContent === content && sameMeta && sameAtts) {
+                    isSavingDoc = false;
+                    setPreviewMode(false);
+                    showToast('内容未修改', 'success');
+                    await openDocView(docId, { skipOverlay: true });
+                    return;
+                }
+                const stamp = now;
+
                 isSavingDoc = true;
                 showLoading('正在保存并同步...');
                 try {
-                    const existingDoc = !isNewDoc ? docs.find(d => d.id === docId) : null;
 
                     updateLoadingText('正在保存正文...');
-                    await uploadDocContent(docId, content, { title, updatedAt: now });
+                    await uploadDocContent(docId, content, { title, updatedAt: stamp });
                     contentUploaded = true;
 
                     const indexEntry = {
                         id: docId,
                         code: (existingDoc && existingDoc.code) || generateDocCode(),
-                        title, category, tags, updatedAt: now,
+                        title, category, tags, updatedAt: stamp,
                         summary: makeSummary(content),
                         attachments: editAttachments.slice(),
                         hasContent: true,
-                        urgent
+                        urgent: existingDoc ? !!existingDoc.urgent : false
                     };
                     const nextDocs = docs.slice();
                     const idx = nextDocs.findIndex(d => d.id === docId);
@@ -285,7 +342,7 @@ document.getElementById('cancelEditBtn').onclick = handleCancelEdit;
                     // 远端全部成功后再落地本地状态
                     docs = nextDocs;
                     docContentCache.set(docId, content);
-                    docContentStamp.set(docId, now);
+                    docContentStamp.set(docId, stamp);
                     currentDocId = docId;
                     previousDocId = docId;
                     saveLocalDocs();

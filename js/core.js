@@ -425,7 +425,7 @@
                         <div class="doc-meta mt-2 flex items-center gap-1.5 overflow-hidden">
                             <span class="inline-block px-2 py-[1px] rounded-md bg-slate-100 text-slate-600 text-[12px] font-medium leading-[16px] truncate max-w-[120px] flex-shrink">${escapeHtml(catName)}</span>
                             ${d.code ? `<span class="inline-block px-2 py-[1px] rounded-md bg-slate-100 text-slate-500 text-[12px] font-mono leading-[16px] tracking-tight flex-shrink-0">${escapeHtml(d.code)}</span>` : ''}
-                            ${d.urgent ? '<span class="inline-flex items-center gap-0.5 px-1.5 py-[1px] rounded-md bg-red-50 text-red-600 text-[12px] font-medium leading-[16px] flex-shrink-0"><i class="ri-alarm-warning-line text-[12px]"></i>紧急</span>' : ''}
+                            ${d.urgent ? '<span class="inline-flex items-center gap-0.5 px-1.5 py-[1px] rounded-md bg-amber-50 text-amber-600 text-[12px] font-medium leading-[16px] flex-shrink-0"><i class="ri-pushpin-fill text-[12px]"></i>置顶</span>' : ''}
                             <span class="flex-1"></span>
                             ${attCount > 0 ? `<span class="inline-flex items-center gap-0.5 text-[12px] text-slate-400 leading-none flex-shrink-0"><i class="ri-attachment-2 text-[13px]"></i>${attCount}</span>` : ''}
                         </div>
