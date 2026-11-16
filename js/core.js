@@ -626,16 +626,16 @@
             return map[ext] || 'application/octet-stream';
         }
 
-/* ==================== 浮动滚动条（可拖动） ====================
+/* ==================== 浮动滚动条（可拖动 / 悬停变粗） ====================
    原生滚动条会占宽导致布局跳动，这里隐藏原生滚动条，
-   改为在窗口层画一条细条：不占布局、滚动时浮现、可按住拖动、停止后淡出。
-   视觉宽度 4px，热区 16px，触屏也抓得住。 */
+   改为在窗口层画一条细条：不占布局、滚动时浮现、可拖动、停止后淡出。
+   条在右侧留白（12px）里居中，变粗时向两侧同时扩张，左右间距始终一致。 */
 (function () {
-    var BAR_W = 4;        // 视觉宽度
-    var HIT_W = 16;       // 可拖动热区宽度
-    var EDGE = 4;         // 距容器右边缘
+    var BAR_W = 4;        // 常态宽度
+    var BAR_W_HOVER = 6;  // 悬停/拖动时宽度
+    var GUTTER = 12;      // 右侧留白宽度（与卡片右内边距一致）
     var MIN_H = 26;       // 最小高度
-    var HIDE_DELAY = 700; // 停止后淡出延迟
+    var HIDE_DELAY = 2000; // 停止滚动后淡出延迟（约 2 秒）
 
     var CONFIGS = [
         { sel: '#sidebarScrollContainer', color: 'rgba(148, 163, 184, 0.55)' },
@@ -648,14 +648,18 @@
     var states = [];
     var started = false;
 
-    function buildNodes(color) {
+    function barColor(base, active) {
+        return active ? 'rgba(100, 116, 139, 0.75)' : base;
+    }
+
+    function buildNodes(bar, color) {
         var hit = document.createElement('div');
         hit.setAttribute('aria-hidden', 'true');
         hit.style.cssText = [
             'position:fixed',
             'right:0',
             'top:0',
-            'width:' + HIT_W + 'px',
+            'width:' + GUTTER + 'px',
             'height:0',
             'pointer-events:none',
             'z-index:120',
@@ -664,20 +668,28 @@
             'cursor:grab',
             'touch-action:none'
         ].join(';');
-        var bar = document.createElement('div');
-        bar.style.cssText = [
+        var el = document.createElement('div');
+        el.style.cssText = [
             'position:absolute',
             'top:0',
-            'right:' + EDGE + 'px',
+            'right:' + Math.max(0, (GUTTER - BAR_W) / 2) + 'px',
             'width:' + BAR_W + 'px',
             'height:100%',
             'border-radius:999px',
             'background:' + color,
-            'transition:width .12s ease, background-color .12s ease'
+            'transition:width .14s ease, right .14s ease, background-color .14s ease'
         ].join(';');
-        hit.appendChild(bar);
+        hit.appendChild(el);
         document.body.appendChild(hit);
-        return { hit: hit, bar: bar };
+        return { hit: hit, bar: el };
+    }
+
+    /** 变粗时保持居中：right = (留白 - 宽度) / 2 */
+    function setBarWidth(state, width, active) {
+        var off = Math.max(0, (GUTTER - width) / 2);
+        state.bar.style.width = width + 'px';
+        state.bar.style.right = off + 'px';
+        state.bar.style.background = barColor(state.color, active);
     }
 
     function metrics(state) {
@@ -696,10 +708,9 @@
     }
 
     function place(state, m) {
-        var hit = state.hit;
-        hit.style.height = m.h + 'px';
-        hit.style.top = Math.round(m.top) + 'px';
-        hit.style.right = Math.round(window.innerWidth - m.rect.right) + 'px';
+        state.hit.style.height = m.h + 'px';
+        state.hit.style.top = Math.round(m.top) + 'px';
+        state.hit.style.right = '0px';
     }
 
     function show(state) {
@@ -709,30 +720,29 @@
         state.timer = 0;
     }
 
+    function hide(state) {
+        state.hit.style.opacity = '0';
+        state.hit.style.pointerEvents = 'none';
+    }
+
     function scheduleHide(state) {
-        if (state.dragging) return;
+        if (state.dragging || state.hovering) return;
         if (state.timer) clearTimeout(state.timer);
         state.timer = setTimeout(function () {
             state.timer = 0;
-            state.hit.style.opacity = '0';
-            state.hit.style.pointerEvents = 'none';
+            hide(state);
         }, HIDE_DELAY);
     }
 
     function refresh(state, mode) {
         var m = metrics(state);
-        if (!m) {
-            state.hit.style.opacity = '0';
-            state.hit.style.pointerEvents = 'none';
-            return;
-        }
+        if (!m) { hide(state); return; }
         place(state, m);
         if (mode === 'scroll') {
             show(state);
             scheduleHide(state);
-        } else if (!state.dragging && !state.timer) {
-            state.hit.style.opacity = '0';
-            state.hit.style.pointerEvents = 'none';
+        } else if (!state.dragging && !state.hovering && !state.timer) {
+            hide(state);
         }
     }
 
@@ -740,8 +750,24 @@
         for (var i = 0; i < states.length; i++) refresh(states[i], 'idle');
     }
 
-    function bindDrag(state) {
+    function bind(state) {
         var hit = state.hit;
+
+        // 悬停变粗（仅鼠标；触屏不触发）
+        hit.addEventListener('pointerenter', function (e) {
+            if (e.pointerType && e.pointerType !== 'mouse') return;
+            state.hovering = true;
+            setBarWidth(state, BAR_W_HOVER, true);
+            show(state);
+        });
+        hit.addEventListener('pointerleave', function (e) {
+            if (e.pointerType && e.pointerType !== 'mouse') return;
+            state.hovering = false;
+            if (!state.dragging) setBarWidth(state, BAR_W, false);
+            scheduleHide(state);
+        });
+
+        // 拖动
         hit.addEventListener('pointerdown', function (e) {
             var m = metrics(state);
             if (!m) return;
@@ -750,8 +776,8 @@
             state.startY = e.clientY;
             state.startScroll = state.el.scrollTop;
             state.metrics = m;
-            state.hit.style.cursor = 'grabbing';
-            state.bar.style.width = (BAR_W + 2) + 'px';
+            hit.style.cursor = 'grabbing';
+            setBarWidth(state, BAR_W_HOVER, true);
             show(state);
             try { hit.setPointerCapture(e.pointerId); } catch (err) {}
         });
@@ -761,17 +787,17 @@
             if (!m || m.maxTop <= 0) return;
             var dy = e.clientY - state.startY;
             var scrollable = m.sh - m.ch;
-            var nextTop = Math.min(scrollable, Math.max(0, state.startScroll + (dy / m.maxTop) * scrollable));
-            state.el.scrollTop = nextTop;
+            var next = Math.min(scrollable, Math.max(0, state.startScroll + (dy / m.maxTop) * scrollable));
+            state.el.scrollTop = next;
             var mm = metrics(state);
             if (mm) place(state, mm);
         });
         function endDrag(e) {
             if (!state.dragging) return;
             state.dragging = false;
-            state.hit.style.cursor = 'grab';
-            state.bar.style.width = BAR_W + 'px';
-            try { if (e && e.pointerId != null) state.hit.releasePointerCapture(e.pointerId); } catch (err) {}
+            hit.style.cursor = 'grab';
+            if (!state.hovering) setBarWidth(state, BAR_W, false);
+            try { if (e && e.pointerId != null) hit.releasePointerCapture(e.pointerId); } catch (err) {}
             scheduleHide(state);
         }
         hit.addEventListener('pointerup', endDrag);
@@ -787,9 +813,12 @@
             if (!el || el.__floatSb) return;
             el.__floatSb = true;
             var nodes = buildNodes(cfg.color);
-            var state = { el: el, hit: nodes.hit, bar: nodes.bar, timer: 0, dragging: false };
+            var state = {
+                el: el, hit: nodes.hit, bar: nodes.bar, color: cfg.color,
+                timer: 0, dragging: false, hovering: false
+            };
             states.push(state);
-            bindDrag(state);
+            bind(state);
             el.addEventListener('scroll', function () { refresh(state, 'scroll'); }, { passive: true });
             if (window.ResizeObserver) {
                 try { new ResizeObserver(function () { refresh(state, 'idle'); }).observe(el); } catch (e) {}
