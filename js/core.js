@@ -403,7 +403,7 @@
         function createDocListItem(d) {
             const wrapper = document.createElement('div');
             const isSelected = currentDocId === d.id;
-            wrapper.style.cssText = `position:absolute; left:0; right:0; height:${virtualList.itemHeight}px; padding:6px 10px; box-sizing:border-box;`;
+            wrapper.style.cssText = `position:absolute; left:0; right:0; height:${virtualList.itemHeight}px; padding:6px 12px; box-sizing:border-box;`;
             wrapper.dataset.docId = d.id;
 
             const catName = d.category || '通用';
