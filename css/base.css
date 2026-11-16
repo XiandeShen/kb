@@ -299,26 +299,26 @@
                 pointer-events: none !important;
             }
         }
-        /* ===== 第三列（文章）保留滚动条并预留占位 =====
-           内容多少不会让文字宽度跳变；滚动条本身保持可见。 */
-        #viewScrollContainer,
-        #editScrollContainer,
-        #editContentInput,
-        #editPreview {
-            scrollbar-gutter: stable;
-        }
 
-/* ==================== 第一列 / 第二列：隐藏滚动条 ====================
-   这两列不需要位置指示，隐藏后左右留白对称，
-   且内容多少都不会改变可视宽度（PC 与手机一致）。 */
-#sidebarScrollContainer,
+/* ==================== 隐藏原生滚动条（改用浮动条） ====================
+   原生滚动条会占宽，导致 PC（10px）与手机（0px）可视宽度不同、
+   内容多少时宽度跳动。统一隐藏，由 JS 画一条浮动条浮在内容上方。 */
 #docList,
+#viewScrollContainer,
+#editScrollContainer,
+#editPreview,
+#editContentInput,
+#sidebarScrollContainer,
 #authOverlay {
     scrollbar-width: none !important;
     -ms-overflow-style: none;
 }
-#sidebarScrollContainer::-webkit-scrollbar,
 #docList::-webkit-scrollbar,
+#viewScrollContainer::-webkit-scrollbar,
+#editScrollContainer::-webkit-scrollbar,
+#editPreview::-webkit-scrollbar,
+#editContentInput::-webkit-scrollbar,
+#sidebarScrollContainer::-webkit-scrollbar,
 #authOverlay::-webkit-scrollbar {
     width: 0 !important;
     height: 0 !important;
