@@ -360,15 +360,6 @@
         // 虚拟列表的定位、spacer 高度与回收计算全部依赖这个常量
         const virtualList = { container: null, spacer: null, items: [], itemHeight: 136, buffer: 10, rafPending: false, nodes: new Map() };
 
-        /** 实测列表滚动条占用的宽度，写进 --sbw，供卡片左右留白补偿 */
-        function syncScrollbarWidth() {
-            const el = document.getElementById('docList');
-            if (!el) return;
-            const w = Math.max(0, el.offsetWidth - el.clientWidth);
-            document.documentElement.style.setProperty('--sbw', w + 'px');
-        }
-        window.syncScrollbarWidth = syncScrollbarWidth;
-
         function initVirtualList() {
             const container = document.getElementById('docList');
             if (!container) return;
@@ -406,8 +397,7 @@
                     renderVirtualItems();
                 });
             }, { passive: true });
-            window.addEventListener('resize', () => { syncScrollbarWidth(); renderVirtualItems(); });
-            syncScrollbarWidth();
+            window.addEventListener('resize', () => renderVirtualItems());
         }
 
         function createDocListItem(d) {
