@@ -299,3 +299,15 @@
                 pointer-events: none !important;
             }
         }
+        /* ===== 始终为滚动条预留空间 =====
+           列表内容多少会让滚动条出现/消失，如果不预留，内容区宽度会变，
+           同一标题在有滚动条/无滚动条两种状态下换行结果不同。 */
+        #docList,
+        #viewScrollContainer,
+        #editScrollContainer,
+        #editPreview,
+        #editContentInput,
+        #sidebarScrollContainer,
+        #authOverlay {
+            scrollbar-gutter: stable;
+        }
