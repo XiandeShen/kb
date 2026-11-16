@@ -625,3 +625,111 @@
             const map = { pdf:'application/pdf',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',xls:'application/vnd.ms-excel',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',ppt:'application/vnd.ms-powerpoint',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',csv:'text/csv',txt:'text/plain',md:'text/markdown',json:'application/json',zip:'application/zip',rar:'application/vnd.rar','7z':'application/x-7z-compressed',png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp',svg:'image/svg+xml' };
             return map[ext] || 'application/octet-stream';
         }
+
+/* ==================== 浮动滚动条 ====================
+   原生滚动条会占宽导致布局跳动，这里统一隐藏，
+   改为在窗口层画一条固定定位的细条：不占布局、滚动时浮现、停止后淡出。
+   触屏与桌面行为一致（由 scroll 事件驱动，不依赖 hover）。 */
+(function () {
+    var THUMB_W = 4;      // 条宽
+    var EDGE = 4;         // 距容器右边缘
+    var MIN_H = 26;       // 最小高度，避免内容很长时变成小点
+    var HIDE_DELAY = 700; // 停止滚动后多久淡出
+
+    var CONFIGS = [
+        { sel: '#sidebarScrollContainer', color: 'rgba(148, 163, 184, 0.55)' },
+        { sel: '#docList', color: 'rgba(148, 163, 184, 0.55)' },
+        { sel: '#viewScrollContainer', color: 'rgba(148, 163, 184, 0.45)' },
+        { sel: '#editScrollContainer', color: 'rgba(148, 163, 184, 0.45)' },
+        { sel: '#editContentInput', color: 'rgba(148, 163, 184, 0.45)' }
+    ];
+
+    var states = [];
+    var started = false;
+
+    function buildThumb(color) {
+        var t = document.createElement('div');
+        t.setAttribute('aria-hidden', 'true');
+        t.style.cssText = [
+            'position:fixed',
+            'right:0',
+            'top:0',
+            'width:' + THUMB_W + 'px',
+            'border-radius:999px',
+            'pointer-events:none',
+            'z-index:60',
+            'opacity:0',
+            'transition:opacity .22s ease',
+            'background:' + color,
+            'box-shadow:none'
+        ].join(';');
+        document.body.appendChild(t);
+        return t;
+    }
+
+    function update(state, show) {
+        var el = state.el;
+        var thumb = state.thumb;
+        var sh = el.scrollHeight;
+        var ch = el.clientHeight;
+        if (sh <= ch + 1) { thumb.style.opacity = '0'; return; }
+
+        var rect = el.getBoundingClientRect();
+        if (rect.width <= 0 || rect.bottom <= 0 || rect.top >= window.innerHeight) {
+            thumb.style.opacity = '0';
+            return;
+        }
+
+        var h = Math.max(MIN_H, Math.round(ch * ch / sh));
+        var maxTop = ch - h;
+        var ratio = sh > ch ? el.scrollTop / (sh - ch) : 0;
+        var top = rect.top + Math.min(maxTop, Math.max(0, ratio * maxTop));
+
+        thumb.style.height = h + 'px';
+        thumb.style.top = Math.round(top) + 'px';
+        thumb.style.right = Math.round(window.innerWidth - rect.right + EDGE) + 'px';
+
+        if (show) {
+            thumb.style.opacity = '1';
+            if (state.timer) clearTimeout(state.timer);
+            state.timer = setTimeout(function () {
+                state.timer = 0;
+                thumb.style.opacity = '0';
+            }, HIDE_DELAY);
+        } else if (!state.timer) {
+            thumb.style.opacity = '0';
+        }
+    }
+
+    function updateAll() {
+        for (var i = 0; i < states.length; i++) update(states[i], false);
+    }
+
+    function init() {
+        if (started) return;
+        started = true;
+        CONFIGS.forEach(function (cfg) {
+            var el = document.querySelector(cfg.sel);
+            if (!el || el.__floatSb) return;
+            el.__floatSb = true;
+            var state = { el: el, thumb: buildThumb(cfg.color), timer: 0 };
+            states.push(state);
+            el.addEventListener('scroll', function () { update(state, true); }, { passive: true });
+            if (window.ResizeObserver) {
+                try { new ResizeObserver(function () { update(state, false); }).observe(el); } catch (e) {}
+            } else {
+                el.addEventListener('transitionend', function () { update(state, false); });
+            }
+            update(state, false);
+        });
+    }
+
+    window.addEventListener('resize', updateAll, { passive: true });
+    window.addEventListener('scroll', updateAll, { passive: true, capture: true });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    window.__syncFloatingScrollbars = updateAll;
+})();
