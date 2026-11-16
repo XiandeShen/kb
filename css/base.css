@@ -299,12 +299,28 @@
                 pointer-events: none !important;
             }
         }
-        /* ===== 始终为滚动条预留空间 =====
-           列表内容多少会让滚动条出现/消失，如果不预留，内容区宽度会变，
-           同一标题在有滚动条/无滚动条两种状态下换行结果不同。 */
-        #docList,
+        /* ===== 第三列（文章）保留滚动条并预留占位 =====
+           内容多少不会让文字宽度跳变；滚动条本身保持可见。 */
         #viewScrollContainer,
         #editScrollContainer,
-        #sidebarScrollContainer {
+        #editContentInput,
+        #editPreview {
             scrollbar-gutter: stable;
         }
+
+/* ==================== 第一列 / 第二列：隐藏滚动条 ====================
+   这两列不需要位置指示，隐藏后左右留白对称，
+   且内容多少都不会改变可视宽度（PC 与手机一致）。 */
+#sidebarScrollContainer,
+#docList,
+#authOverlay {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none;
+}
+#sidebarScrollContainer::-webkit-scrollbar,
+#docList::-webkit-scrollbar,
+#authOverlay::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+}
