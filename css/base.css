@@ -325,3 +325,23 @@ html.has-float-scrollbar #authOverlay::-webkit-scrollbar {
     height: 0 !important;
     display: none !important;
 }
+
+/* ==================== 返回顶部按钮的专属留白 ====================
+   列滚动条隐藏后正文会一直延伸到窗口右缘，悬浮按钮就会压在内容上。
+   这里在桌面端给阅读区留出按钮的位置。 */
+@media (min-width: 768px) {
+    /* 给悬浮按钮留出右侧/底部空间，内容不再延伸到按钮下面 */
+    #viewScrollContainer,
+    #editScrollContainer {
+        padding-right: 64px;
+        padding-bottom: 72px;
+    }
+    /* 按钮收进留白里：36px 大小，距右下各 14px */
+    #backToTopBtn {
+        right: 14px;
+        bottom: 14px;
+        width: 36px;
+        height: 36px;
+    }
+}
+}
