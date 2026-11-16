@@ -52,3 +52,13 @@
                 color: rgb(100 116 139) !important;
             }
         }
+        /* ===== 附件按钮：触屏上不要保留 hover 选中态 ===== */
+        @media (hover: none) {
+            .download-att-btn:hover {
+                border-color: #e2e8f0 !important;
+                background-color: #f8fafc !important;
+            }
+            .download-att-btn:hover .ri-download-line {
+                color: #94a3b8 !important;
+            }
+        }
