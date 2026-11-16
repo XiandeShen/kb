@@ -356,9 +356,9 @@
         }
 
         /* ==================== 虚拟列表（节点池复用） ==================== */
-        // 行高固定为 116px（标题 + 两行摘要 + 元信息行，均为定高），
+        // 行高固定为 136px（两行标题 + 两行摘要 + 元信息行），
         // 虚拟列表的定位、spacer 高度与回收计算全部依赖这个常量
-        const virtualList = { container: null, spacer: null, items: [], itemHeight: 116, buffer: 10, rafPending: false, nodes: new Map() };
+        const virtualList = { container: null, spacer: null, items: [], itemHeight: 136, buffer: 10, rafPending: false, nodes: new Map() };
 
         function initVirtualList() {
             const container = document.getElementById('docList');
@@ -367,7 +367,7 @@
             let ts = parseFloat(window.__CHUNMU_TEXT_SCALE__ || 1);
             if (!isFinite(ts) || ts < 1) ts = 1;
             if (ts > 1.2) ts = 1.2;
-            virtualList.itemHeight = Math.round(116 * ts);
+            virtualList.itemHeight = Math.round(136 * ts);
             container.innerHTML = '';
             container.style.position = 'relative';
             container.style.overflowY = 'auto';
@@ -418,10 +418,10 @@
                     ${isSelected ? '<span class="absolute left-0 top-3.5 bottom-3.5 w-[3px] rounded-full bg-brand-500"></span>' : ''}
                     <div class="h-full flex flex-col justify-center px-3.5">
                         <div class="flex items-center justify-between gap-2">
-                            <h4 class="flex-1 min-w-0 text-[14.5px] font-semibold leading-[20px] tracking-[-0.01em] truncate ${isSelected ? 'text-brand-700' : 'text-slate-800'}">${escapeHtml(d.title || '无标题')}</h4>
+                            <h4 class="doc-title flex-1 min-w-0 font-semibold tracking-[-0.01em] ${isSelected ? 'text-brand-700' : 'text-slate-800'}">${escapeHtml(d.title || '无标题')}</h4>
                             <span class="flex-shrink-0 text-[11px] leading-none tabular-nums ${isSelected ? 'text-brand-400' : 'text-slate-400'}">${dateStr}</span>
                         </div>
-                        <p class="doc-summary mt-1.5 text-[12.5px] leading-[18px] text-slate-500 line-clamp-2 overflow-hidden">${summaryHtml}</p>
+                        <p class="doc-summary mt-1.5 text-slate-500 line-clamp-2 overflow-hidden">${summaryHtml}</p>
                         <div class="doc-meta mt-2 flex items-center gap-1.5 overflow-hidden">
                             <span class="inline-block px-2 py-[1px] rounded-md bg-slate-100 text-slate-600 text-[12px] font-medium leading-[16px] truncate max-w-[120px] flex-shrink">${escapeHtml(catName)}</span>
                             ${d.code ? `<span class="inline-block px-2 py-[1px] rounded-md bg-slate-100 text-slate-500 text-[12px] font-mono leading-[16px] tracking-tight flex-shrink-0">${escapeHtml(d.code)}</span>` : ''}
@@ -507,7 +507,7 @@
             const card = document.querySelector('#docList [data-doc-id] .doc-card');
             if (!card) return;
             const scale = Math.min(Math.max(Number(window.__CHUNMU_TEXT_SCALE__) || 1, 1), 1.2);
-            const base = Math.round(116 * scale);
+            const base = Math.round(136 * scale);
             const measured = Math.ceil(card.getBoundingClientRect().height) + 12; // 上下各 6px 内边距
             const target = Math.max(base, measured);
             if (Math.abs(target - virtualList.itemHeight) > 1) {
@@ -525,7 +525,7 @@
             const scale = Math.min(Math.max(Number(ts) || 1, 1), 1.2);
             window.__CHUNMU_TEXT_SCALE__ = scale;
             document.documentElement.style.setProperty('--tscale', scale);
-            virtualList.itemHeight = Math.round(116 * scale);
+            virtualList.itemHeight = Math.round(136 * scale);
             if (virtualList.spacer) {
                 virtualList.spacer.innerHTML = '';
                 virtualList.nodes.clear();
