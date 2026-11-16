@@ -162,6 +162,28 @@
         }
         function hideAuth() { document.getElementById('authOverlay').classList.add('hidden'); }
 
+        /* ==================== 只读模式 ==================== */
+        // 令牌只有读权限时不显示任何写操作入口
+        window.appReadOnly = false;
+
+        function setReadOnlyMode(on) {
+            window.appReadOnly = !!on;
+            try { localStorage.setItem('kb_readonly', on ? '1' : '0'); } catch (e) {}
+            document.body.classList.toggle('is-readonly', window.appReadOnly);
+            ['newDocBtn', 'editDocBtn', 'deleteDocBtn', 'togglePinBtn'].forEach(function (id) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.toggle('hidden', window.appReadOnly);
+            });
+            const badge = document.getElementById('readOnlyBadge');
+            if (badge) {
+                badge.classList.toggle('hidden', !window.appReadOnly);
+                badge.classList.toggle('flex', window.appReadOnly);
+            }
+        }
+        window.setReadOnlyMode = setReadOnlyMode;
+        window.isReadOnly = function () { return !!window.appReadOnly; };
+
         function showApp() {
             document.getElementById('appShell').classList.remove('hidden');
             requestAnimationFrame(() => {
