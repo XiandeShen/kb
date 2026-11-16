@@ -128,7 +128,6 @@
 
 
 document.getElementById('newDocBtn').onclick = async () => {
-                if (window.isReadOnly && window.isReadOnly()) { showToast('当前为只读访问，无法新建', 'error'); return; }
                 // 若当前正处于编辑中，先作废该会话并清理已上传但未保存的文件，避免遗留孤儿文件
                 if (isEditing) await discardEditSessionUploads(true);
                 else beginEditSession();
@@ -166,7 +165,6 @@ document.getElementById('newDocBtn').onclick = async () => {
             };
 
             document.getElementById('editDocBtn').onclick = async () => {
-                if (window.isReadOnly && window.isReadOnly()) { showToast('当前为只读访问，无法编辑', 'error'); return; }
                 const doc = docs.find(d => d.id === currentDocId);
                 if (!doc) return;
                 beginEditSession();
@@ -246,7 +244,6 @@ window.updatePinButton = updatePinButton;
 
 const togglePinBtn = document.getElementById('togglePinBtn');
 if (togglePinBtn) togglePinBtn.onclick = async () => {
-    if (window.isReadOnly && window.isReadOnly()) { showToast('当前为只读访问，无法置顶', 'error'); return; }
     const doc = docs.find(d => d.id === currentDocId);
     if (!doc) return;
     const nextPinned = !doc.urgent;
@@ -281,7 +278,6 @@ document.getElementById('cancelEditBtn').onclick = handleCancelEdit;
 
             document.getElementById('saveDocBtn').onclick = async () => {
                 if (isSavingDoc) return;
-                if (window.isReadOnly && window.isReadOnly()) { showToast('当前为只读访问，无法保存', 'error'); return; }
                 const title = document.getElementById('editTitleInput').value.trim() || '未命名文章';
                 const category = document.getElementById('editCategoryInput').value.trim() || '通用';
                 const tagsStr = document.getElementById('editTagsInput').value.trim();

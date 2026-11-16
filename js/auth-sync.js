@@ -220,30 +220,7 @@
 
         // 脚本位于 body 末尾，DOM 已就绪，直接启动；不再依赖 window.load，
         // 避免外部字体/CDN 请求卡住时页面一直停在“正在加载知识库”
-        try {
-            if (localStorage.getItem('kb_readonly') === '1' && typeof window.setReadOnlyMode === 'function') {
-                window.setReadOnlyMode(true);
-            }
-        } catch (e) {}
         bootApp();
-
-        /** 探测当前令牌对该仓库是否有写权限；判断不了时保持可写，避免误锁 */
-        async function detectWriteAccess() {
-            if (!githubConfig.token || !githubConfig.repo) return true;
-            try {
-                const res = await fetch(`https://api.github.com/repos/${githubConfig.repo}`, {
-                    headers: { 'Authorization': `Bearer ${githubConfig.token}`, 'Accept': 'application/vnd.github+json' }
-                });
-                if (!res.ok) return true;
-                const data = await res.json();
-                const canWrite = !!(data.permissions && data.permissions.push);
-                if (typeof window.setReadOnlyMode === 'function') window.setReadOnlyMode(!canWrite);
-                return canWrite;
-            } catch (e) {
-                return true;
-            }
-        }
-        window.detectWriteAccess = detectWriteAccess;
 
         async function pullFromGithub() {
             if (!githubConfig.token || !githubConfig.repo) {
@@ -291,7 +268,6 @@
                 }
 
                 githubConfig.sha = sha;
-                detectWriteAccess();
                 // 重新同步后本地缓存可能已过期，清空正文与图片缓存
                 clearAllCaches();
                 let rawDocs = JSON.parse(text) || [];
