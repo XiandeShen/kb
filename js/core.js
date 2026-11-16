@@ -710,7 +710,7 @@
     function place(state, m) {
         state.hit.style.height = m.h + 'px';
         state.hit.style.top = Math.round(m.top) + 'px';
-        state.hit.style.right = '0px';
+        state.hit.style.right = Math.round(window.innerWidth - m.rect.right) + 'px';
     }
 
     function show(state) {
