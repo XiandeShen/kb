@@ -62,3 +62,40 @@
                 color: #94a3b8 !important;
             }
         }
+
+        /* ===== 置顶按钮：触屏不留 hover 残留 ===== */
+        .pin-btn {
+            color: #64748b;
+            background: transparent;
+            transition: color .15s ease, background-color .15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* 只有真正支持 hover 的设备（鼠标）才给高亮 */
+        @media (hover: hover) {
+            .pin-btn:hover { color: #2563eb; background-color: #f1f5f9; }
+        }
+        /* 置顶态固定为品牌色，不参与 hover 竞争 */
+        .pin-btn.is-pinned {
+            color: #2563eb;
+            background-color: #eff6ff;
+        }
+        @media (hover: hover) {
+            .pin-btn.is-pinned:hover { color: #2563eb; background-color: #eff6ff; }
+        }
+        /* 触屏：点击后立刻回到对应状态，不保留任何过渡残影 */
+        @media (hover: none) {
+            .pin-btn,
+            .pin-btn:hover,
+            .pin-btn:focus,
+            .pin-btn:active {
+                background-color: transparent;
+                color: #64748b;
+            }
+            .pin-btn.is-pinned,
+            .pin-btn.is-pinned:hover,
+            .pin-btn.is-pinned:focus,
+            .pin-btn.is-pinned:active {
+                background-color: #eff6ff;
+                color: #2563eb;
+            }
+        }
