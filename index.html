@@ -271,6 +271,9 @@
                         <i class="ri-arrow-left-line text-base"></i><span>返回</span>
                     </button>
                     <div class="absolute top-2 right-3 md:right-4 z-20 flex items-center gap-1">
+                        <button id="togglePinBtn" class="px-2.5 py-1.5 text-[13px] font-medium text-slate-500 hover:text-brand-600 hover:bg-slate-100/80 rounded-lg flex items-center space-x-1 transition" title="置顶该文档">
+                            <i id="togglePinIcon" class="ri-pushpin-line"></i><span id="togglePinText">置顶</span>
+                        </button>
                         <button id="editDocBtn" class="px-2.5 py-1.5 text-[13px] font-medium text-slate-500 hover:text-brand-600 hover:bg-slate-100/80 rounded-lg flex items-center space-x-1 transition">
                             <i class="ri-edit-line"></i><span>编辑</span>
                         </button>
@@ -338,12 +341,6 @@
                                     <div class="flex items-center gap-2">
                                         <input type="text" id="editTagsInput" placeholder="例如：甜虾 售后 质量说明"
                                             class="flex-1 min-w-0 px-3.5 py-2.5 text-[14px] rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800">
-                                        <label class="urgent-label flex items-center flex-shrink-0 self-stretch cursor-pointer select-none" title="标记为紧急通知">
-                                            <input type="checkbox" id="editUrgentInput" class="sr-only" aria-label="标记为紧急通知">
-                                            <span class="urgent-toggle flex h-full w-[42px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-400">
-                                                <i class="ri-alarm-warning-line text-[18px] pointer-events-none"></i>
-                                            </span>
-                                        </label>
                                     </div>
                                 </div>
                             </div>
