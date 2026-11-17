@@ -58,15 +58,8 @@
                 if (searchWrap && searchWrap.contains(e.target)) return;
                 closeMobileSearch(true);
             });
-            // 只在“从窄屏跨到宽屏”时收起搜索。
-            // 旧写法是只要宽度 >=640 就收起：手机浏览器开“电脑版”时宽度本就 >=640，
-            // 键盘一弹会触发 resize，于是刚聚焦就被 blur，键盘立刻消失。
-            let lastInnerWidth = window.innerWidth;
             window.addEventListener('resize', () => {
-                const w = window.innerWidth;
-                const crossedToWide = lastInnerWidth < 640 && w >= 640;
-                lastInnerWidth = w;
-                if (crossedToWide) closeMobileSearch(false);
+                if (window.innerWidth >= 640) closeMobileSearch(false);
             });
 
             let searchComposing = false;
